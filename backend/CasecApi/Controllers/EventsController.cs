@@ -29,6 +29,104 @@ public class EventsController : ControllerBase
         return int.TryParse(userIdClaim, out var userId) ? userId : 0;
     }
 
+    private async Task<bool> IsSystemAdmin(int userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        return user != null && user.IsAdmin;
+    }
+
+    private async Task<bool> IsClubAdmin(int userId, int clubId)
+    {
+        return await _context.ClubAdmins.AnyAsync(ca => ca.UserId == userId && ca.ClubId == clubId);
+    }
+
+    private async Task<bool> CanManageEvent(int userId, Event eventItem)
+    {
+        // System admins can manage any event
+        if (await IsSystemAdmin(userId))
+            return true;
+
+        // Club admins can manage events hosted by their club
+        if (eventItem.HostClubId.HasValue)
+            return await IsClubAdmin(userId, eventItem.HostClubId.Value);
+
+        return false;
+    }
+
+    // GET: api/Events/all (Admin only - includes all events)
+    [Authorize]
+    [HttpGet("all")]
+    public async Task<ActionResult<ApiResponse<List<EventDto>>>> GetAllEvents()
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var isAdmin = await IsSystemAdmin(currentUserId);
+
+            // Get clubs where user is admin
+            var adminClubIds = await _context.ClubAdmins
+                .Where(ca => ca.UserId == currentUserId)
+                .Select(ca => ca.ClubId)
+                .ToListAsync();
+
+            var query = _context.Events.AsQueryable();
+
+            // If not system admin, filter to only their club's events or CASEC events
+            if (!isAdmin)
+            {
+                query = query.Where(e =>
+                    e.HostClubId == null || // CASEC events (no host club)
+                    (e.HostClubId.HasValue && adminClubIds.Contains(e.HostClubId.Value))); // Their club's events
+            }
+
+            var events = await query
+                .OrderByDescending(e => e.EventDate)
+                .Select(e => new EventDto
+                {
+                    EventId = e.EventId,
+                    Title = e.Title,
+                    Description = e.Description,
+                    EventDate = e.EventDate,
+                    Location = e.Location,
+                    EventType = e.EventType,
+                    EventCategory = e.EventCategory,
+                    EventScope = e.EventScope,
+                    HostClubId = e.HostClubId,
+                    HostClubName = e.HostClub != null ? e.HostClub.Name : null,
+                    HostClubAvatar = e.HostClub != null ? e.HostClub.AvatarUrl : null,
+                    PartnerName = e.PartnerName,
+                    PartnerLogo = e.PartnerLogo,
+                    PartnerWebsite = e.PartnerWebsite,
+                    RegistrationUrl = e.RegistrationUrl,
+                    EventFee = e.EventFee,
+                    MaxCapacity = e.MaxCapacity,
+                    IsRegistrationRequired = e.IsRegistrationRequired,
+                    IsFeatured = e.IsFeatured,
+                    TotalRegistrations = _context.EventRegistrations.Count(er => er.EventId == e.EventId),
+                    SpotsRemaining = e.MaxCapacity - _context.EventRegistrations.Count(er => er.EventId == e.EventId),
+                    IsUserRegistered = currentUserId > 0 &&
+                        _context.EventRegistrations.Any(er => er.EventId == e.EventId && er.UserId == currentUserId),
+                    CreatedAt = e.CreatedAt
+                })
+                .ToListAsync();
+
+            return Ok(new ApiResponse<List<EventDto>>
+            {
+                Success = true,
+                Data = events
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching all events");
+            return StatusCode(500, new ApiResponse<List<EventDto>>
+            {
+                Success = false,
+                Message = "An error occurred while fetching events"
+            });
+        }
+    }
+
     // GET: api/Events
     [AllowAnonymous]
     [HttpGet]
@@ -175,13 +273,32 @@ public class EventsController : ControllerBase
         }
     }
 
-    // POST: api/Events (Admin only)
-    [Authorize(Roles = "Admin")]
+    // POST: api/Events (Admin or Club Admin)
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult<ApiResponse<EventDto>>> CreateEvent([FromBody] CreateEventRequest request)
     {
         try
         {
+            var currentUserId = GetCurrentUserId();
+            var isAdmin = await IsSystemAdmin(currentUserId);
+
+            // Check permissions: System admins can create any event
+            // Club admins can only create events for their clubs
+            if (!isAdmin)
+            {
+                if (!request.HostClubId.HasValue)
+                {
+                    return Forbid(); // Only system admins can create CASEC-wide events
+                }
+
+                var isClubAdminUser = await IsClubAdmin(currentUserId, request.HostClubId.Value);
+                if (!isClubAdminUser)
+                {
+                    return Forbid(); // Must be admin of the host club
+                }
+            }
+
             var eventItem = new Event
             {
                 Title = request.Title,
@@ -206,7 +323,6 @@ public class EventsController : ControllerBase
             await _context.SaveChangesAsync();
 
             // Log activity
-            var currentUserId = GetCurrentUserId();
             var log = new ActivityLog
             {
                 UserId = currentUserId,
@@ -234,13 +350,14 @@ public class EventsController : ControllerBase
         }
     }
 
-    // PUT: api/Events/{id} (Admin only)
-    [Authorize(Roles = "Admin")]
+    // PUT: api/Events/{id} (Admin or Club Admin)
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<ActionResult<ApiResponse<object>>> UpdateEvent(int id, [FromBody] UpdateEventRequest request)
     {
         try
         {
+            var currentUserId = GetCurrentUserId();
             var eventItem = await _context.Events.FindAsync(id);
 
             if (eventItem == null)
@@ -252,12 +369,19 @@ public class EventsController : ControllerBase
                 });
             }
 
+            // Check permissions
+            if (!await CanManageEvent(currentUserId, eventItem))
+            {
+                return Forbid();
+            }
+
             eventItem.Title = request.Title ?? eventItem.Title;
             eventItem.Description = request.Description ?? eventItem.Description;
             eventItem.EventDate = request.EventDate ?? eventItem.EventDate;
             eventItem.Location = request.Location ?? eventItem.Location;
             eventItem.EventType = request.EventType ?? eventItem.EventType;
             eventItem.EventCategory = request.EventCategory;
+            eventItem.EventScope = request.EventScope ?? eventItem.EventScope;
             eventItem.PartnerName = request.PartnerName;
             eventItem.PartnerLogo = request.PartnerLogo;
             eventItem.PartnerWebsite = request.PartnerWebsite;
@@ -267,10 +391,15 @@ public class EventsController : ControllerBase
             eventItem.IsRegistrationRequired = request.IsRegistrationRequired ?? eventItem.IsRegistrationRequired;
             eventItem.IsFeatured = request.IsFeatured ?? eventItem.IsFeatured;
 
+            // Only system admins can change the host club
+            if (request.HostClubId.HasValue && await IsSystemAdmin(currentUserId))
+            {
+                eventItem.HostClubId = request.HostClubId;
+            }
+
             await _context.SaveChangesAsync();
 
             // Log activity
-            var currentUserId = GetCurrentUserId();
             var log = new ActivityLog
             {
                 UserId = currentUserId,
@@ -293,6 +422,68 @@ public class EventsController : ControllerBase
             {
                 Success = false,
                 Message = "An error occurred while updating event"
+            });
+        }
+    }
+
+    // DELETE: api/Events/{id} (Admin or Club Admin)
+    [Authorize]
+    [HttpDelete("{id}")]
+    public async Task<ActionResult<ApiResponse<object>>> DeleteEvent(int id)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var eventItem = await _context.Events.FindAsync(id);
+
+            if (eventItem == null)
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Event not found"
+                });
+            }
+
+            // Check permissions
+            if (!await CanManageEvent(currentUserId, eventItem))
+            {
+                return Forbid();
+            }
+
+            // Delete event registrations first
+            var registrations = await _context.EventRegistrations
+                .Where(er => er.EventId == id)
+                .ToListAsync();
+            _context.EventRegistrations.RemoveRange(registrations);
+
+            // Delete the event
+            _context.Events.Remove(eventItem);
+            await _context.SaveChangesAsync();
+
+            // Log activity
+            var log = new ActivityLog
+            {
+                UserId = currentUserId,
+                ActivityType = "EventDeleted",
+                Description = $"Deleted event: {eventItem.Title}"
+            };
+            _context.ActivityLogs.Add(log);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Event deleted successfully"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting event");
+            return StatusCode(500, new ApiResponse<object>
+            {
+                Success = false,
+                Message = "An error occurred while deleting event"
             });
         }
     }

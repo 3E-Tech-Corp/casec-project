@@ -76,9 +76,12 @@ export const clubsAPI = {
 
 // Events APIs
 export const eventsAPI = {
-  getAll: () => api.get('/events'),
+  getAll: (params) => api.get('/events', { params }),
+  getAllAdmin: () => api.get('/events/all'),
   getById: (id) => api.get(`/events/${id}`),
   getMyEvents: () => api.get('/events/my-events'),
+  getTypes: () => api.get('/events/types'),
+  getCategories: () => api.get('/events/categories'),
   create: (data) => api.post('/events', data),
   update: (id, data) => api.put(`/events/${id}`, data),
   delete: (id) => api.delete(`/events/${id}`),
