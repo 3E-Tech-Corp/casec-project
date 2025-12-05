@@ -1,0 +1,673 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using CasecApi.Data;
+using UserEntity = CasecApi.Models.User;
+using CasecApi.Models;
+using CasecApi.Models.DTOs;
+
+namespace CasecApi.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ClubsController : ControllerBase
+{
+    private readonly CasecDbContext _context;
+    private readonly IWebHostEnvironment _environment;
+    private readonly ILogger<ClubsController> _logger;
+
+    public ClubsController(CasecDbContext context, IWebHostEnvironment environment, ILogger<ClubsController> logger)
+    {
+        _context = context;
+        _environment = environment;
+        _logger = logger;
+    }
+
+    private int GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
+    }
+
+    private async Task<bool> IsClubAdmin(int userId, int clubId)
+    {
+        return await _context.ClubAdmins.AnyAsync(ca => ca.UserId == userId && ca.ClubId == clubId);
+    }
+
+    private async Task<bool> IsSystemAdmin(int userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        return user != null && user.IsAdmin;
+    }
+
+    // GET: api/Clubs
+    [AllowAnonymous]
+    [HttpGet]
+    public async Task<ActionResult<ApiResponse<List<ClubDetailDto>>>> GetClubs()
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            
+            var clubs = await _context.Clubs
+                .Where(club => club.IsActive)
+                .ToListAsync();
+
+            var clubDtos = new List<ClubDetailDto>();
+            
+            foreach (var club in clubs)
+            {
+                var totalMembers = await _context.ClubMemberships
+                    .Where(cm => cm.ClubId == club.ClubId)
+                    .CountAsync();
+                
+                var admins = await _context.ClubAdmins
+                    .Where(ca => ca.ClubId == club.ClubId)
+                    .Include(ca => ca.User)
+                    .Select(ca => new ClubAdminDto
+                    {
+                        UserId = ca.User!.UserId,
+                        UserName = ca.User.FirstName + " " + ca.User.LastName,
+                        Email = ca.User.Email,
+                        AvatarUrl = ca.User.AvatarUrl,
+                        AssignedDate = ca.AssignedDate
+                    })
+                    .ToListAsync();
+                
+                var isUserMember = currentUserId > 0 && 
+                    await _context.ClubMemberships.AnyAsync(cm => cm.ClubId == club.ClubId && cm.UserId == currentUserId);
+                
+                var isUserAdmin = currentUserId > 0 && 
+                    await _context.ClubAdmins.AnyAsync(ca => ca.ClubId == club.ClubId && ca.UserId == currentUserId);
+
+                clubDtos.Add(new ClubDetailDto
+                {
+                    ClubId = club.ClubId,
+                    Name = club.Name,
+                    Description = club.Description,
+                    AvatarUrl = club.AvatarUrl,
+                    FoundedDate = club.FoundedDate,
+                    MeetingSchedule = club.MeetingSchedule,
+                    ContactEmail = club.ContactEmail,
+                    IsActive = club.IsActive,
+                    TotalMembers = totalMembers,
+                    Admins = admins,
+                    IsUserMember = isUserMember,
+                    IsUserAdmin = isUserAdmin,
+                    CreatedAt = club.CreatedAt
+                });
+            }
+
+            return Ok(new ApiResponse<List<ClubDetailDto>>
+            {
+                Success = true,
+                Data = clubDtos
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching clubs");
+            return StatusCode(500, new ApiResponse<List<ClubDetailDto>>
+            {
+                Success = false,
+                Message = "An error occurred while fetching clubs"
+            });
+        }
+    }
+
+    // GET: api/Clubs/{id}
+    [AllowAnonymous]
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ApiResponse<ClubDetailDto>>> GetClub(int id)
+    {
+        try
+        {
+            var club = await _context.Clubs.FindAsync(id);
+            if (club == null)
+            {
+                return NotFound(new ApiResponse<ClubDetailDto>
+                {
+                    Success = false,
+                    Message = "Club not found"
+                });
+            }
+
+            var currentUserId = GetCurrentUserId();
+            
+            var totalMembers = await _context.ClubMemberships
+                .Where(cm => cm.ClubId == club.ClubId)
+                .CountAsync();
+            
+            var admins = await _context.ClubAdmins
+                .Where(ca => ca.ClubId == club.ClubId)
+                .Include(ca => ca.User)
+                .Select(ca => new ClubAdminDto
+                {
+                    UserId = ca.User!.UserId,
+                    UserName = ca.User.FirstName + " " + ca.User.LastName,
+                    Email = ca.User.Email,
+                    AvatarUrl = ca.User.AvatarUrl,
+                    AssignedDate = ca.AssignedDate
+                })
+                .ToListAsync();
+            
+            var isUserMember = currentUserId > 0 && 
+                await _context.ClubMemberships.AnyAsync(cm => cm.ClubId == club.ClubId && cm.UserId == currentUserId);
+            
+            var isUserAdmin = currentUserId > 0 && 
+                await _context.ClubAdmins.AnyAsync(ca => ca.ClubId == club.ClubId && ca.UserId == currentUserId);
+
+            var clubDto = new ClubDetailDto
+            {
+                ClubId = club.ClubId,
+                Name = club.Name,
+                Description = club.Description,
+                AvatarUrl = club.AvatarUrl,
+                FoundedDate = club.FoundedDate,
+                MeetingSchedule = club.MeetingSchedule,
+                ContactEmail = club.ContactEmail,
+                IsActive = club.IsActive,
+                TotalMembers = totalMembers,
+                Admins = admins,
+                IsUserMember = isUserMember,
+                IsUserAdmin = isUserAdmin,
+                CreatedAt = club.CreatedAt
+            };
+
+            return Ok(new ApiResponse<ClubDetailDto>
+            {
+                Success = true,
+                Data = clubDto
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching club");
+            return StatusCode(500, new ApiResponse<ClubDetailDto>
+            {
+                Success = false,
+                Message = "An error occurred while fetching club"
+            });
+        }
+    }
+
+    // POST: api/Clubs (Admin only)
+    [Authorize(Roles = "Admin")]
+    [HttpPost]
+    public async Task<ActionResult<ApiResponse<ClubDetailDto>>> CreateClub([FromBody] CreateClubRequest request)
+    {
+        try
+        {
+            var club = new Club
+            {
+                Name = request.Name,
+                Description = request.Description,
+                FoundedDate = request.FoundedDate,
+                MeetingSchedule = request.MeetingSchedule,
+                ContactEmail = request.ContactEmail,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Clubs.Add(club);
+            await _context.SaveChangesAsync();
+
+            // Log activity
+            var currentUserId = GetCurrentUserId();
+            var log = new ActivityLog
+            {
+                UserId = currentUserId,
+                ActivityType = "ClubCreated",
+                Description = $"Created club: {club.Name}"
+            };
+            _context.ActivityLogs.Add(log);
+            await _context.SaveChangesAsync();
+
+            var clubDto = new ClubDetailDto
+            {
+                ClubId = club.ClubId,
+                Name = club.Name,
+                Description = club.Description,
+                AvatarUrl = club.AvatarUrl,
+                FoundedDate = club.FoundedDate,
+                MeetingSchedule = club.MeetingSchedule,
+                ContactEmail = club.ContactEmail,
+                IsActive = club.IsActive,
+                TotalMembers = 0,
+                Admins = new List<ClubAdminDto>(),
+                IsUserMember = false,
+                IsUserAdmin = false,
+                CreatedAt = club.CreatedAt
+            };
+
+            return Ok(new ApiResponse<ClubDetailDto>
+            {
+                Success = true,
+                Message = "Club created successfully",
+                Data = clubDto
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating club");
+            return StatusCode(500, new ApiResponse<ClubDetailDto>
+            {
+                Success = false,
+                Message = "An error occurred while creating club"
+            });
+        }
+    }
+
+    // PUT: api/Clubs/{id} (Admin or Club Admin)
+    [Authorize]
+    [HttpPut("{id}")]
+    public async Task<ActionResult<ApiResponse<ClubDetailDto>>> UpdateClub(int id, [FromBody] UpdateClubRequest request)
+    {
+        try
+        {
+            var club = await _context.Clubs.FindAsync(id);
+            if (club == null)
+            {
+                return NotFound(new ApiResponse<ClubDetailDto>
+                {
+                    Success = false,
+                    Message = "Club not found"
+                });
+            }
+
+            var currentUserId = GetCurrentUserId();
+            var isSystemAdminUser = await IsSystemAdmin(currentUserId);
+            var isClubAdminUser = await IsClubAdmin(currentUserId, id);
+
+            if (!isSystemAdminUser && !isClubAdminUser)
+            {
+                return Forbid();
+            }
+
+            // Update fields
+            if (!string.IsNullOrEmpty(request.Name))
+                club.Name = request.Name;
+            
+            if (request.Description != null)
+                club.Description = request.Description;
+            
+            if (request.FoundedDate.HasValue)
+                club.FoundedDate = request.FoundedDate;
+            
+            if (request.MeetingSchedule != null)
+                club.MeetingSchedule = request.MeetingSchedule;
+            
+            if (request.ContactEmail != null)
+                club.ContactEmail = request.ContactEmail;
+
+            // Only system admin can change IsActive
+            if (request.IsActive.HasValue && isSystemAdminUser)
+                club.IsActive = request.IsActive.Value;
+
+            await _context.SaveChangesAsync();
+
+            // Log activity
+            var log = new ActivityLog
+            {
+                UserId = currentUserId,
+                ActivityType = "ClubUpdated",
+                Description = $"Updated club: {club.Name}"
+            };
+            _context.ActivityLogs.Add(log);
+            await _context.SaveChangesAsync();
+
+            var totalMembers = await _context.ClubMemberships
+                .Where(cm => cm.ClubId == club.ClubId)
+                .CountAsync();
+            
+            var admins = await _context.ClubAdmins
+                .Where(ca => ca.ClubId == club.ClubId)
+                .Include(ca => ca.User)
+                .Select(ca => new ClubAdminDto
+                {
+                    UserId = ca.User!.UserId,
+                    UserName = ca.User.FirstName + " " + ca.User.LastName,
+                    Email = ca.User.Email,
+                    AvatarUrl = ca.User.AvatarUrl,
+                    AssignedDate = ca.AssignedDate
+                })
+                .ToListAsync();
+
+            var clubDto = new ClubDetailDto
+            {
+                ClubId = club.ClubId,
+                Name = club.Name,
+                Description = club.Description,
+                AvatarUrl = club.AvatarUrl,
+                FoundedDate = club.FoundedDate,
+                MeetingSchedule = club.MeetingSchedule,
+                ContactEmail = club.ContactEmail,
+                IsActive = club.IsActive,
+                TotalMembers = totalMembers,
+                Admins = admins,
+                IsUserMember = await _context.ClubMemberships.AnyAsync(cm => cm.ClubId == club.ClubId && cm.UserId == currentUserId),
+                IsUserAdmin = await _context.ClubAdmins.AnyAsync(ca => ca.ClubId == club.ClubId && ca.UserId == currentUserId),
+                CreatedAt = club.CreatedAt
+            };
+
+            return Ok(new ApiResponse<ClubDetailDto>
+            {
+                Success = true,
+                Message = "Club updated successfully",
+                Data = clubDto
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating club");
+            return StatusCode(500, new ApiResponse<ClubDetailDto>
+            {
+                Success = false,
+                Message = "An error occurred while updating club"
+            });
+        }
+    }
+
+    // POST: api/Clubs/{id}/avatar (Admin or Club Admin)
+    [Authorize]
+    [HttpPost("{id}/avatar")]
+    public async Task<ActionResult<ApiResponse<UploadResponse>>> UploadClubAvatar(int id, IFormFile file)
+    {
+        try
+        {
+            var club = await _context.Clubs.FindAsync(id);
+            if (club == null)
+            {
+                return NotFound(new ApiResponse<UploadResponse>
+                {
+                    Success = false,
+                    Message = "Club not found"
+                });
+            }
+
+            var currentUserId = GetCurrentUserId();
+            var isSystemAdminUser = await IsSystemAdmin(currentUserId);
+            var isClubAdminUser = await IsClubAdmin(currentUserId, id);
+
+            if (!isSystemAdminUser && !isClubAdminUser)
+            {
+                return Forbid();
+            }
+
+            // Validate file
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            
+            if (!allowedExtensions.Contains(extension))
+            {
+                return BadRequest(new ApiResponse<UploadResponse>
+                {
+                    Success = false,
+                    Message = "Invalid file type. Only JPG, PNG, GIF, and WEBP are allowed."
+                });
+            }
+
+            if (file.Length > 5 * 1024 * 1024) // 5MB
+            {
+                return BadRequest(new ApiResponse<UploadResponse>
+                {
+                    Success = false,
+                    Message = "File size must be less than 5MB"
+                });
+            }
+
+            // Create uploads directory
+            var uploadsPath = Path.Combine(_environment.WebRootPath ?? "wwwroot", "uploads", "clubs");
+            Directory.CreateDirectory(uploadsPath);
+
+            // Delete old avatar if exists
+            if (!string.IsNullOrEmpty(club.AvatarUrl))
+            {
+                var oldFilePath = Path.Combine(_environment.WebRootPath ?? "wwwroot", club.AvatarUrl.TrimStart('/'));
+                if (System.IO.File.Exists(oldFilePath))
+                {
+                    System.IO.File.Delete(oldFilePath);
+                }
+            }
+
+            // Save new avatar
+            var fileName = $"club_{club.ClubId}_{Guid.NewGuid()}{extension}";
+            var filePath = Path.Combine(uploadsPath, fileName);
+            
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            club.AvatarUrl = $"/uploads/clubs/{fileName}";
+            await _context.SaveChangesAsync();
+
+            // Log activity
+            var log = new ActivityLog
+            {
+                UserId = currentUserId,
+                ActivityType = "ClubAvatarUpdated",
+                Description = $"Updated avatar for club: {club.Name}"
+            };
+            _context.ActivityLogs.Add(log);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<UploadResponse>
+            {
+                Success = true,
+                Message = "Avatar uploaded successfully",
+                Data = new UploadResponse { Url = club.AvatarUrl }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading club avatar");
+            return StatusCode(500, new ApiResponse<UploadResponse>
+            {
+                Success = false,
+                Message = "An error occurred while uploading avatar"
+            });
+        }
+    }
+
+    // POST: api/Clubs/{id}/admins (System Admin only)
+    [Authorize(Roles = "Admin")]
+    [HttpPost("{id}/admins")]
+    public async Task<ActionResult<ApiResponse<string>>> AssignClubAdmin(int id, [FromBody] AssignClubAdminRequest request)
+    {
+        try
+        {
+            var club = await _context.Clubs.FindAsync(id);
+            if (club == null)
+            {
+                return NotFound(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "Club not found"
+                });
+            }
+
+            var user = await _context.Users.FindAsync(request.UserId);
+            if (user == null)
+            {
+                return NotFound(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
+            }
+
+            // Check if already admin
+            var existingAdmin = await _context.ClubAdmins
+                .FirstOrDefaultAsync(ca => ca.ClubId == id && ca.UserId == request.UserId);
+            
+            if (existingAdmin != null)
+            {
+                return BadRequest(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "User is already a club admin"
+                });
+            }
+
+            // Check if user is a member
+            var isMember = await _context.ClubMemberships
+                .AnyAsync(cm => cm.ClubId == id && cm.UserId == request.UserId);
+            
+            if (!isMember)
+            {
+                return BadRequest(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "User must be a club member before being assigned as admin"
+                });
+            }
+
+            var currentUserId = GetCurrentUserId();
+            var clubAdmin = new ClubAdmin
+            {
+                ClubId = id,
+                UserId = request.UserId,
+                AssignedDate = DateTime.UtcNow,
+                AssignedBy = currentUserId
+            };
+
+            _context.ClubAdmins.Add(clubAdmin);
+            await _context.SaveChangesAsync();
+
+            // Log activity
+            var log = new ActivityLog
+            {
+                UserId = currentUserId,
+                ActivityType = "ClubAdminAssigned",
+                Description = $"Assigned {user.FirstName} {user.LastName} as admin of {club.Name}"
+            };
+            _context.ActivityLogs.Add(log);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<string>
+            {
+                Success = true,
+                Message = "Club admin assigned successfully"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error assigning club admin");
+            return StatusCode(500, new ApiResponse<string>
+            {
+                Success = false,
+                Message = "An error occurred while assigning club admin"
+            });
+        }
+    }
+
+    // DELETE: api/Clubs/{id}/admins/{userId} (System Admin only)
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("{id}/admins/{userId}")]
+    public async Task<ActionResult<ApiResponse<string>>> RemoveClubAdmin(int id, int userId)
+    {
+        try
+        {
+            var clubAdmin = await _context.ClubAdmins
+                .FirstOrDefaultAsync(ca => ca.ClubId == id && ca.UserId == userId);
+            
+            if (clubAdmin == null)
+            {
+                return NotFound(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "Club admin assignment not found"
+                });
+            }
+
+            _context.ClubAdmins.Remove(clubAdmin);
+            await _context.SaveChangesAsync();
+
+            // Log activity
+            var currentUserId = GetCurrentUserId();
+            var log = new ActivityLog
+            {
+                UserId = currentUserId,
+                ActivityType = "ClubAdminRemoved",
+                Description = $"Removed club admin (UserId: {userId}) from club (ClubId: {id})"
+            };
+            _context.ActivityLogs.Add(log);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<string>
+            {
+                Success = true,
+                Message = "Club admin removed successfully"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing club admin");
+            return StatusCode(500, new ApiResponse<string>
+            {
+                Success = false,
+                Message = "An error occurred while removing club admin"
+            });
+        }
+    }
+
+    // GET: api/Clubs/{id}/events
+    [AllowAnonymous]
+    [HttpGet("{id}/events")]
+    public async Task<ActionResult<ApiResponse<List<EventDto>>>> GetClubEvents(int id)
+    {
+        try
+        {
+            var club = await _context.Clubs.FindAsync(id);
+            if (club == null)
+            {
+                return NotFound(new ApiResponse<List<EventDto>>
+                {
+                    Success = false,
+                    Message = "Club not found"
+                });
+            }
+
+            var events = await _context.Events
+                .Where(e => e.HostClubId == id)
+                .OrderBy(e => e.EventDate)
+                .Select(e => new EventDto
+                {
+                    EventId = e.EventId,
+                    Title = e.Title,
+                    Description = e.Description,
+                    EventDate = e.EventDate,
+                    Location = e.Location,
+                    EventType = e.EventType,
+                    EventCategory = e.EventCategory,
+                    EventScope = e.EventScope,
+                    HostClubId = e.HostClubId,
+                    HostClubName = e.HostClub != null ? e.HostClub.Name : null,
+                    HostClubAvatar = e.HostClub != null ? e.HostClub.AvatarUrl : null,
+                    RegistrationUrl = e.RegistrationUrl,
+                    EventFee = e.EventFee,
+                    MaxCapacity = e.MaxCapacity,
+                    IsFeatured = e.IsFeatured,
+                    CreatedAt = e.CreatedAt
+                })
+                .ToListAsync();
+
+            return Ok(new ApiResponse<List<EventDto>>
+            {
+                Success = true,
+                Data = events
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching club events");
+            return StatusCode(500, new ApiResponse<List<EventDto>>
+            {
+                Success = false,
+                Message = "An error occurred while fetching club events"
+            });
+        }
+    }
+}
