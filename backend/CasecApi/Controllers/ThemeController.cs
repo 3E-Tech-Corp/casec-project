@@ -85,11 +85,8 @@ public class ThemeController : ControllerBase
 
             if (theme == null)
             {
-                return NotFound(new ApiResponse<ThemeSettingsDto>
-                {
-                    Success = false,
-                    Message = "Theme not found"
-                });
+                // Create default theme if none exists
+                theme = await CreateDefaultThemeAsync();
             }
 
             var themeDto = MapToDto(theme);
@@ -125,11 +122,8 @@ public class ThemeController : ControllerBase
 
             if (theme == null)
             {
-                return NotFound(new ApiResponse<ThemeSettingsDto>
-                {
-                    Success = false,
-                    Message = "Theme not found"
-                });
+                // Create default theme if none exists
+                theme = await CreateDefaultThemeAsync();
             }
 
             var currentUserId = GetCurrentUserId();
@@ -486,11 +480,8 @@ public class ThemeController : ControllerBase
 
             if (theme == null)
             {
-                return NotFound(new ApiResponse<ThemeSettingsDto>
-                {
-                    Success = false,
-                    Message = "Theme not found"
-                });
+                // Create default theme if none exists
+                theme = await CreateDefaultThemeAsync();
             }
 
             var currentUserId = GetCurrentUserId();
@@ -554,6 +545,41 @@ public class ThemeController : ControllerBase
     }
 
     // Helper methods
+    private async Task<ThemeSettings> CreateDefaultThemeAsync()
+    {
+        var defaultTheme = new ThemeSettings
+        {
+            OrganizationName = "CASEC",
+            PrimaryColor = "#047857",
+            PrimaryDarkColor = "#065f46",
+            PrimaryLightColor = "#d1fae5",
+            AccentColor = "#f59e0b",
+            AccentDarkColor = "#d97706",
+            AccentLightColor = "#fef3c7",
+            SuccessColor = "#10b981",
+            ErrorColor = "#ef4444",
+            WarningColor = "#f59e0b",
+            InfoColor = "#3b82f6",
+            TextPrimaryColor = "#111827",
+            TextSecondaryColor = "#6b7280",
+            TextLightColor = "#f9fafb",
+            BackgroundColor = "#ffffff",
+            BackgroundSecondaryColor = "#f3f4f6",
+            BorderColor = "#e5e7eb",
+            ShadowColor = "#00000026",
+            FontFamily = "Inter, system-ui, sans-serif",
+            HeadingFontFamily = "Playfair Display, serif",
+            IsActive = true,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.ThemeSettings.Add(defaultTheme);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Created default theme settings");
+        return defaultTheme;
+    }
+
     private ThemeSettingsDto MapToDto(ThemeSettings theme)
     {
         return new ThemeSettingsDto
