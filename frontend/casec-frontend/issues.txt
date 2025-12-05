@@ -1,0 +1,8 @@
+PS F:\GIT_Local\CASEC\frontend\casec-frontend> npm run dev
+
+> casec-frontend@1.0.0 dev
+> vite
+
+'vite' is not recognized as an internal or external command,
+operable program or batch file.
+PS F:\GIT_Local\CASEC\frontend\casec-frontend>
