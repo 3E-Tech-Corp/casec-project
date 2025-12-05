@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Clubs from './pages/Clubs';
 import Events from './pages/Events';
 import Profile from './pages/Profile';
+import EnhancedProfile from './pages/EnhancedProfile';
 import Payment from './pages/Payment';
 import AdminUsers from './pages/admin/Users';
 import AdminMembershipTypes from './pages/admin/MembershipTypes';
@@ -44,7 +45,7 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="clubs" element={<Clubs />} />
           <Route path="events" element={<Events />} />
-          <Route path="profile" element={<Profile />} />
+          <Route path="profile" element={<EnhancedProfile />} />
           <Route path="payment" element={<Payment />} />
           
           {/* Admin Routes */}

@@ -51,7 +51,7 @@ builder.Services.AddCors(options =>
     
     options.AddPolicy("Production", policy =>
     {
-        policy.WithOrigins("https://yourdomain.com", "https://www.yourdomain.com")
+        policy.WithOrigins("https://localhost:3000", "https://www.yourdomain.com")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
