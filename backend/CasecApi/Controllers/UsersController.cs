@@ -500,8 +500,7 @@ public class UsersController : ControllerBase
                 {
                     ClubId = cm.Club.ClubId,
                     Name = cm.Club.Name,
-                    AvatarUrl = cm.Club.AvatarUrl,
-                    Icon = cm.Club.Icon
+                    AvatarUrl = cm.Club.AvatarUrl
                 })
                 .ToListAsync();
 
