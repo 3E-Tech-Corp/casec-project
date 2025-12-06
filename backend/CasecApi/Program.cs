@@ -140,15 +140,13 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
+// Enable Swagger in all environments (can be disabled via config if needed)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CASEC API V1");
-        c.RoutePrefix = "swagger";
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CASEC API V1");
+    c.RoutePrefix = "swagger";
+});
 
 // Only use HTTPS redirection if explicitly enabled
 var useHttpsRedirection = builder.Configuration.GetValue<bool>("UseHttpsRedirection", false);
