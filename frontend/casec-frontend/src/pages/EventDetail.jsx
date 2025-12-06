@@ -118,6 +118,17 @@ export default function EventDetail() {
         Back to Events
       </button>
 
+      {/* Event Thumbnail Banner */}
+      {event.thumbnailUrl && (
+        <div className="rounded-xl overflow-hidden shadow-lg">
+          <img
+            src={event.thumbnailUrl}
+            alt={event.title}
+            className="w-full h-64 md:h-80 object-cover"
+          />
+        </div>
+      )}
+
       {/* Event Hero */}
       <div className="card">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
