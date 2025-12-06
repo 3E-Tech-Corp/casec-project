@@ -85,6 +85,29 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="card bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
+          <h3 className="text-xl font-bold text-gray-900 mb-3">Explore Clubs</h3>
+          <p className="text-gray-600 mb-4">
+            Join clubs that match your interests and connect with like-minded members.
+          </p>
+          <a href="/clubs" className="btn btn-accent inline-block">
+            Browse Clubs
+          </a>
+        </div>
+
+        <div className="card bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+          <h3 className="text-xl font-bold text-gray-900 mb-3">Upcoming Events</h3>
+          <p className="text-gray-600 mb-4">
+            Register for community events and activities happening soon.
+          </p>
+          <a href="/events" className="btn btn-primary inline-block">
+            View Events
+          </a>
+        </div>
+      </div>
+
       {/* Recent Activity */}
       <div className="card">
         <div className="flex items-center space-x-3 mb-6">
@@ -115,29 +138,6 @@ export default function Dashboard() {
             <p>No recent activity. Start by joining clubs or registering for events!</p>
           </div>
         )}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="card bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
-          <h3 className="text-xl font-bold text-gray-900 mb-3">Explore Clubs</h3>
-          <p className="text-gray-600 mb-4">
-            Join clubs that match your interests and connect with like-minded members.
-          </p>
-          <a href="/clubs" className="btn btn-accent inline-block">
-            Browse Clubs
-          </a>
-        </div>
-
-        <div className="card bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <h3 className="text-xl font-bold text-gray-900 mb-3">Upcoming Events</h3>
-          <p className="text-gray-600 mb-4">
-            Register for community events and activities happening soon.
-          </p>
-          <a href="/events" className="btn btn-primary inline-block">
-            View Events
-          </a>
-        </div>
       </div>
     </div>
   );

@@ -67,7 +67,7 @@ export default function PublicProfile() {
         <div className="card">
           <div className="flex flex-col md:flex-row gap-8">
             {/* Avatar */}
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 text-center">
               {profile.avatarUrl ? (
                 <img
                   src={profile.avatarUrl}
@@ -78,6 +78,9 @@ export default function PublicProfile() {
                 <div className="w-48 h-48 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-6xl font-bold shadow-xl border-4 border-white">
                   {profile.firstName[0]}{profile.lastName[0]}
                 </div>
+              )}
+              {profile.profession && (
+                <p className="text-primary font-semibold text-lg mt-3">{profile.profession}</p>
               )}
             </div>
 
@@ -92,9 +95,6 @@ export default function PublicProfile() {
                     <Award className="w-6 h-6" />
                     <span>{profile.boardTitle}</span>
                   </div>
-                )}
-                {profile.profession && (
-                  <p className="text-primary font-semibold text-lg">{profile.profession}</p>
                 )}
                 <div className="flex items-center space-x-2 text-gray-500 mt-2">
                   <Calendar className="w-4 h-4" />

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Calendar, MapPin, DollarSign, Users, ExternalLink, Sparkles, Megaphone, Handshake } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Calendar, MapPin, DollarSign, Users, ExternalLink, Sparkles, Megaphone, Handshake, Eye } from 'lucide-react';
 import { eventsAPI } from '../services/api';
 
 export default function EnhancedEvents() {
@@ -247,12 +248,21 @@ export default function EnhancedEvents() {
 
               {/* Action Button */}
               <div className="flex items-center justify-between pt-4 border-t">
-                {event.eventType !== 'Announcement' && (
-                  <div className="text-2xl font-bold text-accent flex items-center">
-                    <DollarSign className="w-5 h-5" />
-                    {event.eventFee}
-                  </div>
-                )}
+                <div className="flex items-center space-x-4">
+                  {event.eventType !== 'Announcement' && (
+                    <div className="text-2xl font-bold text-accent flex items-center">
+                      <DollarSign className="w-5 h-5" />
+                      {event.eventFee}
+                    </div>
+                  )}
+                  <Link
+                    to={`/events/${event.eventId}`}
+                    className="text-primary hover:text-primary-dark flex items-center space-x-1 text-sm font-semibold"
+                  >
+                    <Eye className="w-4 h-4" />
+                    <span>View Details</span>
+                  </Link>
+                </div>
 
                 {/* Different buttons based on event type */}
                 {event.eventType === 'Announcement' ? (
