@@ -150,7 +150,12 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// Only use HTTPS redirection if explicitly enabled
+var useHttpsRedirection = builder.Configuration.GetValue<bool>("UseHttpsRedirection", false);
+if (useHttpsRedirection)
+{
+    app.UseHttpsRedirection();
+}
 
 // Use CORS - change to "Production" in production environment
 app.UseCors("AllowAll");
