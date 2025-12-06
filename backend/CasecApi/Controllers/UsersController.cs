@@ -269,10 +269,10 @@ public class UsersController : ControllerBase
         }
     }
 
-    // GET: api/Users/all (Admin only)
+    // GET: api/Users/all (Admin only - detailed view)
     [Authorize(Roles = "Admin")]
     [HttpGet("all")]
-    public async Task<ActionResult<ApiResponse<List<UserDto>>>> GetAllUsers()
+    public async Task<ActionResult<ApiResponse<List<UserDto>>>> GetAllUsersDetailed()
     {
         try
         {
