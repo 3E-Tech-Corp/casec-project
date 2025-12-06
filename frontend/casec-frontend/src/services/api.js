@@ -98,6 +98,7 @@ export const eventsAPI = {
 
 // Users APIs
 export const usersAPI = {
+  getAll: () => api.get('/users'),
   getProfile: () => api.get('/users/profile'),
   updateProfile: (data) => api.put('/users/profile', data),
   getDashboard: () => api.get('/users/dashboard'),

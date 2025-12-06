@@ -3,8 +3,7 @@ import {
   Plus, Edit, Trash2, Search, Users, Shield, ShieldOff,
   Calendar, Mail, Image, X, UserPlus, CheckCircle, XCircle
 } from 'lucide-react';
-import { clubsAPI } from '../../services/api';
-import api from '../../services/api';
+import { clubsAPI, usersAPI } from '../../services/api';
 import { useAuthStore } from '../../store/useStore';
 
 export default function AdminClubs() {
@@ -59,7 +58,7 @@ export default function AdminClubs() {
 
   const fetchAllUsers = async () => {
     try {
-      const response = await api.get('/users');
+      const response = await usersAPI.getAll();
       setAllUsers(response.data || []);
     } catch (error) {
       console.error('Error fetching users:', error);

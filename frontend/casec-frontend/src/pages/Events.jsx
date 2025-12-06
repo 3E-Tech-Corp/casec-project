@@ -264,7 +264,7 @@ export default function EnhancedEvents() {
           return (
             <div
               key={event.eventId}
-              className={`card ${event.isFeatured ? 'ring-4 ring-accent shadow-2xl' : ''} border-l-4 ${typeInfo.color} overflow-hidden`}
+              className={`card ${event.isFeatured ? 'ring-4 ring-accent shadow-2xl' : ''} border-l-4 ${typeInfo.color} overflow-hidden relative`}
             >
               {/* Thumbnail */}
               {event.thumbnailUrl ? (
@@ -285,42 +285,44 @@ export default function EnhancedEvents() {
                 </div>
               )}
 
-              {/* Event Type Badge */}
-              <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-bold mb-4 ${typeInfo.color} text-white`}>
-                <span>{typeInfo.icon}</span>
-                <span>{typeInfo.label}</span>
-              </div>
+              {/* Title - Now at the top */}
+              <Link
+                to={`/events/${event.eventId}`}
+                className="text-2xl font-display font-bold text-primary hover:text-primary-dark transition-colors leading-tight block mb-3"
+                title="Click to view event details"
+              >
+                {event.title}
+              </Link>
 
-              {/* Header with Date */}
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex-1">
-                  <Link
-                    to={`/events/${event.eventId}`}
-                    className="text-2xl font-display font-bold text-gray-900 mb-2 block hover:text-primary transition-colors leading-tight"
-                    title="Click to view event details"
-                  >
-                    {event.title}
-                  </Link>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {event.eventCategory && (
-                      <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-semibold">
-                        {event.eventCategory}
-                      </span>
-                    )}
-                    {event.hostClubName && (
-                      <span className="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-semibold">
-                        <Building2 className="w-3 h-3 mr-1" />
-                        {event.hostClubName}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-gray-600 text-sm mt-2 line-clamp-2">{event.description}</p>
+              {/* Event Type Badge */}
+              <div className="flex items-center justify-between mb-4">
+                <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-bold ${typeInfo.color} text-white`}>
+                  <span>{typeInfo.icon}</span>
+                  <span>{typeInfo.label}</span>
                 </div>
-                <div className="text-center bg-primary text-white rounded-lg p-3 ml-4 flex-shrink-0">
-                  <div className="text-2xl font-bold">{eventDate.getDate()}</div>
+                <div className="text-center bg-primary text-white rounded-lg px-3 py-2 flex-shrink-0">
+                  <div className="text-xl font-bold leading-none">{eventDate.getDate()}</div>
                   <div className="text-xs">{eventDate.toLocaleDateString('default', { month: 'short' })}</div>
                 </div>
               </div>
+
+              {/* Category and Club badges */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                {event.eventCategory && (
+                  <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-semibold">
+                    {event.eventCategory}
+                  </span>
+                )}
+                {event.hostClubName && (
+                  <span className="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-semibold">
+                    <Building2 className="w-3 h-3 mr-1" />
+                    {event.hostClubName}
+                  </span>
+                )}
+              </div>
+
+              {/* Description */}
+              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{event.description}</p>
 
               {/* Partner Info */}
               {event.partnerName && (

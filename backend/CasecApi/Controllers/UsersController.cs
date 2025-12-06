@@ -97,6 +97,48 @@ public class UsersController : ControllerBase
         }
     }
 
+    // GET: api/Users (Admin only - list all users)
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<List<UserListDto>>>> GetAllUsers()
+    {
+        try
+        {
+            var users = await _context.Users
+                .Include(u => u.MembershipType)
+                .OrderBy(u => u.LastName)
+                .ThenBy(u => u.FirstName)
+                .Select(u => new UserListDto
+                {
+                    UserId = u.UserId,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Email = u.Email,
+                    AvatarUrl = u.AvatarUrl,
+                    MembershipTypeName = u.MembershipType != null ? u.MembershipType.Name : null,
+                    IsAdmin = u.IsAdmin,
+                    IsActive = u.IsActive,
+                    MemberSince = u.MemberSince
+                })
+                .ToListAsync();
+
+            return Ok(new ApiResponse<List<UserListDto>>
+            {
+                Success = true,
+                Data = users
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching all users");
+            return StatusCode(500, new ApiResponse<List<UserListDto>>
+            {
+                Success = false,
+                Message = "An error occurred while fetching users"
+            });
+        }
+    }
+
     // PUT: api/Users/profile
     [HttpPost("profile")]
     public async Task<ActionResult<ApiResponse<UserProfileDto>>> UpdateProfile([FromBody] UpdateProfileRequest request)
