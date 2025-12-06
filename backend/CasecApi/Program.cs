@@ -144,7 +144,8 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CASEC API V1");
+    // Use relative path so it works regardless of base path
+    c.SwaggerEndpoint("v1/swagger.json", "CASEC API V1");
     c.RoutePrefix = "swagger";
 });
 
