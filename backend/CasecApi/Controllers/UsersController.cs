@@ -140,7 +140,7 @@ public class UsersController : ControllerBase
     }
 
     // PUT: api/Users/profile
-    [HttpPost("profile")]
+    [HttpPut("profile")]
     public async Task<ActionResult<ApiResponse<UserProfileDto>>> UpdateProfile([FromBody] UpdateProfileRequest request)
     {
         try
