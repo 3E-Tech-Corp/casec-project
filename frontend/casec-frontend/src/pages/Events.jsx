@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, DollarSign, Users, ExternalLink, Sparkles, Megaphone, Handshake, Building2 } from 'lucide-react';
+import { Calendar, MapPin, DollarSign, Users, ExternalLink, Sparkles, Megaphone, Handshake, Building2, ImageIcon } from 'lucide-react';
 import { eventsAPI, clubsAPI } from '../services/api';
 
 export default function EnhancedEvents() {
@@ -264,11 +264,22 @@ export default function EnhancedEvents() {
           return (
             <div
               key={event.eventId}
-              className={`card ${event.isFeatured ? 'ring-4 ring-accent shadow-2xl' : ''} border-l-4 ${typeInfo.color}`}
+              className={`card ${event.isFeatured ? 'ring-4 ring-accent shadow-2xl' : ''} border-l-4 ${typeInfo.color} overflow-hidden`}
             >
+              {/* Thumbnail */}
+              {event.thumbnailUrl ? (
+                <Link to={`/events/${event.eventId}`} className="block -mx-6 -mt-6 mb-4">
+                  <img
+                    src={event.thumbnailUrl}
+                    alt={event.title}
+                    className="w-full h-48 object-cover hover:opacity-90 transition-opacity"
+                  />
+                </Link>
+              ) : null}
+
               {/* Featured Badge */}
               {event.isFeatured && (
-                <div className="absolute top-4 right-4 bg-accent text-white px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1">
+                <div className={`${event.thumbnailUrl ? 'absolute top-4 right-4' : 'float-right -mt-2'} bg-accent text-white px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1`}>
                   <Sparkles className="w-3 h-3" />
                   <span>Featured</span>
                 </div>
@@ -285,7 +296,7 @@ export default function EnhancedEvents() {
                 <div className="flex-1">
                   <Link
                     to={`/events/${event.eventId}`}
-                    className="text-xl font-bold text-gray-900 mb-2 block hover:text-primary transition-colors"
+                    className="text-2xl font-display font-bold text-gray-900 mb-2 block hover:text-primary transition-colors leading-tight"
                     title="Click to view event details"
                   >
                     {event.title}

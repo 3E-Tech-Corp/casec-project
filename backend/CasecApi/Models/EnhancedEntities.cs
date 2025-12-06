@@ -312,6 +312,9 @@ public class Event
 
     public bool IsFeatured { get; set; } = false;
 
+    [MaxLength(500)]
+    public string? ThumbnailUrl { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties

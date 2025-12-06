@@ -195,6 +195,7 @@ public class EventDto
     public int MaxCapacity { get; set; }
     public bool IsRegistrationRequired { get; set; }
     public bool IsFeatured { get; set; }
+    public string? ThumbnailUrl { get; set; }
     public int RegisteredCount { get; set; }
     public int TotalRegistrations { get; set; }
     public int SpotsRemaining { get; set; }
@@ -220,6 +221,7 @@ public class CreateEventRequest
     public int MaxCapacity { get; set; } = 0;
     public bool IsRegistrationRequired { get; set; } = true;
     public bool IsFeatured { get; set; } = false;
+    public string? ThumbnailUrl { get; set; }
 }
 
 public class UpdateEventRequest
@@ -240,6 +242,7 @@ public class UpdateEventRequest
     public int? MaxCapacity { get; set; }
     public bool? IsRegistrationRequired { get; set; }
     public bool? IsFeatured { get; set; }
+    public string? ThumbnailUrl { get; set; }
 }
 
 public class RegisterEventRequest

@@ -87,6 +87,13 @@ export const eventsAPI = {
   delete: (id) => api.delete(`/events/${id}`),
   register: (id, data) => api.post(`/events/${id}/register`, data),
   unregister: (id) => api.post(`/events/${id}/unregister`),
+  uploadThumbnail: (id, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post(`/events/${id}/thumbnail`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
 };
 
 // Users APIs

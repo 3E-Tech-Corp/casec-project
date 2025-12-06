@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, Edit, Trash2, Search, Calendar, MapPin, Users, Star,
-  X, DollarSign, Clock, Tag, ExternalLink, Building2, Eye
+  X, DollarSign, Clock, Tag, ExternalLink, Building2, Eye, ImageIcon, Upload
 } from 'lucide-react';
 import { eventsAPI, clubsAPI } from '../../services/api';
 import { useAuthStore } from '../../store/useStore';
@@ -579,6 +579,61 @@ export default function AdminEvents() {
                     placeholder="Event description..."
                   />
                 </div>
+
+                {/* Thumbnail Upload - Only for editing existing events */}
+                {editingEvent && (
+                  <div className="border-t pt-4">
+                    <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4" />
+                      Event Thumbnail
+                    </h3>
+                    <div className="flex items-start gap-4">
+                      {editingEvent.thumbnailUrl ? (
+                        <img
+                          src={editingEvent.thumbnailUrl}
+                          alt="Event thumbnail"
+                          className="w-32 h-24 object-cover rounded-lg border"
+                        />
+                      ) : (
+                        <div className="w-32 h-24 bg-gray-100 rounded-lg border flex items-center justify-center">
+                          <ImageIcon className="w-8 h-8 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <label className="block">
+                          <span className="btn btn-secondary btn-sm cursor-pointer inline-flex items-center gap-2">
+                            <Upload className="w-4 h-4" />
+                            Upload Thumbnail
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                try {
+                                  const response = await eventsAPI.uploadThumbnail(editingEvent.eventId, file);
+                                  if (response.success) {
+                                    alert('Thumbnail uploaded successfully!');
+                                    // Update the editing event with new thumbnail
+                                    setEditingEvent({ ...editingEvent, thumbnailUrl: response.data.url });
+                                    fetchEvents();
+                                  }
+                                } catch (error) {
+                                  alert('Failed to upload thumbnail: ' + (error.message || 'Unknown error'));
+                                }
+                              }
+                            }}
+                          />
+                        </label>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Recommended size: 800x400px. Max file size: 5MB
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Registration & Capacity */}
                 <div className="border-t pt-4">
