@@ -15,6 +15,7 @@ import AdminUsers from './pages/admin/Users';
 import AdminMembershipTypes from './pages/admin/MembershipTypes';
 import AdminClubs from './pages/admin/Clubs';
 import AdminEvents from './pages/admin/Events';
+import AdminEventDetail from './pages/admin/EventDetail';
 import AdminTheme from './pages/admin/ThemeCustomization';
 
 function ProtectedRoute({ children }) {
@@ -72,7 +73,10 @@ function App() {
             <ClubAdminRoute><AdminClubs /></ClubAdminRoute>
           } />
           <Route path="admin/events" element={
-            <AdminRoute><AdminEvents /></AdminRoute>
+            <ClubAdminRoute><AdminEvents /></ClubAdminRoute>
+          } />
+          <Route path="admin/events/:eventId" element={
+            <ClubAdminRoute><AdminEventDetail /></ClubAdminRoute>
           } />
           <Route path="admin/theme" element={
             <AdminRoute><AdminTheme /></AdminRoute>

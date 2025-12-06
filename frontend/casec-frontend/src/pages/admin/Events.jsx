@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Plus, Edit, Trash2, Search, Calendar, MapPin, Users, Star,
-  X, DollarSign, Clock, Tag, ExternalLink, Building2
+  X, DollarSign, Clock, Tag, ExternalLink, Building2, Eye
 } from 'lucide-react';
 import { eventsAPI, clubsAPI } from '../../services/api';
 import { useAuthStore } from '../../store/useStore';
 
 export default function AdminEvents() {
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const isSystemAdmin = user?.isAdmin;
 
@@ -16,6 +18,9 @@ export default function AdminEvents() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterTime, setFilterTime] = useState('all');
+  const [filterClub, setFilterClub] = useState('all');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
 
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -214,7 +219,15 @@ export default function AdminEvents() {
       (filterTime === 'upcoming' && !isPastEvent(event.eventDate)) ||
       (filterTime === 'past' && isPastEvent(event.eventDate));
 
-    return matchesSearch && matchesType && matchesTime;
+    const matchesClub = filterClub === 'all' ||
+      (filterClub === 'casec' && !event.hostClubId) ||
+      (event.hostClubId && event.hostClubId.toString() === filterClub);
+
+    const eventDate = new Date(event.eventDate);
+    const matchesDateFrom = !filterDateFrom || eventDate >= new Date(filterDateFrom);
+    const matchesDateTo = !filterDateTo || eventDate <= new Date(filterDateTo + 'T23:59:59');
+
+    return matchesSearch && matchesType && matchesTime && matchesClub && matchesDateFrom && matchesDateTo;
   });
 
   if (loading) {
@@ -243,36 +256,89 @@ export default function AdminEvents() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search events..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="input pl-10 w-full"
-          />
+      <div className="card space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="relative lg:col-span-2">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search events..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input pl-10 w-full"
+            />
+          </div>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="input w-full"
+          >
+            <option value="all">All Types</option>
+            {eventTypes.map(type => (
+              <option key={type.value} value={type.value}>{type.icon} {type.label}</option>
+            ))}
+          </select>
+          <select
+            value={filterClub}
+            onChange={(e) => setFilterClub(e.target.value)}
+            className="input w-full"
+          >
+            <option value="all">All Clubs</option>
+            <option value="casec">CASEC (No Club)</option>
+            {clubs.map(club => (
+              <option key={club.clubId} value={club.clubId}>{club.name}</option>
+            ))}
+          </select>
         </div>
-        <select
-          value={filterType}
-          onChange={(e) => setFilterType(e.target.value)}
-          className="input w-full md:w-48"
-        >
-          <option value="all">All Types</option>
-          {eventTypes.map(type => (
-            <option key={type.value} value={type.value}>{type.icon} {type.label}</option>
-          ))}
-        </select>
-        <select
-          value={filterTime}
-          onChange={(e) => setFilterTime(e.target.value)}
-          className="input w-full md:w-40"
-        >
-          <option value="all">All Time</option>
-          <option value="upcoming">Upcoming</option>
-          <option value="past">Past</option>
-        </select>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <select
+            value={filterTime}
+            onChange={(e) => setFilterTime(e.target.value)}
+            className="input w-full"
+          >
+            <option value="all">All Time</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="past">Past</option>
+          </select>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">From Date</label>
+            <input
+              type="date"
+              value={filterDateFrom}
+              onChange={(e) => setFilterDateFrom(e.target.value)}
+              className="input w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">To Date</label>
+            <input
+              type="date"
+              value={filterDateTo}
+              onChange={(e) => setFilterDateTo(e.target.value)}
+              className="input w-full"
+            />
+          </div>
+        </div>
+        {(searchTerm || filterType !== 'all' || filterTime !== 'all' || filterClub !== 'all' || filterDateFrom || filterDateTo) && (
+          <div className="flex items-center justify-between pt-2 border-t">
+            <span className="text-sm text-gray-500">
+              Showing {filteredEvents.length} of {events.length} events
+            </span>
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setFilterType('all');
+                setFilterTime('all');
+                setFilterClub('all');
+                setFilterDateFrom('');
+                setFilterDateTo('');
+              }}
+              className="text-sm text-primary hover:underline"
+            >
+              Clear all filters
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Events List */}
@@ -352,9 +418,10 @@ export default function AdminEvents() {
                 {/* Actions */}
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setViewingEvent(event)}
-                    className="btn btn-secondary btn-sm"
+                    onClick={() => navigate(`/admin/events/${event.eventId}`)}
+                    className="btn btn-secondary btn-sm flex items-center gap-1"
                   >
+                    <Eye className="w-3 h-3" />
                     View
                   </button>
                   <button

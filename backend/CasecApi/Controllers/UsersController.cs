@@ -6,6 +6,7 @@ using CasecApi.Data;
 using CasecApi.Models.DTOs;
 using UserEntity = CasecApi.Models.User;
 using CasecApi.Models;
+using CasecApi.Services;
 
 namespace CasecApi.Controllers;
 
@@ -17,12 +18,14 @@ public class UsersController : ControllerBase
     private readonly CasecDbContext _context;
     private readonly ILogger<UsersController> _logger;
     private readonly IWebHostEnvironment _environment;
+    private readonly IAssetService _assetService;
 
-    public UsersController(CasecDbContext context, ILogger<UsersController> logger, IWebHostEnvironment environment)
+    public UsersController(CasecDbContext context, ILogger<UsersController> logger, IWebHostEnvironment environment, IAssetService assetService)
     {
         _context = context;
         _logger = logger;
         _environment = environment;
+        _assetService = assetService;
     }
 
     private int GetCurrentUserId()
@@ -160,28 +163,6 @@ public class UsersController : ControllerBase
                 });
             }
 
-            // Validate file type
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (!allowedExtensions.Contains(extension))
-            {
-                return BadRequest(new ApiResponse<AvatarResponse>
-                {
-                    Success = false,
-                    Message = "Invalid file type. Allowed: jpg, jpeg, png, gif, webp"
-                });
-            }
-
-            // Validate file size (max 5MB)
-            if (file.Length > 5 * 1024 * 1024)
-            {
-                return BadRequest(new ApiResponse<AvatarResponse>
-                {
-                    Success = false,
-                    Message = "File size must be less than 5MB"
-                });
-            }
-
             var currentUserId = GetCurrentUserId();
             var user = await _context.Users.FindAsync(currentUserId);
 
@@ -194,33 +175,36 @@ public class UsersController : ControllerBase
                 });
             }
 
-            // Create uploads directory if it doesn't exist
-            var uploadsPath = Path.Combine(_environment.WebRootPath ?? "wwwroot", "uploads", "avatars");
-            Directory.CreateDirectory(uploadsPath);
-
-            // Delete old avatar if exists
-            if (!string.IsNullOrEmpty(user.AvatarUrl))
+            // Delete old avatar asset if exists (by parsing FileId from URL /api/asset/{id})
+            if (!string.IsNullOrEmpty(user.AvatarUrl) && user.AvatarUrl.StartsWith("/api/asset/"))
             {
-                var oldFilePath = Path.Combine(_environment.WebRootPath ?? "wwwroot", user.AvatarUrl.TrimStart('/'));
-                if (System.IO.File.Exists(oldFilePath))
+                var oldFileIdStr = user.AvatarUrl.Replace("/api/asset/", "");
+                if (int.TryParse(oldFileIdStr, out var oldFileId))
                 {
-                    System.IO.File.Delete(oldFilePath);
+                    await _assetService.DeleteAssetAsync(oldFileId);
                 }
             }
 
-            // Generate unique filename
-            var fileName = $"{currentUserId}_{Guid.NewGuid()}{extension}";
-            var filePath = Path.Combine(uploadsPath, fileName);
+            // Upload new avatar using asset service (saves to database)
+            var uploadResult = await _assetService.UploadAssetAsync(
+                file,
+                "avatars",
+                objectType: "User",
+                objectId: currentUserId,
+                uploadedBy: currentUserId
+            );
 
-            // Save file
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            if (!uploadResult.Success)
             {
-                await file.CopyToAsync(stream);
+                return BadRequest(new ApiResponse<AvatarResponse>
+                {
+                    Success = false,
+                    Message = uploadResult.Error ?? "Failed to upload file"
+                });
             }
 
-            // Update user avatar URL
-            var avatarUrl = $"/uploads/avatars/{fileName}";
-            user.AvatarUrl = avatarUrl;
+            // Update user avatar URL (now saves as /api/asset/{id})
+            user.AvatarUrl = uploadResult.Url;
             user.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
@@ -229,7 +213,7 @@ public class UsersController : ControllerBase
             {
                 Success = true,
                 Message = "Avatar uploaded successfully",
-                Data = new AvatarResponse { AvatarUrl = avatarUrl }
+                Data = new AvatarResponse { AvatarUrl = uploadResult.Url! }
             });
         }
         catch (Exception ex)
