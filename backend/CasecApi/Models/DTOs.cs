@@ -728,6 +728,7 @@ public class FamilyMemberSummaryDto
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string? AvatarUrl { get; set; }
+    public string? Email { get; set; }
     public string? Relationship { get; set; }
 }
 

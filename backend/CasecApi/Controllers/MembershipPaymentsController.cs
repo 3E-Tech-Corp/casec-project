@@ -448,11 +448,16 @@ public class MembershipPaymentsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<List<MembershipPaymentDto>>>> GetAllPayments(
         [FromQuery] string? status = null,
-        [FromQuery] int? userId = null)
+        [FromQuery] int? userId = null,
+        [FromQuery] string? search = null)
     {
         try
         {
-            var query = _context.MembershipPayments.AsQueryable();
+            var query = _context.MembershipPayments
+                .Include(p => p.User)
+                .Include(p => p.MembershipType)
+                .Include(p => p.ConfirmedByUser)
+                .AsQueryable();
 
             if (!string.IsNullOrEmpty(status))
             {
@@ -464,11 +469,19 @@ public class MembershipPaymentsController : ControllerBase
                 query = query.Where(p => p.UserId == userId.Value);
             }
 
+            // Search by user name or email
+            if (!string.IsNullOrEmpty(search))
+            {
+                var searchLower = search.ToLower();
+                query = query.Where(p =>
+                    p.User!.FirstName.ToLower().Contains(searchLower) ||
+                    p.User.LastName.ToLower().Contains(searchLower) ||
+                    p.User.Email.ToLower().Contains(searchLower) ||
+                    (p.User.FirstName + " " + p.User.LastName).ToLower().Contains(searchLower));
+            }
+
             var payments = await query
                 .OrderByDescending(p => p.CreatedAt)
-                .Include(p => p.User)
-                .Include(p => p.MembershipType)
-                .Include(p => p.ConfirmedByUser)
                 .ToListAsync();
 
             var dtos = payments.Select(p => MapToPaymentDto(p)).ToList();
@@ -727,6 +740,62 @@ public class MembershipPaymentsController : ControllerBase
             {
                 Success = false,
                 Message = "An error occurred while fetching family members"
+            });
+        }
+    }
+
+    // GET: api/MembershipPayments/admin/users/search
+    // Search users to link to family membership (Admin only)
+    [HttpGet("admin/users/search")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<List<FamilyMemberSummaryDto>>>> SearchUsersForFamilyLink(
+        [FromQuery] string query,
+        [FromQuery] int excludeUserId = 0)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(query) || query.Length < 2)
+            {
+                return Ok(new ApiResponse<List<FamilyMemberSummaryDto>>
+                {
+                    Success = true,
+                    Data = new List<FamilyMemberSummaryDto>()
+                });
+            }
+
+            var searchLower = query.ToLower();
+            var users = await _context.Users
+                .Where(u => u.IsActive && u.UserId != excludeUserId &&
+                    (u.FirstName.ToLower().Contains(searchLower) ||
+                     u.LastName.ToLower().Contains(searchLower) ||
+                     u.Email.ToLower().Contains(searchLower) ||
+                     (u.FirstName + " " + u.LastName).ToLower().Contains(searchLower)))
+                .OrderBy(u => u.LastName)
+                .ThenBy(u => u.FirstName)
+                .Take(10)
+                .Select(u => new FamilyMemberSummaryDto
+                {
+                    UserId = u.UserId,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    AvatarUrl = u.AvatarUrl,
+                    Email = u.Email
+                })
+                .ToListAsync();
+
+            return Ok(new ApiResponse<List<FamilyMemberSummaryDto>>
+            {
+                Success = true,
+                Data = users
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching users");
+            return StatusCode(500, new ApiResponse<List<FamilyMemberSummaryDto>>
+            {
+                Success = false,
+                Message = "An error occurred while searching users"
             });
         }
     }

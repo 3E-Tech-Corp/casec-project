@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   CreditCard, Clock, CheckCircle, XCircle, Eye, Users,
-  Calendar, DollarSign, Search, Filter, ChevronDown, ChevronUp
+  Calendar, DollarSign, Search, Filter, ChevronDown, ChevronUp, X, UserPlus
 } from 'lucide-react';
 import { membershipPaymentsAPI } from '../../services/api';
 
@@ -9,9 +9,16 @@ export default function AdminPayments() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('Pending');
+  const [searchQuery, setSearchQuery] = useState('');
   const [expandedPayment, setExpandedPayment] = useState(null);
   const [familyMembers, setFamilyMembers] = useState([]);
   const [confirmingId, setConfirmingId] = useState(null);
+
+  // User search for family linking
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [userSearchResults, setUserSearchResults] = useState([]);
+  const [searchingUsers, setSearchingUsers] = useState(false);
+  const [linkedUsers, setLinkedUsers] = useState([]);
 
   const [confirmForm, setConfirmForm] = useState({
     approve: true,
@@ -24,12 +31,14 @@ export default function AdminPayments() {
 
   useEffect(() => {
     loadPayments();
-  }, [filter]);
+  }, [filter, searchQuery]);
 
   const loadPayments = async () => {
     setLoading(true);
     try {
-      const params = filter !== 'All' ? { status: filter } : {};
+      const params = {};
+      if (filter !== 'All') params.status = filter;
+      if (searchQuery.trim()) params.search = searchQuery.trim();
       const response = await membershipPaymentsAPI.getAll(params);
       if (response.success) {
         setPayments(response.data);
@@ -39,6 +48,57 @@ export default function AdminPayments() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Debounced user search
+  const searchUsers = useCallback(async (query, excludeUserId) => {
+    if (!query || query.length < 2) {
+      setUserSearchResults([]);
+      return;
+    }
+    setSearchingUsers(true);
+    try {
+      const response = await membershipPaymentsAPI.searchUsers(query, excludeUserId);
+      if (response.success) {
+        // Filter out already linked users
+        const linkedIds = linkedUsers.map(u => u.userId);
+        setUserSearchResults(response.data.filter(u => !linkedIds.includes(u.userId)));
+      }
+    } catch (err) {
+      console.error('Failed to search users:', err);
+    } finally {
+      setSearchingUsers(false);
+    }
+  }, [linkedUsers]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (userSearchQuery && expandedPayment) {
+        const payment = payments.find(p => p.paymentId === expandedPayment);
+        searchUsers(userSearchQuery, payment?.userId);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [userSearchQuery, expandedPayment, payments, searchUsers]);
+
+  const addLinkedUser = (user) => {
+    if (!linkedUsers.find(u => u.userId === user.userId)) {
+      setLinkedUsers([...linkedUsers, user]);
+      setConfirmForm(prev => ({
+        ...prev,
+        familyMemberIds: [...prev.familyMemberIds, user.userId]
+      }));
+    }
+    setUserSearchQuery('');
+    setUserSearchResults([]);
+  };
+
+  const removeLinkedUser = (userId) => {
+    setLinkedUsers(linkedUsers.filter(u => u.userId !== userId));
+    setConfirmForm(prev => ({
+      ...prev,
+      familyMemberIds: prev.familyMemberIds.filter(id => id !== userId)
+    }));
   };
 
   const loadFamilyMembers = async (userId) => {
@@ -57,10 +117,16 @@ export default function AdminPayments() {
     if (expandedPayment === payment.paymentId) {
       setExpandedPayment(null);
       setFamilyMembers([]);
+      setLinkedUsers([]);
+      setUserSearchQuery('');
+      setUserSearchResults([]);
       return;
     }
 
     setExpandedPayment(payment.paymentId);
+    setLinkedUsers([]);
+    setUserSearchQuery('');
+    setUserSearchResults([]);
 
     // Set default validity dates
     const validFrom = new Date(payment.validFrom).toISOString().split('T')[0];
@@ -74,7 +140,7 @@ export default function AdminPayments() {
       notes: ''
     });
 
-    // Load family members if this is a family payment
+    // Load existing family members if this is a family payment
     if (payment.paymentScope === 'Family') {
       await loadFamilyMembers(payment.userId);
     } else {
@@ -157,27 +223,47 @@ export default function AdminPayments() {
 
       {/* Filters */}
       <div className="card">
-        <div className="flex items-center space-x-4">
-          <Filter className="w-5 h-5 text-gray-400" />
-          <div className="flex space-x-2">
-            {['Pending', 'Confirmed', 'Rejected', 'All'].map((status) => (
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <div className="flex items-center space-x-4 flex-1">
+            <Filter className="w-5 h-5 text-gray-400" />
+            <div className="flex space-x-2">
+              {['Pending', 'Confirmed', 'Rejected', 'All'].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setFilter(status)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    filter === status
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {status}
+                  {status === 'Pending' && pendingCount > 0 && (
+                    <span className="ml-2 bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full text-xs">
+                      {pendingCount}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by name or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input pl-9 w-full md:w-64"
+            />
+            {searchQuery && (
               <button
-                key={status}
-                onClick={() => setFilter(status)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  filter === status
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                {status}
-                {status === 'Pending' && pendingCount > 0 && (
-                  <span className="ml-2 bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full text-xs">
-                    {pendingCount}
-                  </span>
-                )}
+                <X className="w-4 h-4" />
               </button>
-            ))}
+            )}
           </div>
         </div>
       </div>
@@ -343,40 +429,116 @@ export default function AdminPayments() {
                           </div>
 
                           {/* Family Members Selection */}
-                          {payment.paymentScope === 'Family' && familyMembers.length > 0 && (
+                          {payment.paymentScope === 'Family' && (
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <Users className="inline w-4 h-4 mr-1" />
                                 Apply Membership to Family Members
                               </label>
-                              <div className="space-y-2">
-                                {familyMembers.map((member) => (
-                                  <label key={member.userId} className="flex items-center bg-white rounded-lg p-3 border">
-                                    <input
-                                      type="checkbox"
-                                      checked={confirmForm.familyMemberIds.includes(member.userId)}
-                                      onChange={(e) => {
-                                        const ids = e.target.checked
-                                          ? [...confirmForm.familyMemberIds, member.userId]
-                                          : confirmForm.familyMemberIds.filter(id => id !== member.userId);
-                                        setConfirmForm({ ...confirmForm, familyMemberIds: ids });
-                                      }}
-                                      className="mr-3"
-                                    />
-                                    {member.avatarUrl ? (
-                                      <img src={member.avatarUrl} alt="" className="w-8 h-8 rounded-full mr-2" />
-                                    ) : (
-                                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-2 text-primary font-bold text-xs">
-                                        {member.firstName[0]}{member.lastName[0]}
-                                      </div>
-                                    )}
-                                    <div>
-                                      <span className="font-medium">{member.firstName} {member.lastName}</span>
-                                      {member.relationship && (
-                                        <span className="text-sm text-gray-500 ml-2">({member.relationship})</span>
+
+                              {/* Existing family members from user's family group */}
+                              {familyMembers.length > 0 && (
+                                <div className="space-y-2 mb-4">
+                                  <p className="text-xs text-gray-500 uppercase tracking-wide">Existing Family Members</p>
+                                  {familyMembers.map((member) => (
+                                    <label key={member.userId} className="flex items-center bg-white rounded-lg p-3 border">
+                                      <input
+                                        type="checkbox"
+                                        checked={confirmForm.familyMemberIds.includes(member.userId)}
+                                        onChange={(e) => {
+                                          const ids = e.target.checked
+                                            ? [...confirmForm.familyMemberIds, member.userId]
+                                            : confirmForm.familyMemberIds.filter(id => id !== member.userId);
+                                          setConfirmForm({ ...confirmForm, familyMemberIds: ids });
+                                        }}
+                                        className="mr-3"
+                                      />
+                                      {member.avatarUrl ? (
+                                        <img src={member.avatarUrl} alt="" className="w-8 h-8 rounded-full mr-2" />
+                                      ) : (
+                                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-2 text-primary font-bold text-xs">
+                                          {member.firstName[0]}{member.lastName[0]}
+                                        </div>
                                       )}
+                                      <div>
+                                        <span className="font-medium">{member.firstName} {member.lastName}</span>
+                                        {member.relationship && (
+                                          <span className="text-sm text-gray-500 ml-2">({member.relationship})</span>
+                                        )}
+                                      </div>
+                                    </label>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Search and link other users */}
+                              <div className="space-y-2">
+                                <p className="text-xs text-gray-500 uppercase tracking-wide">
+                                  <UserPlus className="inline w-3 h-3 mr-1" />
+                                  Link Other Users
+                                </p>
+
+                                {/* Linked users list */}
+                                {linkedUsers.length > 0 && (
+                                  <div className="flex flex-wrap gap-2 mb-2">
+                                    {linkedUsers.map((user) => (
+                                      <span
+                                        key={user.userId}
+                                        className="inline-flex items-center bg-primary/10 text-primary px-3 py-1 rounded-full text-sm"
+                                      >
+                                        {user.firstName} {user.lastName}
+                                        <button
+                                          onClick={() => removeLinkedUser(user.userId)}
+                                          className="ml-2 hover:text-red-600"
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </button>
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* User search input */}
+                                <div className="relative">
+                                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                  <input
+                                    type="text"
+                                    placeholder="Search users by name or email..."
+                                    value={userSearchQuery}
+                                    onChange={(e) => setUserSearchQuery(e.target.value)}
+                                    className="input pl-9 w-full"
+                                  />
+                                  {searchingUsers && (
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                                     </div>
-                                  </label>
-                                ))}
+                                  )}
+                                </div>
+
+                                {/* Search results dropdown */}
+                                {userSearchResults.length > 0 && (
+                                  <div className="bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                    {userSearchResults.map((user) => (
+                                      <button
+                                        key={user.userId}
+                                        onClick={() => addLinkedUser(user)}
+                                        className="w-full flex items-center p-3 hover:bg-gray-50 border-b last:border-b-0"
+                                      >
+                                        {user.avatarUrl ? (
+                                          <img src={user.avatarUrl} alt="" className="w-8 h-8 rounded-full mr-3" />
+                                        ) : (
+                                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-3 text-primary font-bold text-xs">
+                                            {user.firstName[0]}{user.lastName[0]}
+                                          </div>
+                                        )}
+                                        <div className="text-left">
+                                          <p className="font-medium">{user.firstName} {user.lastName}</p>
+                                          <p className="text-xs text-gray-500">{user.email}</p>
+                                        </div>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           )}

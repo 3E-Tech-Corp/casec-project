@@ -151,6 +151,9 @@ export const membershipPaymentsAPI = {
   getPaymentDetails: (paymentId) => api.get(`/membershippayments/admin/${paymentId}`),
   confirm: (paymentId, data) => api.post(`/membershippayments/admin/${paymentId}/confirm`, data),
   getUserFamily: (userId) => api.get(`/membershippayments/admin/user/${userId}/family`),
+  searchUsers: (query, excludeUserId) => api.get('/membershippayments/admin/users/search', {
+    params: { query, excludeUserId }
+  }),
 };
 
 export default api;
