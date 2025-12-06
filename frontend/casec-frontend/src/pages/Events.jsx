@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, DollarSign, Users, ExternalLink, Sparkles, Megaphone, Handshake, Building2, Eye } from 'lucide-react';
+import { Calendar, MapPin, DollarSign, Users, ExternalLink, Sparkles, Megaphone, Handshake, Building2 } from 'lucide-react';
 import { eventsAPI, clubsAPI } from '../services/api';
 
 export default function EnhancedEvents() {
@@ -283,7 +283,13 @@ export default function EnhancedEvents() {
               {/* Header with Date */}
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{event.title}</h3>
+                  <Link
+                    to={`/events/${event.eventId}`}
+                    className="text-xl font-bold text-gray-900 mb-2 block hover:text-primary transition-colors"
+                    title="Click to view event details"
+                  >
+                    {event.title}
+                  </Link>
                   <div className="flex flex-wrap gap-2 mb-2">
                     {event.eventCategory && (
                       <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-semibold">
@@ -349,21 +355,12 @@ export default function EnhancedEvents() {
 
               {/* Action Button */}
               <div className="flex items-center justify-between pt-4 border-t">
-                <div className="flex items-center gap-3">
-                  {event.eventType !== 'Announcement' && (
-                    <div className="text-2xl font-bold text-accent flex items-center">
-                      <DollarSign className="w-5 h-5" />
-                      {event.eventFee}
-                    </div>
-                  )}
-                  <Link
-                    to={`/events/${event.eventId}`}
-                    className="text-primary hover:text-primary-dark flex items-center gap-1 text-sm font-medium"
-                  >
-                    <Eye className="w-4 h-4" />
-                    View Details
-                  </Link>
-                </div>
+                {event.eventType !== 'Announcement' && (
+                  <div className="text-2xl font-bold text-accent flex items-center">
+                    <DollarSign className="w-5 h-5" />
+                    {event.eventFee}
+                  </div>
+                )}
 
                 {/* Different buttons based on event type */}
                 {event.eventType === 'Announcement' ? (
