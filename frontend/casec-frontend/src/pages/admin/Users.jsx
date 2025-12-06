@@ -138,9 +138,17 @@ export default function ManageUsers() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="h-10 w-10 flex-shrink-0">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">
-                          {user.firstName[0]}{user.lastName[0]}
-                        </div>
+                        {user.avatarUrl ? (
+                          <img
+                            src={user.avatarUrl}
+                            alt={`${user.firstName} ${user.lastName}`}
+                            className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">
+                            {user.firstName[0]}{user.lastName[0]}
+                          </div>
+                        )}
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">
@@ -215,7 +223,23 @@ export default function ManageUsers() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Edit User</h2>
+              <div className="flex items-center space-x-4 mb-6">
+                {editingUser.avatarUrl ? (
+                  <img
+                    src={editingUser.avatarUrl}
+                    alt={`${editingUser.firstName} ${editingUser.lastName}`}
+                    className="w-16 h-16 rounded-full object-cover border-2 border-primary"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-xl font-bold">
+                    {editingUser.firstName[0]}{editingUser.lastName[0]}
+                  </div>
+                )}
+                <div>
+                  <h2 className="text-2xl font-bold">Edit User</h2>
+                  <p className="text-gray-500 text-sm">{editingUser.email}</p>
+                </div>
+              </div>
               <form onSubmit={handleUpdate} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
