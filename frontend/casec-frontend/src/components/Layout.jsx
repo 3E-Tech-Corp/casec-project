@@ -17,6 +17,8 @@ export default function Layout() {
     { path: '/dashboard', label: 'Dashboard' },
     { path: '/clubs', label: 'Clubs' },
     { path: '/events', label: 'Events' },
+    { path: '/members', label: 'Members' },
+    { path: '/board-of-directors', label: 'Directors' },
     { path: '/profile', label: 'Profile' },
   ];
 
@@ -86,9 +88,17 @@ export default function Layout() {
             {/* User Info & Logout */}
             <div className="hidden md:flex items-center space-x-4">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">
-                  {user?.firstName?.[0]}{user?.lastName?.[0]}
-                </div>
+                {user?.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={`${user.firstName} ${user.lastName}`}
+                    className="w-10 h-10 rounded-full object-cover border-2 border-primary"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">
+                    {user?.firstName?.[0]}{user?.lastName?.[0]}
+                  </div>
+                )}
                 <div>
                   <div className="font-semibold text-sm">{user?.firstName} {user?.lastName}</div>
                   <div className="text-xs text-gray-500">{user?.membershipTypeName}</div>

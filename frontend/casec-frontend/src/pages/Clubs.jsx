@@ -56,7 +56,19 @@ export default function Clubs() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {clubs.map((club) => (
           <div key={club.clubId} className="card">
-            <div className="text-4xl mb-4">{club.icon || '📚'}</div>
+            <div className="flex items-center space-x-3 mb-4">
+              {club.avatarUrl ? (
+                <img
+                  src={club.avatarUrl}
+                  alt={club.name}
+                  className="w-16 h-16 rounded-lg object-cover border-2 border-gray-200"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-3xl">
+                  {club.icon || '📚'}
+                </div>
+              )}
+            </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">{club.name}</h3>
             <p className="text-gray-600 text-sm mb-4 line-clamp-2">{club.description}</p>
             
