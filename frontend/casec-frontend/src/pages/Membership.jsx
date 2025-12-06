@@ -497,9 +497,10 @@ export default function Membership() {
                       {payment.membershipTypeName} • {payment.durationName || '1 Year'} • {payment.paymentMethod}
                     </p>
                     {payment.isCoveredByFamilyPayment && payment.paidByUserName && (
-                      <p className="text-sm text-blue-600 font-medium">
+                      <div className="mt-1 inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                        <CreditCard className="w-4 h-4 mr-1" />
                         Paid by: {payment.paidByUserName}
-                      </p>
+                      </div>
                     )}
                     <p className="text-sm text-gray-500">
                       Submitted: {formatDate(payment.createdAt)}
@@ -516,15 +517,16 @@ export default function Membership() {
                     )}
                     {/* Show linked users for payments made by current user */}
                     {!payment.isCoveredByFamilyPayment && payment.coveredFamilyMembers && payment.coveredFamilyMembers.length > 0 && (
-                      <div className="mt-2 pt-2 border-t border-gray-200">
-                        <p className="text-sm text-gray-600 font-medium flex items-center">
-                          <Users className="w-3 h-3 mr-1" /> Applied to:
+                      <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                        <p className="text-sm text-purple-800 font-semibold flex items-center mb-2">
+                          <Users className="w-4 h-4 mr-1" />
+                          Also applies to {payment.coveredFamilyMembers.length} family member{payment.coveredFamilyMembers.length > 1 ? 's' : ''}:
                         </p>
-                        <div className="flex flex-wrap gap-2 mt-1">
+                        <div className="flex flex-wrap gap-2">
                           {payment.coveredFamilyMembers.map((member) => (
                             <span
                               key={member.userId}
-                              className="inline-flex items-center bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs"
+                              className="inline-flex items-center bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium"
                             >
                               {member.firstName} {member.lastName}
                             </span>

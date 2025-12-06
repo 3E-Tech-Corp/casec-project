@@ -1035,18 +1035,24 @@ public class MembershipPaymentsController : ControllerBase
                 var memberIds = JsonSerializer.Deserialize<List<int>>(payment.CoveredFamilyMemberIds);
                 if (memberIds != null && memberIds.Count > 0)
                 {
-                    coveredMembers = await _context.Users
-                        .Where(u => memberIds.Contains(u.UserId))
-                        .Select(u => new FamilyMemberSummaryDto
+                    // Fetch each user individually to avoid SQL Server CTE issues with Contains()
+                    coveredMembers = new List<FamilyMemberSummaryDto>();
+                    foreach (var memberId in memberIds)
+                    {
+                        var user = await _context.Users.FindAsync(memberId);
+                        if (user != null)
                         {
-                            UserId = u.UserId,
-                            FirstName = u.FirstName,
-                            LastName = u.LastName,
-                            AvatarUrl = u.AvatarUrl,
-                            Email = u.Email,
-                            Relationship = u.RelationshipToPrimary
-                        })
-                        .ToListAsync();
+                            coveredMembers.Add(new FamilyMemberSummaryDto
+                            {
+                                UserId = user.UserId,
+                                FirstName = user.FirstName,
+                                LastName = user.LastName,
+                                AvatarUrl = user.AvatarUrl,
+                                Email = user.Email,
+                                Relationship = user.RelationshipToPrimary
+                            });
+                        }
+                    }
                 }
             }
             catch { }
