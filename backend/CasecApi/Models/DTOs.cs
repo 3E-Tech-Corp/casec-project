@@ -589,3 +589,21 @@ public class PublicProfileDto
     public string? MembershipTypeName { get; set; }
     public DateTime MemberSince { get; set; }
 }
+
+// Event Asset DTOs
+public class EventAssetDto
+{
+    public int FileId { get; set; }
+    public string FileName { get; set; } = string.Empty;
+    public string ContentType { get; set; } = string.Empty;
+    public long FileSize { get; set; }
+    public string Url { get; set; } = string.Empty;
+    public DateTime UploadedAt { get; set; }
+}
+
+public class EventAssetsDto
+{
+    public int EventId { get; set; }
+    public List<EventAssetDto> Photos { get; set; } = new();
+    public List<EventAssetDto> Documents { get; set; } = new();
+}

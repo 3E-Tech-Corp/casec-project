@@ -6,6 +6,7 @@ using CasecApi.Data;
 using UserEntity = CasecApi.Models.User;
 using CasecApi.Models;
 using CasecApi.Models.DTOs;
+using CasecApi.Services;
 
 namespace CasecApi.Controllers;
 
@@ -16,11 +17,13 @@ public class EventsController : ControllerBase
 {
     private readonly CasecDbContext _context;
     private readonly ILogger<EventsController> _logger;
+    private readonly IAssetService _assetService;
 
-    public EventsController(CasecDbContext context, ILogger<EventsController> logger)
+    public EventsController(CasecDbContext context, ILogger<EventsController> logger, IAssetService assetService)
     {
         _context = context;
         _logger = logger;
+        _assetService = assetService;
     }
 
     private int GetCurrentUserId()
@@ -133,6 +136,9 @@ public class EventsController : ControllerBase
     public async Task<ActionResult<ApiResponse<List<EventDto>>>> GetEvents(
         [FromQuery] string? eventType = null,
         [FromQuery] string? category = null,
+        [FromQuery] int? clubId = null,
+        [FromQuery] DateTime? dateFrom = null,
+        [FromQuery] DateTime? dateTo = null,
         [FromQuery] bool? featured = null,
         [FromQuery] bool? upcoming = true)
     {
@@ -153,14 +159,31 @@ public class EventsController : ControllerBase
                 query = query.Where(e => e.EventCategory == category);
             }
 
+            // Filter by club
+            if (clubId.HasValue)
+            {
+                query = query.Where(e => e.HostClubId == clubId.Value);
+            }
+
+            // Filter by date range
+            if (dateFrom.HasValue)
+            {
+                query = query.Where(e => e.EventDate >= dateFrom.Value);
+            }
+
+            if (dateTo.HasValue)
+            {
+                query = query.Where(e => e.EventDate <= dateTo.Value);
+            }
+
             // Filter by featured
             if (featured.HasValue)
             {
                 query = query.Where(e => e.IsFeatured == featured.Value);
             }
 
-            // Filter by upcoming/past
-            if (upcoming.HasValue && upcoming.Value)
+            // Filter by upcoming/past (only if date range not specified)
+            if (upcoming.HasValue && upcoming.Value && !dateFrom.HasValue && !dateTo.HasValue)
             {
                 query = query.Where(e => e.EventDate >= DateTime.UtcNow);
             }
@@ -656,6 +679,342 @@ public class EventsController : ControllerBase
             {
                 Success = false,
                 Message = "An error occurred while fetching categories"
+            });
+        }
+    }
+
+    // GET: api/Events/{id}/assets (Get event photos and documents)
+    [AllowAnonymous]
+    [HttpGet("{id}/assets")]
+    public async Task<ActionResult<ApiResponse<EventAssetsDto>>> GetEventAssets(int id)
+    {
+        try
+        {
+            var eventItem = await _context.Events.FindAsync(id);
+            if (eventItem == null)
+            {
+                return NotFound(new ApiResponse<EventAssetsDto>
+                {
+                    Success = false,
+                    Message = "Event not found"
+                });
+            }
+
+            var assets = await _assetService.GetAssetsByObjectAsync("Event", id);
+
+            var photos = assets
+                .Where(a => a.ContentType.StartsWith("image/"))
+                .Select(a => new EventAssetDto
+                {
+                    FileId = a.FileId,
+                    FileName = a.OriginalFileName,
+                    ContentType = a.ContentType,
+                    FileSize = a.FileSize,
+                    Url = $"/api/asset/{a.FileId}",
+                    UploadedAt = a.CreatedAt
+                })
+                .ToList();
+
+            var documents = assets
+                .Where(a => !a.ContentType.StartsWith("image/"))
+                .Select(a => new EventAssetDto
+                {
+                    FileId = a.FileId,
+                    FileName = a.OriginalFileName,
+                    ContentType = a.ContentType,
+                    FileSize = a.FileSize,
+                    Url = $"/api/asset/{a.FileId}",
+                    UploadedAt = a.CreatedAt
+                })
+                .ToList();
+
+            return Ok(new ApiResponse<EventAssetsDto>
+            {
+                Success = true,
+                Data = new EventAssetsDto
+                {
+                    EventId = id,
+                    Photos = photos,
+                    Documents = documents
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching event assets");
+            return StatusCode(500, new ApiResponse<EventAssetsDto>
+            {
+                Success = false,
+                Message = "An error occurred while fetching event assets"
+            });
+        }
+    }
+
+    // POST: api/Events/{id}/photos (Upload event photos - Admin/Club Admin)
+    [Authorize]
+    [HttpPost("{id}/photos")]
+    public async Task<ActionResult<ApiResponse<List<EventAssetDto>>>> UploadEventPhotos(int id, [FromForm] List<IFormFile> files)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var eventItem = await _context.Events.FindAsync(id);
+
+            if (eventItem == null)
+            {
+                return NotFound(new ApiResponse<List<EventAssetDto>>
+                {
+                    Success = false,
+                    Message = "Event not found"
+                });
+            }
+
+            // Check permissions
+            if (!await CanManageEvent(currentUserId, eventItem))
+            {
+                return Forbid();
+            }
+
+            if (files == null || !files.Any())
+            {
+                return BadRequest(new ApiResponse<List<EventAssetDto>>
+                {
+                    Success = false,
+                    Message = "No files uploaded"
+                });
+            }
+
+            var uploadedAssets = new List<EventAssetDto>();
+
+            foreach (var file in files)
+            {
+                // Validate image type
+                if (!file.ContentType.StartsWith("image/"))
+                {
+                    continue; // Skip non-image files
+                }
+
+                var result = await _assetService.UploadAssetAsync(
+                    file,
+                    $"events/{id}/photos",
+                    objectType: "Event",
+                    objectId: id,
+                    uploadedBy: currentUserId
+                );
+
+                if (result.Success)
+                {
+                    uploadedAssets.Add(new EventAssetDto
+                    {
+                        FileId = result.FileId!.Value,
+                        FileName = result.OriginalFileName!,
+                        ContentType = result.ContentType!,
+                        FileSize = result.FileSize,
+                        Url = result.Url!,
+                        UploadedAt = DateTime.UtcNow
+                    });
+                }
+            }
+
+            // Log activity
+            var log = new ActivityLog
+            {
+                UserId = currentUserId,
+                ActivityType = "EventPhotosUploaded",
+                Description = $"Uploaded {uploadedAssets.Count} photos to event: {eventItem.Title}"
+            };
+            _context.ActivityLogs.Add(log);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<List<EventAssetDto>>
+            {
+                Success = true,
+                Message = $"Successfully uploaded {uploadedAssets.Count} photos",
+                Data = uploadedAssets
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading event photos");
+            return StatusCode(500, new ApiResponse<List<EventAssetDto>>
+            {
+                Success = false,
+                Message = "An error occurred while uploading photos"
+            });
+        }
+    }
+
+    // POST: api/Events/{id}/documents (Upload event documents - Admin/Club Admin)
+    [Authorize]
+    [HttpPost("{id}/documents")]
+    public async Task<ActionResult<ApiResponse<List<EventAssetDto>>>> UploadEventDocuments(int id, [FromForm] List<IFormFile> files)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var eventItem = await _context.Events.FindAsync(id);
+
+            if (eventItem == null)
+            {
+                return NotFound(new ApiResponse<List<EventAssetDto>>
+                {
+                    Success = false,
+                    Message = "Event not found"
+                });
+            }
+
+            // Check permissions
+            if (!await CanManageEvent(currentUserId, eventItem))
+            {
+                return Forbid();
+            }
+
+            if (files == null || !files.Any())
+            {
+                return BadRequest(new ApiResponse<List<EventAssetDto>>
+                {
+                    Success = false,
+                    Message = "No files uploaded"
+                });
+            }
+
+            // Allowed document types
+            var allowedTypes = new[] { "application/pdf", "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                "text/plain", "text/csv" };
+
+            var uploadedAssets = new List<EventAssetDto>();
+
+            foreach (var file in files)
+            {
+                // Validate document type
+                if (!allowedTypes.Contains(file.ContentType))
+                {
+                    continue; // Skip invalid file types
+                }
+
+                var result = await _assetService.UploadAssetAsync(
+                    file,
+                    $"events/{id}/documents",
+                    objectType: "Event",
+                    objectId: id,
+                    uploadedBy: currentUserId
+                );
+
+                if (result.Success)
+                {
+                    uploadedAssets.Add(new EventAssetDto
+                    {
+                        FileId = result.FileId!.Value,
+                        FileName = result.OriginalFileName!,
+                        ContentType = result.ContentType!,
+                        FileSize = result.FileSize,
+                        Url = result.Url!,
+                        UploadedAt = DateTime.UtcNow
+                    });
+                }
+            }
+
+            // Log activity
+            var log = new ActivityLog
+            {
+                UserId = currentUserId,
+                ActivityType = "EventDocumentsUploaded",
+                Description = $"Uploaded {uploadedAssets.Count} documents to event: {eventItem.Title}"
+            };
+            _context.ActivityLogs.Add(log);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<List<EventAssetDto>>
+            {
+                Success = true,
+                Message = $"Successfully uploaded {uploadedAssets.Count} documents",
+                Data = uploadedAssets
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading event documents");
+            return StatusCode(500, new ApiResponse<List<EventAssetDto>>
+            {
+                Success = false,
+                Message = "An error occurred while uploading documents"
+            });
+        }
+    }
+
+    // DELETE: api/Events/{id}/assets/{fileId} (Delete event asset - Admin/Club Admin)
+    [Authorize]
+    [HttpDelete("{id}/assets/{fileId}")]
+    public async Task<ActionResult<ApiResponse<object>>> DeleteEventAsset(int id, int fileId)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var eventItem = await _context.Events.FindAsync(id);
+
+            if (eventItem == null)
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Event not found"
+                });
+            }
+
+            // Check permissions
+            if (!await CanManageEvent(currentUserId, eventItem))
+            {
+                return Forbid();
+            }
+
+            // Verify asset belongs to this event
+            var asset = await _assetService.GetAssetAsync(fileId);
+            if (asset == null || asset.ObjectType != "Event" || asset.ObjectId != id)
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Asset not found for this event"
+                });
+            }
+
+            var deleted = await _assetService.DeleteAssetAsync(fileId);
+
+            if (!deleted)
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Failed to delete asset"
+                });
+            }
+
+            // Log activity
+            var log = new ActivityLog
+            {
+                UserId = currentUserId,
+                ActivityType = "EventAssetDeleted",
+                Description = $"Deleted asset from event: {eventItem.Title}"
+            };
+            _context.ActivityLogs.Add(log);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Asset deleted successfully"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting event asset");
+            return StatusCode(500, new ApiResponse<object>
+            {
+                Success = false,
+                Message = "An error occurred while deleting asset"
             });
         }
     }
