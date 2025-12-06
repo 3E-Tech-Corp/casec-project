@@ -493,7 +493,7 @@ public class UsersController : ControllerBase
             }
 
             // Get user's clubs
-            var clubs = await _context.ClubMembers
+            var clubs = await _context.ClubMemberships
                 .Where(cm => cm.UserId == id)
                 .Include(cm => cm.Club)
                 .Select(cm => new ProfileClubDto
