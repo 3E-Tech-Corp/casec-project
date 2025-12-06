@@ -551,6 +551,7 @@ public class AdminEditUserRequest
     public string? LinkedInUrl { get; set; }
     public string? TwitterHandle { get; set; }
     public bool? IsActive { get; set; }
+    public DateTime? MemberSince { get; set; }
 }
 
 // Board Member DTO

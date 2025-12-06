@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Linkedin, Twitter, Award, Calendar } from 'lucide-react';
+import { ArrowLeft, Linkedin, Twitter, Award, Calendar, MapPin, Briefcase, Heart } from 'lucide-react';
 import api from '../services/api';
 
 export default function PublicProfile() {
@@ -93,17 +93,29 @@ export default function PublicProfile() {
                     <span>{profile.boardTitle}</span>
                   </div>
                 )}
-                {profile.profession && (
-                  <p className="text-primary font-semibold text-lg">{profile.profession}</p>
-                )}
-                <div className="flex items-center space-x-2 text-gray-500 mt-2">
-                  <Calendar className="w-4 h-4" />
-                  <span className="text-sm">
-                    Member since {new Date(profile.memberSince).toLocaleDateString('en-US', { 
-                      month: 'long', 
-                      year: 'numeric' 
-                    })}
-                  </span>
+
+                <div className="flex flex-wrap gap-4 mt-3">
+                  {profile.profession && (
+                    <div className="flex items-center space-x-2 text-primary">
+                      <Briefcase className="w-4 h-4" />
+                      <span className="font-semibold">{profile.profession}</span>
+                    </div>
+                  )}
+                  {(profile.city || profile.state) && (
+                    <div className="flex items-center space-x-2 text-gray-600">
+                      <MapPin className="w-4 h-4" />
+                      <span>{[profile.city, profile.state].filter(Boolean).join(', ')}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center space-x-2 text-gray-500">
+                    <Calendar className="w-4 h-4" />
+                    <span className="text-sm">
+                      Member since {new Date(profile.memberSince).toLocaleDateString('en-US', {
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -114,6 +126,17 @@ export default function PublicProfile() {
                   <p className="text-gray-700 whitespace-pre-line leading-relaxed">
                     {profile.bio}
                   </p>
+                </div>
+              )}
+
+              {/* Hobbies */}
+              {profile.hobbies && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                    <Heart className="w-5 h-5 text-red-400" />
+                    Interests & Hobbies
+                  </h3>
+                  <p className="text-gray-600">{profile.hobbies}</p>
                 </div>
               )}
 

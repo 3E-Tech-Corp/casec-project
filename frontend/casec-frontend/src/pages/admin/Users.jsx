@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Edit, Trash2, Search, UserPlus, Shield, ShieldOff, CheckCircle, XCircle } from 'lucide-react';
+import { Edit, Trash2, Search, UserPlus, Shield, ShieldOff, CheckCircle, XCircle, Calendar } from 'lucide-react';
 import api from '../../services/api';
 
 export default function ManageUsers() {
@@ -37,6 +37,8 @@ export default function ManageUsers() {
       isActive: user.isActive,
       isBoardMember: user.isBoardMember || false,
       boardTitle: user.boardTitle || '',
+      boardDisplayOrder: user.boardDisplayOrder || 0,
+      memberSince: user.memberSince ? user.memberSince.split('T')[0] : '',
     });
   };
 
@@ -300,19 +302,45 @@ export default function ManageUsers() {
                 </div>
 
                 {formData.isBoardMember && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Board Title
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.boardTitle}
-                      onChange={(e) => setFormData({ ...formData, boardTitle: e.target.value })}
-                      className="input"
-                      placeholder="e.g., President, Vice President"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Board Title
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.boardTitle}
+                        onChange={(e) => setFormData({ ...formData, boardTitle: e.target.value })}
+                        className="input"
+                        placeholder="e.g., President, Vice President"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Display Order
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.boardDisplayOrder}
+                        onChange={(e) => setFormData({ ...formData, boardDisplayOrder: parseInt(e.target.value) || 0 })}
+                        className="input"
+                        placeholder="0"
+                      />
+                    </div>
                   </div>
                 )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Member Since
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.memberSince}
+                    onChange={(e) => setFormData({ ...formData, memberSince: e.target.value })}
+                    className="input"
+                  />
+                </div>
 
                 <div className="flex justify-end space-x-3 mt-6">
                   <button

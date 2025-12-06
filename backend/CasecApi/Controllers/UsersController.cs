@@ -323,6 +323,10 @@ public class UsersController : ControllerBase
             if (request.IsActive.HasValue)
                 user.IsActive = request.IsActive.Value;
 
+            // Update member since date
+            if (request.MemberSince.HasValue)
+                user.MemberSince = request.MemberSince.Value;
+
             user.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
@@ -495,7 +499,11 @@ public class UsersController : ControllerBase
                 LastName = user.LastName,
                 AvatarUrl = user.AvatarUrl,
                 Profession = user.Profession,
-                Bio = user.IsBoardMember ? user.BoardBio : user.Bio,
+                Hobbies = user.Hobbies,
+                Bio = user.Bio,
+                City = user.City,
+                State = user.State,
+                IsBoardMember = user.IsBoardMember,
                 BoardTitle = user.IsBoardMember ? user.BoardTitle : null,
                 LinkedInUrl = user.LinkedInUrl,
                 TwitterHandle = user.TwitterHandle,
