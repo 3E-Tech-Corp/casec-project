@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
-import { authAPI } from '../services/api';
+import { authAPI, getAssetUrl } from '../services/api';
 import { useAuthStore } from '../store/useStore';
+import { useTheme } from '../components/ThemeProvider';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const setAuth = useAuthStore((state) => state.setAuth);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -34,9 +36,17 @@ export default function Login() {
       <div className="max-w-md w-full">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-display font-extrabold text-white mb-2">
-            CASEC<span className="text-accent-light">.</span>
-          </h1>
+          {theme?.logoUrl ? (
+            <img
+              src={getAssetUrl(theme.logoUrl)}
+              alt={theme.organizationName || 'Logo'}
+              className="h-24 w-auto max-w-[280px] object-contain mx-auto mb-4"
+            />
+          ) : (
+            <h1 className="text-5xl font-display font-extrabold text-white mb-2">
+              {theme?.organizationName || 'CASEC'}<span className="text-accent-light">.</span>
+            </h1>
+          )}
           <p className="text-white/80 text-lg">Welcome back to your community</p>
         </div>
 
@@ -103,7 +113,7 @@ export default function Login() {
 
         {/* Footer */}
         <p className="text-center text-white/60 text-sm mt-8">
-          © 2024 CASEC. Community Membership Portal
+          © {new Date().getFullYear()} {theme?.organizationName || 'CASEC'}. Community Membership Portal
         </p>
       </div>
     </div>

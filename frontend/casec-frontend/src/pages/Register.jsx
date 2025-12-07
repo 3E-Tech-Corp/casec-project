@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { UserPlus, Check } from 'lucide-react';
-import { authAPI, membershipTypesAPI } from '../services/api';
+import { authAPI, membershipTypesAPI, getAssetUrl } from '../services/api';
 import { useAuthStore } from '../store/useStore';
+import { useTheme } from '../components/ThemeProvider';
 
 export default function Register() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const setAuth = useAuthStore((state) => state.setAuth);
   const [membershipTypes, setMembershipTypes] = useState([]);
   const [selectedType, setSelectedType] = useState(null);
@@ -85,9 +87,17 @@ export default function Register() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-display font-extrabold text-primary mb-2">
-            CASEC<span className="text-accent">.</span>
-          </h1>
+          {theme?.logoUrl ? (
+            <img
+              src={getAssetUrl(theme.logoUrl)}
+              alt={theme.organizationName || 'Logo'}
+              className="h-20 w-auto max-w-[250px] object-contain mx-auto mb-4"
+            />
+          ) : (
+            <h1 className="text-5xl font-display font-extrabold text-primary mb-2">
+              {theme?.organizationName || 'CASEC'}<span className="text-accent">.</span>
+            </h1>
+          )}
           <p className="text-gray-600 text-lg">Join our vibrant community</p>
         </div>
 
