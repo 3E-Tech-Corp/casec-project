@@ -68,6 +68,9 @@ public class UsersController : ControllerBase
                 Profession = user.Profession,
                 Hobbies = user.Hobbies,
                 Bio = user.Bio,
+                Gender = user.Gender,
+                DateOfBirth = user.DateOfBirth,
+                MaritalStatus = user.MaritalStatus,
                 AvatarUrl = user.AvatarUrl,
                 MembershipTypeId = user.MembershipTypeId,
                 MembershipTypeName = user.MembershipType?.Name,
@@ -167,6 +170,9 @@ public class UsersController : ControllerBase
             user.Profession = request.Profession;
             user.Hobbies = request.Hobbies;
             user.Bio = request.Bio;
+            user.Gender = request.Gender;
+            user.DateOfBirth = request.DateOfBirth;
+            user.MaritalStatus = request.MaritalStatus;
             user.LinkedInUrl = request.LinkedInUrl;
             user.TwitterHandle = request.TwitterHandle;
             user.UpdatedAt = DateTime.UtcNow;
@@ -340,10 +346,20 @@ public class UsersController : ControllerBase
                 user.LastName = request.LastName;
             if (!string.IsNullOrEmpty(request.Email))
                 user.Email = request.Email;
-            
+
             user.PhoneNumber = request.PhoneNumber;
+            user.Address = request.Address;
+            user.City = request.City;
+            user.State = request.State;
+            user.ZipCode = request.ZipCode;
             user.Profession = request.Profession;
+            user.Hobbies = request.Hobbies;
             user.Bio = request.Bio;
+            user.Gender = request.Gender;
+            user.DateOfBirth = request.DateOfBirth;
+            user.MaritalStatus = request.MaritalStatus;
+            user.LinkedInUrl = request.LinkedInUrl;
+            user.TwitterHandle = request.TwitterHandle;
 
             // Update membership type
             if (request.MembershipTypeId.HasValue)

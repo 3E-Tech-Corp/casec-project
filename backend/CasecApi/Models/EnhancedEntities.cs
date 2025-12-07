@@ -48,6 +48,15 @@ public class User
 
     public string? Bio { get; set; }
 
+    // Personal info
+    [MaxLength(20)]
+    public string? Gender { get; set; }
+
+    public DateTime? DateOfBirth { get; set; }
+
+    [MaxLength(30)]
+    public string? MaritalStatus { get; set; }
+
     [MaxLength(500)]
     public string? AvatarUrl { get; set; }
 

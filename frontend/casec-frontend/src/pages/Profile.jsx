@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Save, User, Camera, Upload, Linkedin, Twitter, MapPin, Phone, Briefcase, Heart, FileText } from 'lucide-react';
+import { Save, User, Camera, Upload, Linkedin, Twitter, MapPin, Phone, Briefcase, Heart, FileText, Calendar, Users } from 'lucide-react';
 import { usersAPI, getAssetUrl } from '../services/api';
 import { useAuthStore } from '../store/useStore';
 import api from '../services/api';
+
+const GENDER_OPTIONS = ['Male', 'Female', 'Other', 'Prefer not to say'];
+const MARITAL_STATUS_OPTIONS = ['Single', 'Married', 'Divorced', 'Widowed', 'Prefer not to say'];
 
 export default function Profile() {
   const { user, updateUser } = useAuthStore();
@@ -33,6 +36,9 @@ export default function Profile() {
           profession: profile.profession || '',
           hobbies: profile.hobbies || '',
           bio: profile.bio || '',
+          gender: profile.gender || '',
+          dateOfBirth: profile.dateOfBirth ? profile.dateOfBirth.split('T')[0] : '',
+          maritalStatus: profile.maritalStatus || '',
           linkedInUrl: profile.linkedInUrl || '',
           twitterHandle: profile.twitterHandle || '',
         });
@@ -221,6 +227,56 @@ export default function Profile() {
                 onChange={(e) => setFormData({...formData, profession: e.target.value})}
                 placeholder="e.g. Software Engineer"
               />
+            </div>
+          </div>
+        </div>
+
+        {/* Personal Information */}
+        <div className="card">
+          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
+            <Users className="w-5 h-5 text-primary" />
+            <span>Personal Information</span>
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Gender</label>
+              <select
+                className="input w-full"
+                value={formData.gender || ''}
+                onChange={(e) => setFormData({...formData, gender: e.target.value})}
+              >
+                <option value="">Select Gender</option>
+                {GENDER_OPTIONS.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <span className="flex items-center space-x-1">
+                  <Calendar className="w-4 h-4" />
+                  <span>Date of Birth</span>
+                </span>
+              </label>
+              <input
+                type="date"
+                className="input w-full"
+                value={formData.dateOfBirth || ''}
+                onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Marital Status</label>
+              <select
+                className="input w-full"
+                value={formData.maritalStatus || ''}
+                onChange={(e) => setFormData({...formData, maritalStatus: e.target.value})}
+              >
+                <option value="">Select Status</option>
+                {MARITAL_STATUS_OPTIONS.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

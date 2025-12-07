@@ -15,6 +15,9 @@ public class RegisterRequest
     public string? Profession { get; set; }
     public string? Hobbies { get; set; }
     public string? Bio { get; set; }
+    public string? Gender { get; set; }
+    public DateTime? DateOfBirth { get; set; }
+    public string? MaritalStatus { get; set; }
     public int MembershipTypeId { get; set; }
     public List<FamilyMemberDto>? FamilyMembers { get; set; }
 }
@@ -46,6 +49,9 @@ public class UserDto
     public string? Profession { get; set; }
     public string? Hobbies { get; set; }
     public string? Bio { get; set; }
+    public string? Gender { get; set; }
+    public DateTime? DateOfBirth { get; set; }
+    public string? MaritalStatus { get; set; }
     public string? AvatarUrl { get; set; }
     public int MembershipTypeId { get; set; }
     public string MembershipTypeName { get; set; } = string.Empty;
@@ -83,6 +89,9 @@ public class UpdateProfileRequest
     public string? Profession { get; set; }
     public string? Hobbies { get; set; }
     public string? Bio { get; set; }
+    public string? Gender { get; set; }
+    public DateTime? DateOfBirth { get; set; }
+    public string? MaritalStatus { get; set; }
     public string? LinkedInUrl { get; set; }
     public string? TwitterHandle { get; set; }
 }
@@ -394,6 +403,9 @@ public class UserProfileDto
     public string? Profession { get; set; }
     public string? Hobbies { get; set; }
     public string? Bio { get; set; }
+    public string? Gender { get; set; }
+    public DateTime? DateOfBirth { get; set; }
+    public string? MaritalStatus { get; set; }
     public string? AvatarUrl { get; set; }
     public int MembershipTypeId { get; set; }
     public string? MembershipTypeName { get; set; }
@@ -558,6 +570,9 @@ public class AdminEditUserRequest
     public string? Profession { get; set; }
     public string? Hobbies { get; set; }
     public string? Bio { get; set; }
+    public string? Gender { get; set; }
+    public DateTime? DateOfBirth { get; set; }
+    public string? MaritalStatus { get; set; }
     public int? MembershipTypeId { get; set; }
     public bool? IsAdmin { get; set; }
     public bool? IsBoardMember { get; set; }
