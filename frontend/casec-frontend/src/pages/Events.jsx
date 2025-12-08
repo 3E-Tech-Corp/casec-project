@@ -256,7 +256,7 @@ export default function EnhancedEvents() {
       </div>
 
       {/* Events Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {filteredEvents.map((event) => {
           const eventDate = new Date(event.eventDate);
           const typeInfo = getEventTypeInfo(event.eventType);
@@ -266,26 +266,26 @@ export default function EnhancedEvents() {
               key={event.eventId}
               className={`rounded-xl ${event.isFeatured ? 'ring-4 ring-accent shadow-2xl' : 'shadow-lg'} overflow-hidden relative bg-gradient-to-r from-gray-800 via-gray-700 to-gray-600`}
             >
-              <div className="flex">
-                {/* Thumbnail on the left */}
-                <div className="flex-shrink-0 w-40 md:w-48">
-                  <Link to={`/events/${event.eventId}`} className="block h-full">
+              <div className="flex flex-col sm:flex-row">
+                {/* Thumbnail - full width on mobile, fixed width on desktop */}
+                <div className="flex-shrink-0 w-full sm:w-40 md:w-48">
+                  <Link to={`/events/${event.eventId}`} className="block">
                     {event.thumbnailUrl ? (
                       <img
                         src={getAssetUrl(event.thumbnailUrl)}
                         alt={event.title}
-                        className="w-full h-full min-h-[280px] object-cover hover:opacity-90 transition-opacity"
+                        className="w-full h-48 sm:h-full sm:min-h-[280px] object-cover hover:opacity-90 transition-opacity"
                       />
                     ) : (
-                      <div className="w-full h-full min-h-[280px] bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
+                      <div className="w-full h-48 sm:h-full sm:min-h-[280px] bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
                         <ImageIcon className="w-12 h-12 text-white/50" />
                       </div>
                     )}
                   </Link>
                 </div>
 
-                {/* Content on the right */}
-                <div className="flex-1 p-5 flex flex-col">
+                {/* Content */}
+                <div className="flex-1 p-4 sm:p-5 flex flex-col">
                   {/* Featured Badge */}
                   {event.isFeatured && (
                     <div className="absolute top-3 right-3 bg-accent text-white px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1">
@@ -297,14 +297,14 @@ export default function EnhancedEvents() {
                   {/* Title */}
                   <Link
                     to={`/events/${event.eventId}`}
-                    className="text-xl font-display font-bold text-white hover:text-accent transition-colors leading-tight block mb-2"
+                    className="text-lg sm:text-xl font-display font-bold text-white hover:text-accent transition-colors leading-tight block mb-2"
                     title="Click to view event details"
                   >
                     {event.title}
                   </Link>
 
                   {/* Event Type Badge and Date */}
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between gap-2 mb-3">
                     <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-bold ${typeInfo.color} text-white`}>
                       <span>{typeInfo.icon}</span>
                       <span>{typeInfo.label}</span>
@@ -364,10 +364,10 @@ export default function EnhancedEvents() {
                   </div>
 
                   {/* Action Button */}
-                  <div className="flex items-center justify-between pt-3 border-t border-white/20 mt-auto">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-white/20 mt-auto">
                     {event.eventType !== 'Announcement' && (
-                      <div className="text-xl font-bold text-accent flex items-center">
-                        <DollarSign className="w-5 h-5" />
+                      <div className="text-lg sm:text-xl font-bold text-accent flex items-center">
+                        <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />
                         {event.eventFee}
                       </div>
                     )}
@@ -375,13 +375,13 @@ export default function EnhancedEvents() {
                     {/* Different buttons based on event type */}
                     {event.eventType === 'Announcement' ? (
                       <div className="flex items-center space-x-2 text-amber-400">
-                        <Megaphone className="w-5 h-5" />
-                        <span className="font-semibold text-sm">Information Only</span>
+                        <Megaphone className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span className="font-semibold text-xs sm:text-sm">Information Only</span>
                       </div>
                     ) : event.eventType === 'PartnerEvent' && event.registrationUrl ? (
                       <button
                         onClick={() => handleRegister(event.eventId, event.eventType, event.registrationUrl)}
-                        className="btn bg-blue-500 text-white hover:bg-blue-600 flex items-center space-x-2 text-sm py-2"
+                        className="btn bg-blue-500 text-white hover:bg-blue-600 flex items-center space-x-2 text-xs sm:text-sm py-2"
                       >
                         <span>Partner Site</span>
                         <ExternalLink className="w-4 h-4" />
@@ -390,12 +390,12 @@ export default function EnhancedEvents() {
                       <button
                         onClick={() => handleRegister(event.eventId, event.eventType)}
                         disabled={event.isUserRegistered || event.spotsRemaining === 0}
-                        className={`btn text-sm py-2 ${event.isUserRegistered ? 'bg-green-500 text-white' : 'btn-accent'}`}
+                        className={`btn text-xs sm:text-sm py-2 ${event.isUserRegistered ? 'bg-green-500 text-white' : 'btn-accent'}`}
                       >
                         {event.isUserRegistered ? '✓ Registered' : event.spotsRemaining === 0 ? 'Full' : 'Register'}
                       </button>
                     ) : (
-                      <span className="text-green-400 font-semibold text-sm">No Registration Required</span>
+                      <span className="text-green-400 font-semibold text-xs sm:text-sm">No Registration Required</span>
                     )}
                   </div>
                 </div>
