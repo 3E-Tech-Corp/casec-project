@@ -153,6 +153,23 @@ public class ClubsController : ControllerBase
                 })
                 .ToListAsync();
 
+            var members = await _context.ClubMemberships
+                .Where(cm => cm.ClubId == club.ClubId)
+                .Include(cm => cm.User)
+                .OrderBy(cm => cm.User!.FirstName)
+                .ThenBy(cm => cm.User!.LastName)
+                .Select(cm => new ClubMemberDto
+                {
+                    UserId = cm.User!.UserId,
+                    FirstName = cm.User.FirstName,
+                    LastName = cm.User.LastName,
+                    Email = cm.User.Email,
+                    AvatarUrl = cm.User.AvatarUrl,
+                    JoinedDate = cm.JoinedDate,
+                    IsAdmin = _context.ClubAdmins.Any(ca => ca.ClubId == club.ClubId && ca.UserId == cm.UserId)
+                })
+                .ToListAsync();
+
             var isUserMember = currentUserId > 0 &&
                 await _context.ClubMemberships.AnyAsync(cm => cm.ClubId == club.ClubId && cm.UserId == currentUserId);
 
@@ -171,6 +188,7 @@ public class ClubsController : ControllerBase
                 IsActive = club.IsActive,
                 TotalMembers = totalMembers,
                 Admins = admins,
+                Members = members,
                 IsUserMember = isUserMember,
                 IsUserAdmin = isUserAdmin,
                 CreatedAt = club.CreatedAt

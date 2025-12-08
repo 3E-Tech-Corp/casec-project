@@ -178,10 +178,11 @@ export default function AdminClubs() {
     (club.description && club.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  // Get users who are not already admins of the selected club
+  // Get club members who are not already admins of the selected club
   const getAvailableUsersForAdmin = (club) => {
     const adminUserIds = club.admins?.map(a => a.userId) || [];
-    return allUsers.filter(u => !adminUserIds.includes(u.userId) && u.isActive);
+    // Only show club members who are not already admins
+    return (club.members || []).filter(m => !adminUserIds.includes(m.userId));
   };
 
   if (loading) {
@@ -561,29 +562,35 @@ export default function AdminClubs() {
               <div>
                 <h3 className="text-lg font-semibold mb-3">Add New Admin</h3>
                 <p className="text-sm text-gray-500 mb-3">
-                  Note: User must be a club member before they can be assigned as admin.
+                  Select a club member to promote to admin.
                 </p>
                 <div className="max-h-60 overflow-y-auto space-y-2">
-                  {getAvailableUsersForAdmin(managingMembers).map((u) => (
-                    <div key={u.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
-                          {u.firstName[0]}{u.lastName[0]}
+                  {getAvailableUsersForAdmin(managingMembers).length > 0 ? (
+                    getAvailableUsersForAdmin(managingMembers).map((member) => (
+                      <div key={member.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
+                            {member.firstName?.[0]}{member.lastName?.[0]}
+                          </div>
+                          <div>
+                            <p className="font-medium">{member.firstName} {member.lastName}</p>
+                            <p className="text-sm text-gray-500">{member.email}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{u.firstName} {u.lastName}</p>
-                          <p className="text-sm text-gray-500">{u.email}</p>
-                        </div>
+                        <button
+                          onClick={() => handleAssignAdmin(managingMembers.clubId, member.userId)}
+                          className="btn btn-sm btn-primary flex items-center gap-1"
+                        >
+                          <UserPlus className="w-3 h-3" />
+                          Assign
+                        </button>
                       </div>
-                      <button
-                        onClick={() => handleAssignAdmin(managingMembers.clubId, u.userId)}
-                        className="btn btn-sm btn-primary flex items-center gap-1"
-                      >
-                        <UserPlus className="w-3 h-3" />
-                        Assign
-                      </button>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">
+                      No club members available to assign as admin.
+                    </p>
+                  )}
                 </div>
               </div>
 

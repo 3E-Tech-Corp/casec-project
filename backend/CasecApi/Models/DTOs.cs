@@ -344,6 +344,7 @@ public class ClubDetailDto
     public bool IsActive { get; set; }
     public int TotalMembers { get; set; }
     public List<ClubAdminDto> Admins { get; set; } = new();
+    public List<ClubMemberDto> Members { get; set; } = new();
     public bool IsUserMember { get; set; }
     public bool IsUserAdmin { get; set; }
     public DateTime CreatedAt { get; set; }
