@@ -259,7 +259,7 @@ export default function Membership() {
                   <CheckCircle className="w-4 h-4 mr-1" />
                   <span className="text-sm">Proof uploaded</span>
                   <a
-                    href={status.pendingPayment.proofOfPaymentUrl}
+                    href={getAssetUrl(status.pendingPayment.proofOfPaymentUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="ml-2 text-primary hover:underline text-sm flex items-center"
@@ -538,7 +538,7 @@ export default function Membership() {
 
                   {payment.proofOfPaymentUrl && !payment.isCoveredByFamilyPayment && (
                     <a
-                      href={payment.proofOfPaymentUrl}
+                      href={getAssetUrl(payment.proofOfPaymentUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary hover:underline text-sm flex items-center"

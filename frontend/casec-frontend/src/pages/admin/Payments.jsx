@@ -354,7 +354,7 @@ export default function AdminPayments() {
                     <div className="bg-gray-50 rounded-lg p-4">
                       <p className="text-sm font-semibold text-gray-700 mb-2">Proof of Payment</p>
                       <a
-                        href={payment.proofOfPaymentUrl}
+                        href={getAssetUrl(payment.proofOfPaymentUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center text-primary hover:underline"
