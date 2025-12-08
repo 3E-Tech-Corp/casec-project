@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useAuthStore } from './store/useStore';
 import ThemeProvider from './components/ThemeProvider';
 import Layout from './components/Layout';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -48,6 +49,7 @@ function ClubAdminRoute({ children }) {
 function App() {
   return (
     <ThemeProvider>
+      <PWAInstallPrompt />
       <Router>
         <Routes>
         <Route path="/login" element={<Login />} />
