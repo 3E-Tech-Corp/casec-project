@@ -262,7 +262,7 @@ export default function Clubs() {
                   {members.map((member) => (
                     <Link
                       key={member.userId}
-                      to={`/members/${member.userId}`}
+                      to={`/member/${member.userId}`}
                       onClick={closeMembersModal}
                       className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
                     >
