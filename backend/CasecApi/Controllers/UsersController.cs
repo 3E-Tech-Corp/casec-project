@@ -284,6 +284,7 @@ public class UsersController : ControllerBase
         {
             var users = await _context.Users
                 .Include(u => u.MembershipType)
+                .Include(u => u.ClubMemberships)
                 .Select(u => new UserDto
                 {
                     UserId = u.UserId,
@@ -299,7 +300,8 @@ public class UsersController : ControllerBase
                     BoardTitle = u.BoardTitle,
                     BoardDisplayOrder = u.BoardDisplayOrder,
                     MemberSince = u.MemberSince,
-                    IsActive = u.IsActive
+                    IsActive = u.IsActive,
+                    ClubIds = u.ClubMemberships.Select(cm => cm.ClubId).ToList()
                 })
                 .OrderBy(u => u.LastName)
                 .ToListAsync();

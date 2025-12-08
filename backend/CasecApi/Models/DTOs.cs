@@ -72,6 +72,7 @@ public class UserDto
     public int? BoardDisplayOrder { get; set; }
     public bool IsActive { get; set; }
     public DateTime MemberSince { get; set; }
+    public List<int> ClubIds { get; set; } = new();
     public List<FamilyMemberDto>? FamilyMembers { get; set; }
 }
 

@@ -1,16 +1,26 @@
 import { useState, useEffect } from 'react';
-import { Edit, Trash2, Search, UserPlus, Shield, ShieldOff, CheckCircle, XCircle, Calendar } from 'lucide-react';
-import api, { getAssetUrl } from '../../services/api';
+import { Edit, Trash2, Search, UserPlus, Shield, ShieldOff, CheckCircle, XCircle, Calendar, Filter, X } from 'lucide-react';
+import api, { getAssetUrl, clubsAPI, membershipTypesAPI } from '../../services/api';
 
 export default function ManageUsers() {
   const [users, setUsers] = useState([]);
+  const [clubs, setClubs] = useState([]);
+  const [membershipTypes, setMembershipTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({});
 
+  // Filter states
+  const [clubFilter, setClubFilter] = useState('');
+  const [directorFilter, setDirectorFilter] = useState(''); // '', 'yes', 'no'
+  const [membershipFilter, setMembershipFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+
   useEffect(() => {
     fetchUsers();
+    fetchClubs();
+    fetchMembershipTypes();
   }, []);
 
   const fetchUsers = async () => {
@@ -22,6 +32,28 @@ export default function ManageUsers() {
       alert('Failed to fetch users');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchClubs = async () => {
+    try {
+      const response = await clubsAPI.getAll();
+      if (response.success) {
+        setClubs(response.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching clubs:', error);
+    }
+  };
+
+  const fetchMembershipTypes = async () => {
+    try {
+      const response = await membershipTypesAPI.getAll();
+      if (response.success) {
+        setMembershipTypes(response.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching membership types:', error);
     }
   };
 
@@ -81,11 +113,45 @@ export default function ManageUsers() {
     }
   };
 
-  const filteredUsers = users.filter(user =>
-    user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const activeFilterCount = [clubFilter, directorFilter, membershipFilter].filter(f => f !== '').length;
+
+  const clearFilters = () => {
+    setClubFilter('');
+    setDirectorFilter('');
+    setMembershipFilter('');
+  };
+
+  const filteredUsers = users.filter(user => {
+    // Search filter
+    const matchesSearch =
+      user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    // Club filter
+    if (clubFilter) {
+      const clubId = parseInt(clubFilter);
+      if (!user.clubIds || !user.clubIds.includes(clubId)) {
+        return false;
+      }
+    }
+
+    // Director (Board Member) filter
+    if (directorFilter === 'yes' && !user.isBoardMember) return false;
+    if (directorFilter === 'no' && user.isBoardMember) return false;
+
+    // Membership type filter
+    if (membershipFilter) {
+      const membershipId = parseInt(membershipFilter);
+      if (user.membershipTypeId !== membershipId) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 
   if (loading) {
     return <div className="flex justify-center items-center h-64">Loading users...</div>;
@@ -97,16 +163,134 @@ export default function ManageUsers() {
         <h1 className="text-3xl font-bold text-gray-900">Manage Users</h1>
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-        <input
-          type="text"
-          placeholder="Search users by name or email..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="input pl-10 w-full"
-        />
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        <div className="flex gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search users by name or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input pl-10 w-full"
+            />
+          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`btn ${showFilters || activeFilterCount > 0 ? 'btn-primary' : 'btn-secondary'} flex items-center gap-2`}
+          >
+            <Filter className="w-4 h-4" />
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="bg-white text-primary rounded-full w-5 h-5 text-xs flex items-center justify-center">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Filter Panel */}
+        {showFilters && (
+          <div className="card bg-gray-50 p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-700">Filter Users</h3>
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-red-600 hover:text-red-800 flex items-center gap-1"
+                >
+                  <X className="w-3 h-3" />
+                  Clear all filters
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Club Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Club Membership</label>
+                <select
+                  value={clubFilter}
+                  onChange={(e) => setClubFilter(e.target.value)}
+                  className="input w-full"
+                >
+                  <option value="">All Clubs</option>
+                  {clubs.map((club) => (
+                    <option key={club.clubId} value={club.clubId}>
+                      {club.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Director Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Board Member / Director</label>
+                <select
+                  value={directorFilter}
+                  onChange={(e) => setDirectorFilter(e.target.value)}
+                  className="input w-full"
+                >
+                  <option value="">All</option>
+                  <option value="yes">Directors Only</option>
+                  <option value="no">Non-Directors Only</option>
+                </select>
+              </div>
+
+              {/* Membership Type Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Membership Type</label>
+                <select
+                  value={membershipFilter}
+                  onChange={(e) => setMembershipFilter(e.target.value)}
+                  className="input w-full"
+                >
+                  <option value="">All Membership Types</option>
+                  {membershipTypes.map((type) => (
+                    <option key={type.membershipTypeId} value={type.membershipTypeId}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Active Filter Tags */}
+        {activeFilterCount > 0 && !showFilters && (
+          <div className="flex flex-wrap gap-2">
+            {clubFilter && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm">
+                Club: {clubs.find(c => c.clubId === parseInt(clubFilter))?.name}
+                <button onClick={() => setClubFilter('')} className="hover:text-primary-dark">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {directorFilter && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm">
+                {directorFilter === 'yes' ? 'Directors Only' : 'Non-Directors Only'}
+                <button onClick={() => setDirectorFilter('')} className="hover:text-primary-dark">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {membershipFilter && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm">
+                Membership: {membershipTypes.find(m => m.membershipTypeId === parseInt(membershipFilter))?.name}
+                <button onClick={() => setMembershipFilter('')} className="hover:text-primary-dark">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Results count */}
+      <div className="text-sm text-gray-500">
+        Showing {filteredUsers.length} of {users.length} users
       </div>
 
       {/* Users Table */}
