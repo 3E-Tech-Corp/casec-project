@@ -17,6 +17,9 @@ public class User
     [MaxLength(100)]
     public string LastName { get; set; } = string.Empty;
 
+    [MaxLength(100)]
+    public string? ChineseName { get; set; }
+
     [Required]
     [EmailAddress]
     [MaxLength(255)]

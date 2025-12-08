@@ -27,6 +27,7 @@ export default function EnhancedProfile() {
         setFormData({
           firstName: profile.firstName || '',
           lastName: profile.lastName || '',
+          chineseName: profile.chineseName || '',
           phoneNumber: profile.phoneNumber || '',
           address: profile.address || '',
           city: profile.city || '',
@@ -164,6 +165,10 @@ export default function EnhancedProfile() {
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Last Name *</label>
                 <input type="text" className="input w-full" value={formData.lastName || ''} onChange={(e) => setFormData({...formData, lastName: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">中文姓名 (Chinese Name)</label>
+                <input type="text" className="input w-full" placeholder="例如：张三" value={formData.chineseName || ''} onChange={(e) => setFormData({...formData, chineseName: e.target.value})} />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>

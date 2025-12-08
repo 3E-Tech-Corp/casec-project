@@ -119,6 +119,9 @@ export default function PublicProfile() {
               <div className="mb-6">
                 <h1 className="text-4xl font-display font-bold text-gray-900">
                   {profile.firstName} {profile.lastName}
+                  {profile.chineseName && (
+                    <span className="ml-3 text-3xl text-gray-600">({profile.chineseName})</span>
+                  )}
                 </h1>
                 {profile.boardTitle && (
                   <div className="flex items-center space-x-2 text-accent text-lg font-bold mt-2">

@@ -59,6 +59,7 @@ public class UsersController : ControllerBase
                 UserId = user.UserId,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
+                ChineseName = user.ChineseName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 Address = user.Address,
@@ -162,6 +163,7 @@ public class UsersController : ControllerBase
 
             user.FirstName = request.FirstName ?? user.FirstName;
             user.LastName = request.LastName ?? user.LastName;
+            user.ChineseName = request.ChineseName;
             user.PhoneNumber = request.PhoneNumber;
             user.Address = request.Address;
             user.City = request.City;
@@ -569,6 +571,7 @@ public class UsersController : ControllerBase
                 UserId = user.UserId,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
+                ChineseName = user.ChineseName,
                 AvatarUrl = user.AvatarUrl,
                 Profession = user.Profession,
                 Hobbies = user.Hobbies,
