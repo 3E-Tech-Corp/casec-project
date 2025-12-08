@@ -703,6 +703,77 @@ public class EventsController : ControllerBase
         }
     }
 
+    // POST: api/Events/{id}/unregister
+    [HttpPost("{id}/unregister")]
+    public async Task<ActionResult<ApiResponse<object>>> UnregisterFromEvent(int id)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var eventItem = await _context.Events.FindAsync(id);
+
+            if (eventItem == null)
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Event not found"
+                });
+            }
+
+            // Check if event has already passed
+            if (eventItem.EventDate < DateTime.UtcNow)
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Cannot unregister from a past event"
+                });
+            }
+
+            // Find existing registration
+            var registration = await _context.EventRegistrations
+                .FirstOrDefaultAsync(er => er.EventId == id && er.UserId == currentUserId);
+
+            if (registration == null)
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "You are not registered for this event"
+                });
+            }
+
+            _context.EventRegistrations.Remove(registration);
+            await _context.SaveChangesAsync();
+
+            // Log activity
+            var log = new ActivityLog
+            {
+                UserId = currentUserId,
+                ActivityType = "EventUnregistration",
+                Description = $"Unregistered from event: {eventItem.Title}"
+            };
+            _context.ActivityLogs.Add(log);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Successfully unregistered from event"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error unregistering from event");
+            return StatusCode(500, new ApiResponse<object>
+            {
+                Success = false,
+                Message = "An error occurred while unregistering from event"
+            });
+        }
+    }
+
     // GET: api/Events/types
     [AllowAnonymous]
     [HttpGet("types")]
