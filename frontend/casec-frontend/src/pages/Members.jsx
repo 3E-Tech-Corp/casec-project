@@ -40,6 +40,7 @@ export default function Members() {
   const filteredMembers = members.filter(member => {
     const matchesSearch = searchTerm === '' ||
       `${member.firstName} ${member.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.chineseName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.profession?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.hobbies?.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -147,6 +148,7 @@ export default function Members() {
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary transition-colors truncate">
+                  {member.chineseName && <span className="text-primary">{member.chineseName} </span>}
                   {member.firstName} {member.lastName}
                 </h3>
                 {member.isBoardMember && member.boardTitle && (

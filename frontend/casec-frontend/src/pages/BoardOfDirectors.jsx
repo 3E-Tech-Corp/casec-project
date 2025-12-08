@@ -87,6 +87,7 @@ export default function BoardOfDirectors() {
               <div className="space-y-4">
                 <div>
                   <h3 className="text-2xl font-display font-bold text-gray-900">
+                    {member.chineseName && <span className="text-primary">{member.chineseName} </span>}
                     {member.firstName} {member.lastName}
                   </h3>
                   {member.profession && (
