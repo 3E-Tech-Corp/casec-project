@@ -638,7 +638,7 @@ export default function AdminClubs() {
                     <p className="text-gray-500 text-center py-4">
                       No club members available to assign as admin.
                     </p>
-                  )
+                  )}
                 </div>
               </div>
 
