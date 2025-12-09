@@ -70,6 +70,7 @@ export default function Register() {
       const { confirmPassword, ...registrationData } = formData;
       const response = await authAPI.register({
         ...registrationData,
+        dateOfBirth: registrationData.dateOfBirth || null,
         membershipTypeId: selectedType,
       });
 
