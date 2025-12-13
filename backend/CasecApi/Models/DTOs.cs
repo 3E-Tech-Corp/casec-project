@@ -520,7 +520,11 @@ public class ThemeSettingsDto
     
     // Custom CSS
     public string? CustomCss { get; set; }
-    
+
+    // Home Page Quote
+    public string? HomeQuote { get; set; }
+    public string? HomeQuoteSubtext { get; set; }
+
     public bool IsActive { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
@@ -564,9 +568,13 @@ public class UpdateThemeRequest
     // Typography
     public string? FontFamily { get; set; }
     public string? HeadingFontFamily { get; set; }
-    
+
     // Custom CSS
     public string? CustomCss { get; set; }
+
+    // Home Page Quote
+    public string? HomeQuote { get; set; }
+    public string? HomeQuoteSubtext { get; set; }
 }
 
 // Theme Preset DTO

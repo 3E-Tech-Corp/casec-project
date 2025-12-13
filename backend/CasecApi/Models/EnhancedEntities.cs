@@ -579,6 +579,12 @@ public class ThemeSettings
 
     public string? CustomCss { get; set; }
 
+    [MaxLength(500)]
+    public string? HomeQuote { get; set; }
+
+    [MaxLength(500)]
+    public string? HomeQuoteSubtext { get; set; }
+
     public bool IsActive { get; set; } = true;
 
     public int? UpdatedBy { get; set; }

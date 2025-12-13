@@ -274,10 +274,10 @@ export default function Home() {
           {/* Inspirational Quote Block */}
           <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-8 md:p-10 border border-white/20">
             <blockquote className="text-2xl md:text-3xl font-display font-bold text-white leading-relaxed mb-4">
-              "Building bridges across cultures, creating connections that last a lifetime."
+              "{theme?.homeQuote || 'Building bridges across cultures, creating connections that last a lifetime.'}"
             </blockquote>
             <p className="text-white/80 text-lg">
-              Join our vibrant community celebrating heritage, fostering friendships, and making memories together.
+              {theme?.homeQuoteSubtext || 'Join our vibrant community celebrating heritage, fostering friendships, and making memories together.'}
             </p>
           </div>
         </div>

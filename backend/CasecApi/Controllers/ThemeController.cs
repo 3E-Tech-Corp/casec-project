@@ -195,6 +195,12 @@ public class ThemeController : ControllerBase
             if (request.CustomCss != null)
                 theme.CustomCss = request.CustomCss;
 
+            // Home Page Quote
+            if (request.HomeQuote != null)
+                theme.HomeQuote = request.HomeQuote;
+            if (request.HomeQuoteSubtext != null)
+                theme.HomeQuoteSubtext = request.HomeQuoteSubtext;
+
             theme.UpdatedBy = currentUserId;
             theme.UpdatedAt = DateTime.UtcNow;
 
@@ -573,6 +579,8 @@ public class ThemeController : ControllerBase
             FontFamily = theme.FontFamily,
             HeadingFontFamily = theme.HeadingFontFamily,
             CustomCss = theme.CustomCss,
+            HomeQuote = theme.HomeQuote,
+            HomeQuoteSubtext = theme.HomeQuoteSubtext,
             UpdatedAt = theme.UpdatedAt
         };
     }

@@ -243,6 +243,44 @@ export default function ThemeCustomization() {
         </div>
       </div>
 
+      {/* Home Page Quote */}
+      <div className="card">
+        <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
+          <Sparkles className="w-6 h-6 text-primary" />
+          <span>Home Page Quote</span>
+        </h2>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Inspirational Quote
+            </label>
+            <textarea
+              value={theme.homeQuote || ''}
+              onChange={(e) => setTheme({ ...theme, homeQuote: e.target.value })}
+              className="input w-full"
+              rows={3}
+              placeholder="Building bridges across cultures, creating connections that last a lifetime."
+            />
+            <p className="text-xs text-gray-500 mt-1">Main quote displayed on the home page (max 500 characters)</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Quote Subtext
+            </label>
+            <textarea
+              value={theme.homeQuoteSubtext || ''}
+              onChange={(e) => setTheme({ ...theme, homeQuoteSubtext: e.target.value })}
+              className="input w-full"
+              rows={2}
+              placeholder="Join our vibrant community celebrating heritage, fostering friendships, and making memories together."
+            />
+            <p className="text-xs text-gray-500 mt-1">Supporting text below the quote (max 500 characters)</p>
+          </div>
+        </div>
+      </div>
+
       {/* Color Presets */}
       <div className="card">
         <h2 className="text-2xl font-bold mb-6">Theme Presets</h2>
