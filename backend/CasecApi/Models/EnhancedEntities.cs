@@ -367,13 +367,13 @@ public class Event
     public string? Location { get; set; }
 
     [MaxLength(50)]
-    public string EventType { get; set; } = "CasecEvent";
+    public string? EventType { get; set; } = "CasecEvent";
 
     [MaxLength(100)]
     public string? EventCategory { get; set; }
 
     [MaxLength(50)]
-    public string EventScope { get; set; } = "AllMembers";
+    public string? EventScope { get; set; } = "AllMembers";
 
     public int? HostClubId { get; set; }
 
@@ -390,13 +390,13 @@ public class Event
     public string? RegistrationUrl { get; set; }
 
     [Column(TypeName = "decimal(10, 2)")]
-    public decimal EventFee { get; set; } = 0;
+    public decimal? EventFee { get; set; } = 0;
 
-    public int MaxCapacity { get; set; } = 0;
+    public int? MaxCapacity { get; set; } = 0;
 
-    public bool IsRegistrationRequired { get; set; } = true;
+    public bool? IsRegistrationRequired { get; set; } = true;
 
-    public bool IsFeatured { get; set; } = false;
+    public bool? IsFeatured { get; set; } = false;
 
     [MaxLength(500)]
     public string? ThumbnailUrl { get; set; }
@@ -404,7 +404,7 @@ public class Event
     [MaxLength(1000)]
     public string? SourceUrl { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
     [ForeignKey("HostClubId")]

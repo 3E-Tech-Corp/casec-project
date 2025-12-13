@@ -108,7 +108,7 @@ public class EventsController : ControllerBase
                     ThumbnailUrl = e.ThumbnailUrl,
                     SourceUrl = e.SourceUrl,
                     TotalRegistrations = _context.EventRegistrations.Count(er => er.EventId == e.EventId),
-                    SpotsRemaining = e.MaxCapacity - _context.EventRegistrations.Count(er => er.EventId == e.EventId),
+                    SpotsRemaining = (e.MaxCapacity ?? 0) - _context.EventRegistrations.Count(er => er.EventId == e.EventId),
                     IsUserRegistered = currentUserId > 0 &&
                         _context.EventRegistrations.Any(er => er.EventId == e.EventId && er.UserId == currentUserId),
                     CreatedAt = e.CreatedAt
@@ -216,7 +216,7 @@ public class EventsController : ControllerBase
                     ThumbnailUrl = e.ThumbnailUrl,
                     SourceUrl = e.SourceUrl,
                     TotalRegistrations = _context.EventRegistrations.Count(er => er.EventId == e.EventId),
-                    SpotsRemaining = e.MaxCapacity - _context.EventRegistrations.Count(er => er.EventId == e.EventId),
+                    SpotsRemaining = (e.MaxCapacity ?? 0) - _context.EventRegistrations.Count(er => er.EventId == e.EventId),
                     IsUserRegistered = currentUserId > 0 &&
                         _context.EventRegistrations.Any(er => er.EventId == e.EventId && er.UserId == currentUserId),
                     CreatedAt = e.CreatedAt
@@ -278,7 +278,7 @@ public class EventsController : ControllerBase
                 IsFeatured = eventItem.IsFeatured,
                 ThumbnailUrl = eventItem.ThumbnailUrl,
                 TotalRegistrations = await _context.EventRegistrations.CountAsync(er => er.EventId == id),
-                SpotsRemaining = eventItem.MaxCapacity - await _context.EventRegistrations.CountAsync(er => er.EventId == id),
+                SpotsRemaining = (eventItem.MaxCapacity ?? 0) - await _context.EventRegistrations.CountAsync(er => er.EventId == id),
                 IsUserRegistered = currentUserId > 0 &&
                     await _context.EventRegistrations.AnyAsync(er => er.EventId == id && er.UserId == currentUserId),
                 CreatedAt = eventItem.CreatedAt
@@ -1277,7 +1277,7 @@ public class EventsController : ControllerBase
                 IsRegistrationRequired = eventItem.IsRegistrationRequired,
                 IsFeatured = eventItem.IsFeatured,
                 TotalRegistrations = totalRegistrations,
-                SpotsRemaining = eventItem.MaxCapacity - totalRegistrations,
+                SpotsRemaining = (eventItem.MaxCapacity ?? 0) - totalRegistrations,
                 IsUserRegistered = currentUserId > 0 &&
                     await _context.EventRegistrations.AnyAsync(er => er.EventId == id && er.UserId == currentUserId),
                 CreatedAt = eventItem.CreatedAt,
