@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, MapPin, Clock, ChevronLeft, ChevronRight, DollarSign, Building2 } from 'lucide-react';
 import { eventsAPI, getAssetUrl } from '../services/api';
 import { useTheme } from '../components/ThemeProvider';
 
@@ -19,34 +19,38 @@ export default function Home() {
     fetchEvents();
   }, []);
 
-  // Auto-scroll for upcoming events
+  // Auto-scroll for upcoming events - always animate even with 1 card
   useEffect(() => {
-    if (upcomingEvents.length <= 3 || upcomingPaused) return;
+    if (upcomingEvents.length === 0 || upcomingPaused) return;
 
     const container = upcomingScrollRef.current;
     if (!container) return;
 
     const scrollInterval = setInterval(() => {
       const maxScroll = container.scrollWidth - container.clientWidth;
+      if (maxScroll <= 0) return; // No overflow, no scroll needed
+
       if (container.scrollLeft >= maxScroll - 10) {
         container.scrollTo({ left: 0, behavior: 'smooth' });
       } else {
-        container.scrollBy({ left: 220, behavior: 'smooth' });
+        container.scrollBy({ left: 400, behavior: 'smooth' });
       }
-    }, 3000);
+    }, 4000);
 
     return () => clearInterval(scrollInterval);
   }, [upcomingEvents.length, upcomingPaused]);
 
   // Auto-scroll for past events
   useEffect(() => {
-    if (pastFeaturedEvents.length <= 3 || pastPaused) return;
+    if (pastFeaturedEvents.length === 0 || pastPaused) return;
 
     const container = pastScrollRef.current;
     if (!container) return;
 
     const scrollInterval = setInterval(() => {
       const maxScroll = container.scrollWidth - container.clientWidth;
+      if (maxScroll <= 0) return;
+
       if (container.scrollLeft >= maxScroll - 10) {
         container.scrollTo({ left: 0, behavior: 'smooth' });
       } else {
@@ -95,18 +99,104 @@ export default function Home() {
     });
   };
 
-  const scrollLeft = (ref) => {
-    ref.current?.scrollBy({ left: -440, behavior: 'smooth' });
+  const formatFee = (fee) => {
+    if (!fee || fee === 0) return 'Free';
+    return `$${fee}`;
   };
 
-  const scrollRight = (ref) => {
-    ref.current?.scrollBy({ left: 440, behavior: 'smooth' });
+  const scrollLeft = (ref, amount = 400) => {
+    ref.current?.scrollBy({ left: -amount, behavior: 'smooth' });
   };
 
-  const EventCard = ({ event, isPast = false }) => (
+  const scrollRight = (ref, amount = 400) => {
+    ref.current?.scrollBy({ left: amount, behavior: 'smooth' });
+  };
+
+  // Wide horizontal card for upcoming events
+  const UpcomingEventCard = ({ event }) => (
     <Link
       to={`/event/${event.eventId}`}
-      className={`flex-shrink-0 w-52 bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-[1.03] ${isPast ? 'opacity-90' : ''}`}
+      className="flex-shrink-0 w-[420px] bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-[1.02] flex"
+    >
+      {/* Thumbnail on left */}
+      <div className="w-40 h-full relative bg-gradient-to-br from-primary/20 to-accent/20 flex-shrink-0">
+        {event.thumbnailUrl ? (
+          <img
+            src={event.thumbnailUrl.startsWith('/api') ? getAssetUrl(event.thumbnailUrl) : event.thumbnailUrl}
+            alt={event.title}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+            crossOrigin="anonymous"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Calendar className="w-12 h-12 text-primary/30" />
+          </div>
+        )}
+        {event.isFeatured && (
+          <span className="absolute top-2 left-2 px-2 py-0.5 bg-yellow-400 text-yellow-900 text-[10px] font-bold rounded-full">
+            Featured
+          </span>
+        )}
+      </div>
+
+      {/* Content on right */}
+      <div className="flex-1 p-4 flex flex-col justify-between min-h-[160px]">
+        <div>
+          <h4 className="font-bold text-gray-900 mb-2 line-clamp-2 text-base leading-tight">
+            {event.title}
+          </h4>
+          {event.description && (
+            <p className="text-xs text-gray-500 line-clamp-2 mb-2">
+              {event.description}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-1.5 text-xs text-gray-600">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-primary" />
+              <span>{formatDate(event.eventDate)}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-primary" />
+              <span>{formatTime(event.eventDate)}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {event.location && (
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                <MapPin className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                <span className="truncate">{event.location}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1.5">
+              <DollarSign className="w-3.5 h-3.5 text-primary" />
+              <span className="font-medium">{formatFee(event.eventFee)}</span>
+            </div>
+          </div>
+
+          {event.hostClubName && (
+            <div className="flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-primary" />
+              <span className="truncate">{event.hostClubName}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+
+  // Compact card for past events
+  const PastEventCard = ({ event }) => (
+    <Link
+      to={`/event/${event.eventId}`}
+      className="flex-shrink-0 w-52 bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-[1.03] opacity-90"
     >
       {/* Thumbnail */}
       <div className="h-28 relative bg-gradient-to-br from-primary/20 to-accent/20">
@@ -126,16 +216,9 @@ export default function Home() {
             <Calendar className="w-8 h-8 text-primary/30" />
           </div>
         )}
-        {event.isFeatured && !isPast && (
-          <span className="absolute top-2 right-2 px-2 py-0.5 bg-yellow-400 text-yellow-900 text-[10px] font-bold rounded-full">
-            Featured
-          </span>
-        )}
-        {isPast && (
-          <div className="absolute bottom-2 left-2">
-            <span className="px-2 py-0.5 bg-gray-800/80 text-white text-[10px] rounded">Past</span>
-          </div>
-        )}
+        <div className="absolute inset-0 bg-black/20 flex items-end justify-start p-2">
+          <span className="px-2 py-0.5 bg-gray-800/80 text-white text-[10px] rounded">Past Event</span>
+        </div>
       </div>
 
       {/* Content */}
@@ -148,10 +231,6 @@ export default function Home() {
             <Calendar className="w-3 h-3 text-primary" />
             <span>{formatDate(event.eventDate)}</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-3 h-3 text-primary" />
-            <span>{formatTime(event.eventDate)}</span>
-          </div>
           {event.location && (
             <div className="flex items-center gap-1.5">
               <MapPin className="w-3 h-3 text-primary" />
@@ -161,77 +240,6 @@ export default function Home() {
         </div>
       </div>
     </Link>
-  );
-
-  const EventsCarousel = ({
-    title,
-    icon: Icon,
-    events,
-    isPast = false,
-    scrollRef,
-    onMouseEnter,
-    onMouseLeave
-  }) => (
-    <div className="w-full">
-      <div className="max-w-7xl mx-auto px-6 mb-4">
-        <h3 className="text-xl md:text-2xl font-display font-bold text-white flex items-center gap-2">
-          <Icon className="w-6 h-6" />
-          {title}
-        </h3>
-      </div>
-
-      {loading ? (
-        <div className="flex gap-4 px-6 overflow-hidden">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex-shrink-0 w-52 h-56 bg-white/20 rounded-xl animate-pulse" />
-          ))}
-        </div>
-      ) : events.length > 0 ? (
-        <div className="relative group">
-          {/* Left Arrow */}
-          <button
-            onClick={() => scrollLeft(scrollRef)}
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-
-          {/* Scrolling Container */}
-          <div
-            ref={scrollRef}
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
-            className="flex gap-4 px-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {events.map((event) => (
-              <EventCard key={event.eventId} event={event} isPast={isPast} />
-            ))}
-          </div>
-
-          {/* Right Arrow */}
-          <button
-            onClick={() => scrollRight(scrollRef)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-
-          {/* Gradient Edges */}
-          <div className="absolute left-0 top-0 bottom-4 w-12 bg-gradient-to-r from-black/20 to-transparent pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-black/20 to-transparent pointer-events-none" />
-        </div>
-      ) : (
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="bg-white/10 rounded-xl p-8 text-center">
-            <Icon className="w-12 h-12 text-white/40 mx-auto mb-3" />
-            <p className="text-white/70">
-              {isPast ? 'No past featured events' : 'No upcoming events scheduled'}
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
   );
 
   return (
@@ -286,25 +294,124 @@ export default function Home() {
       {/* Events Section - Full Width Carousels */}
       <section className="py-12 bg-black/20 backdrop-blur-sm flex-1 space-y-10">
         {/* Upcoming Events Carousel */}
-        <EventsCarousel
-          title="Upcoming Events"
-          icon={Calendar}
-          events={upcomingEvents}
-          scrollRef={upcomingScrollRef}
-          onMouseEnter={() => setUpcomingPaused(true)}
-          onMouseLeave={() => setUpcomingPaused(false)}
-        />
+        <div className="w-full">
+          <div className="max-w-7xl mx-auto px-6 mb-4">
+            <h3 className="text-xl md:text-2xl font-display font-bold text-white flex items-center gap-2">
+              <Calendar className="w-6 h-6" />
+              Upcoming Events
+            </h3>
+          </div>
+
+          {loading ? (
+            <div className="flex gap-4 px-6 overflow-hidden">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex-shrink-0 w-[420px] h-40 bg-white/20 rounded-xl animate-pulse" />
+              ))}
+            </div>
+          ) : upcomingEvents.length > 0 ? (
+            <div className="relative group">
+              {/* Left Arrow */}
+              <button
+                onClick={() => scrollLeft(upcomingScrollRef, 440)}
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+
+              {/* Scrolling Container */}
+              <div
+                ref={upcomingScrollRef}
+                onMouseEnter={() => setUpcomingPaused(true)}
+                onMouseLeave={() => setUpcomingPaused(false)}
+                className="flex gap-4 px-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                {upcomingEvents.map((event) => (
+                  <UpcomingEventCard key={event.eventId} event={event} />
+                ))}
+              </div>
+
+              {/* Right Arrow */}
+              <button
+                onClick={() => scrollRight(upcomingScrollRef, 440)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+
+              {/* Gradient Edges */}
+              <div className="absolute left-0 top-0 bottom-4 w-12 bg-gradient-to-r from-black/20 to-transparent pointer-events-none" />
+              <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-black/20 to-transparent pointer-events-none" />
+            </div>
+          ) : (
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="bg-white/10 rounded-xl p-8 text-center">
+                <Calendar className="w-12 h-12 text-white/40 mx-auto mb-3" />
+                <p className="text-white/70">No upcoming events scheduled</p>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Past Featured Events Carousel */}
-        <EventsCarousel
-          title="Past Featured Events"
-          icon={Clock}
-          events={pastFeaturedEvents}
-          isPast
-          scrollRef={pastScrollRef}
-          onMouseEnter={() => setPastPaused(true)}
-          onMouseLeave={() => setPastPaused(false)}
-        />
+        <div className="w-full">
+          <div className="max-w-7xl mx-auto px-6 mb-4">
+            <h3 className="text-xl md:text-2xl font-display font-bold text-white flex items-center gap-2">
+              <Clock className="w-6 h-6" />
+              Past Featured Events
+            </h3>
+          </div>
+
+          {loading ? (
+            <div className="flex gap-4 px-6 overflow-hidden">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex-shrink-0 w-52 h-56 bg-white/20 rounded-xl animate-pulse" />
+              ))}
+            </div>
+          ) : pastFeaturedEvents.length > 0 ? (
+            <div className="relative group">
+              {/* Left Arrow */}
+              <button
+                onClick={() => scrollLeft(pastScrollRef, 240)}
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+
+              {/* Scrolling Container */}
+              <div
+                ref={pastScrollRef}
+                onMouseEnter={() => setPastPaused(true)}
+                onMouseLeave={() => setPastPaused(false)}
+                className="flex gap-4 px-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                {pastFeaturedEvents.map((event) => (
+                  <PastEventCard key={event.eventId} event={event} />
+                ))}
+              </div>
+
+              {/* Right Arrow */}
+              <button
+                onClick={() => scrollRight(pastScrollRef, 240)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+
+              {/* Gradient Edges */}
+              <div className="absolute left-0 top-0 bottom-4 w-12 bg-gradient-to-r from-black/20 to-transparent pointer-events-none" />
+              <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-black/20 to-transparent pointer-events-none" />
+            </div>
+          ) : (
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="bg-white/10 rounded-xl p-8 text-center">
+                <Clock className="w-12 h-12 text-white/40 mx-auto mb-3" />
+                <p className="text-white/70">No past featured events</p>
+              </div>
+            </div>
+          )}
+        </div>
       </section>
 
       {/* Footer */}
