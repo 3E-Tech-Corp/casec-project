@@ -75,7 +75,7 @@ export default function AdminEvents() {
 
   const fetchEvents = async () => {
     try {
-      const response = await eventsAPI.getAll();
+      const response = await eventsAPI.getAllAdmin();
       setEvents(response.data || []);
     } catch (error) {
       console.error('Error fetching events:', error);
