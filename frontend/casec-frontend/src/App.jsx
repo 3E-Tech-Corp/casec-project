@@ -3,6 +3,7 @@ import { useAuthStore } from './store/useStore';
 import ThemeProvider from './components/ThemeProvider';
 import Layout from './components/Layout';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -30,6 +31,11 @@ function ProtectedRoute({ children }) {
   return isAuthenticated ? children : <Navigate to="/login" />;
 }
 
+function PublicOnlyRoute({ children }) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  return isAuthenticated ? <Navigate to="/dashboard" /> : children;
+}
+
 function AdminRoute({ children }) {
   const { isAuthenticated, user } = useAuthStore((state) => ({
     isAuthenticated: state.isAuthenticated,
@@ -52,17 +58,23 @@ function App() {
       <PWAInstallPrompt />
       <Router>
         <Routes>
+        {/* Public Home Page */}
+        <Route path="/" element={
+          <PublicOnlyRoute>
+            <Home />
+          </PublicOnlyRoute>
+        } />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
+        {/* Protected Routes */}
         <Route path="/" element={
           <ProtectedRoute>
             <Layout />
           </ProtectedRoute>
         }>
-          <Route index element={<Navigate to="/dashboard" />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="clubs" element={<Clubs />} />
           <Route path="events" element={<Events />} />
