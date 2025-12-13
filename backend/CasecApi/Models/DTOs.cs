@@ -719,9 +719,9 @@ public class EventDetailDto
     public string? Description { get; set; }
     public DateTime EventDate { get; set; }
     public string? Location { get; set; }
-    public string EventType { get; set; } = "CasecEvent";
+    public string? EventType { get; set; }
     public string? EventCategory { get; set; }
-    public string EventScope { get; set; } = "AllMembers";
+    public string? EventScope { get; set; }
     public int? HostClubId { get; set; }
     public string? HostClubName { get; set; }
     public string? HostClubAvatar { get; set; }
@@ -729,15 +729,15 @@ public class EventDetailDto
     public string? PartnerLogo { get; set; }
     public string? PartnerWebsite { get; set; }
     public string? RegistrationUrl { get; set; }
-    public decimal EventFee { get; set; }
-    public int MaxCapacity { get; set; }
-    public bool IsRegistrationRequired { get; set; }
-    public bool IsFeatured { get; set; }
+    public decimal? EventFee { get; set; }
+    public int? MaxCapacity { get; set; }
+    public bool? IsRegistrationRequired { get; set; }
+    public bool? IsFeatured { get; set; }
     public string? ThumbnailUrl { get; set; }
-    public int TotalRegistrations { get; set; }
-    public int SpotsRemaining { get; set; }
-    public bool IsUserRegistered { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public int? TotalRegistrations { get; set; }
+    public int? SpotsRemaining { get; set; }
+    public bool? IsUserRegistered { get; set; }
+    public DateTime? CreatedAt { get; set; }
     public List<EventAssetDto> Photos { get; set; } = new();
     public List<EventAssetDto> Documents { get; set; } = new();
     public List<EventRegistrantDto> Registrants { get; set; } = new();
