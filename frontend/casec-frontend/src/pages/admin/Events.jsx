@@ -735,6 +735,8 @@ export default function AdminEvents() {
                                   src={imageUrl}
                                   alt={`Option ${index + 1}`}
                                   className="w-full h-full object-cover"
+                                  referrerPolicy="no-referrer"
+                                  crossOrigin="anonymous"
                                   onError={(e) => {
                                     e.target.parentElement.style.display = 'none';
                                   }}
@@ -808,6 +810,8 @@ export default function AdminEvents() {
                           src={thumbnailPreview.startsWith('/api') ? getAssetUrl(thumbnailPreview) : thumbnailPreview}
                           alt="Event thumbnail"
                           className="w-32 h-24 object-cover rounded-lg border"
+                          referrerPolicy="no-referrer"
+                          crossOrigin="anonymous"
                           onError={(e) => {
                             e.target.src = '';
                             e.target.parentElement.innerHTML = '<div class="w-32 h-24 bg-red-50 rounded-lg border border-red-200 flex items-center justify-center text-xs text-red-500 text-center p-2">Image failed to load</div>';
