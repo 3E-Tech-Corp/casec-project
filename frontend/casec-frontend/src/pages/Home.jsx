@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Clock, ChevronLeft, ChevronRight, DollarSign, Building2 } from 'lucide-react';
 import { eventsAPI, getAssetUrl } from '../services/api';
@@ -15,6 +15,37 @@ export default function Home() {
   const [upcomingPaused, setUpcomingPaused] = useState(false);
   const [pastPaused, setPastPaused] = useState(false);
 
+  // Custom smooth scroll with easing
+  const smoothScrollTo = useCallback((element, targetPosition, duration = 800) => {
+    if (!element) return;
+
+    const startPosition = element.scrollLeft;
+    const distance = targetPosition - startPosition;
+    let startTime = null;
+
+    // Easing function - ease-in-out cubic
+    const easeInOutCubic = (t) => {
+      return t < 0.5
+        ? 4 * t * t * t
+        : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    };
+
+    const animation = (currentTime) => {
+      if (startTime === null) startTime = currentTime;
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      const easedProgress = easeInOutCubic(progress);
+      element.scrollLeft = startPosition + (distance * easedProgress);
+
+      if (progress < 1) {
+        requestAnimationFrame(animation);
+      }
+    };
+
+    requestAnimationFrame(animation);
+  }, []);
+
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -28,17 +59,18 @@ export default function Home() {
 
     const scrollInterval = setInterval(() => {
       const maxScroll = container.scrollWidth - container.clientWidth;
-      if (maxScroll <= 0) return; // No overflow, no scroll needed
+      if (maxScroll <= 0) return;
 
       if (container.scrollLeft >= maxScroll - 10) {
-        container.scrollTo({ left: 0, behavior: 'smooth' });
+        smoothScrollTo(container, 0, 1000);
       } else {
-        container.scrollBy({ left: 400, behavior: 'smooth' });
+        const newPosition = Math.min(container.scrollLeft + 440, maxScroll);
+        smoothScrollTo(container, newPosition, 800);
       }
-    }, 4000);
+    }, 5000);
 
     return () => clearInterval(scrollInterval);
-  }, [upcomingEvents.length, upcomingPaused]);
+  }, [upcomingEvents.length, upcomingPaused, smoothScrollTo]);
 
   // Auto-scroll for past events
   useEffect(() => {
@@ -52,14 +84,15 @@ export default function Home() {
       if (maxScroll <= 0) return;
 
       if (container.scrollLeft >= maxScroll - 10) {
-        container.scrollTo({ left: 0, behavior: 'smooth' });
+        smoothScrollTo(container, 0, 1000);
       } else {
-        container.scrollBy({ left: 400, behavior: 'smooth' });
+        const newPosition = Math.min(container.scrollLeft + 440, maxScroll);
+        smoothScrollTo(container, newPosition, 800);
       }
-    }, 4000);
+    }, 5000);
 
     return () => clearInterval(scrollInterval);
-  }, [pastFeaturedEvents.length, pastPaused]);
+  }, [pastFeaturedEvents.length, pastPaused, smoothScrollTo]);
 
   const fetchEvents = async () => {
     try {
@@ -104,12 +137,19 @@ export default function Home() {
     return `$${fee}`;
   };
 
-  const scrollLeft = (ref, amount = 400) => {
-    ref.current?.scrollBy({ left: -amount, behavior: 'smooth' });
+  const scrollLeft = (ref, amount = 440) => {
+    const container = ref.current;
+    if (!container) return;
+    const newPosition = Math.max(container.scrollLeft - amount, 0);
+    smoothScrollTo(container, newPosition, 600);
   };
 
-  const scrollRight = (ref, amount = 400) => {
-    ref.current?.scrollBy({ left: amount, behavior: 'smooth' });
+  const scrollRight = (ref, amount = 440) => {
+    const container = ref.current;
+    if (!container) return;
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    const newPosition = Math.min(container.scrollLeft + amount, maxScroll);
+    smoothScrollTo(container, newPosition, 600);
   };
 
   // Wide horizontal card for upcoming events
@@ -334,7 +374,7 @@ export default function Home() {
             <div className="relative group">
               {/* Left Arrow */}
               <button
-                onClick={() => scrollLeft(upcomingScrollRef, 440)}
+                onClick={() => scrollLeft(upcomingScrollRef)}
                 className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -345,7 +385,7 @@ export default function Home() {
                 ref={upcomingScrollRef}
                 onMouseEnter={() => setUpcomingPaused(true)}
                 onMouseLeave={() => setUpcomingPaused(false)}
-                className="flex gap-4 px-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+                className="flex gap-4 px-6 overflow-x-auto scrollbar-hide pb-4"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 {upcomingEvents.map((event) => (
@@ -355,7 +395,7 @@ export default function Home() {
 
               {/* Right Arrow */}
               <button
-                onClick={() => scrollRight(upcomingScrollRef, 440)}
+                onClick={() => scrollRight(upcomingScrollRef)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
               >
                 <ChevronRight className="w-5 h-5" />
@@ -394,7 +434,7 @@ export default function Home() {
             <div className="relative group">
               {/* Left Arrow */}
               <button
-                onClick={() => scrollLeft(pastScrollRef, 440)}
+                onClick={() => scrollLeft(pastScrollRef)}
                 className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -405,7 +445,7 @@ export default function Home() {
                 ref={pastScrollRef}
                 onMouseEnter={() => setPastPaused(true)}
                 onMouseLeave={() => setPastPaused(false)}
-                className="flex gap-4 px-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+                className="flex gap-4 px-6 overflow-x-auto scrollbar-hide pb-4"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 {pastFeaturedEvents.map((event) => (
@@ -415,7 +455,7 @@ export default function Home() {
 
               {/* Right Arrow */}
               <button
-                onClick={() => scrollRight(pastScrollRef, 440)}
+                onClick={() => scrollRight(pastScrollRef)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
               >
                 <ChevronRight className="w-5 h-5" />
