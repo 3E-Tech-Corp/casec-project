@@ -869,4 +869,5 @@ public class UrlMetadataDto
     public string? Description { get; set; }
     public string? ImageUrl { get; set; }
     public string? SiteName { get; set; }
+    public List<string> Images { get; set; } = new();
 }

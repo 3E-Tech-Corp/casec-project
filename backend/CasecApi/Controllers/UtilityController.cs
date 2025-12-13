@@ -20,7 +20,7 @@ public class UtilityController : ControllerBase
     }
 
     /// <summary>
-    /// Fetches metadata from a URL including Open Graph images, title, and description
+    /// Fetches metadata from a URL including multiple images, title, and description
     /// </summary>
     [HttpPost("fetch-url-metadata")]
     public async Task<ActionResult<ApiResponse<UrlMetadataDto>>> FetchUrlMetadata([FromBody] FetchUrlMetadataRequest request)
@@ -48,7 +48,7 @@ public class UtilityController : ControllerBase
             }
 
             var client = _httpClientFactory.CreateClient();
-            client.Timeout = TimeSpan.FromSeconds(10);
+            client.Timeout = TimeSpan.FromSeconds(15);
             client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
             var response = await client.GetAsync(uri);
@@ -106,12 +106,6 @@ public class UtilityController : ControllerBase
             Url = baseUri.ToString()
         };
 
-        // Extract Open Graph image
-        metadata.ImageUrl = ExtractMetaContent(html, "og:image") ??
-                           ExtractMetaContent(html, "twitter:image") ??
-                           ExtractMetaContent(html, "twitter:image:src") ??
-                           ExtractFirstImage(html, baseUri);
-
         // Extract title
         metadata.Title = ExtractMetaContent(html, "og:title") ??
                         ExtractMetaContent(html, "twitter:title") ??
@@ -126,13 +120,174 @@ public class UtilityController : ControllerBase
         metadata.SiteName = ExtractMetaContent(html, "og:site_name") ??
                            ExtractMetaContent(html, "application-name");
 
-        // Make sure image URL is absolute
-        if (!string.IsNullOrEmpty(metadata.ImageUrl) && !metadata.ImageUrl.StartsWith("http"))
+        // Extract all available images
+        metadata.Images = ExtractAllImages(html, baseUri);
+
+        // Set primary image (OG image takes precedence)
+        var ogImage = ExtractMetaContent(html, "og:image");
+        var twitterImage = ExtractMetaContent(html, "twitter:image") ?? ExtractMetaContent(html, "twitter:image:src");
+
+        if (!string.IsNullOrEmpty(ogImage))
         {
-            metadata.ImageUrl = new Uri(baseUri, metadata.ImageUrl).ToString();
+            metadata.ImageUrl = MakeAbsoluteUrl(ogImage, baseUri);
+        }
+        else if (!string.IsNullOrEmpty(twitterImage))
+        {
+            metadata.ImageUrl = MakeAbsoluteUrl(twitterImage, baseUri);
+        }
+        else if (metadata.Images.Count > 0)
+        {
+            metadata.ImageUrl = metadata.Images[0];
         }
 
         return metadata;
+    }
+
+    private List<string> ExtractAllImages(string html, Uri baseUri)
+    {
+        var images = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        // First, add OG and Twitter images (these are typically the best quality)
+        var ogImage = ExtractMetaContent(html, "og:image");
+        if (!string.IsNullOrEmpty(ogImage))
+        {
+            images.Add(MakeAbsoluteUrl(ogImage, baseUri));
+        }
+
+        var twitterImage = ExtractMetaContent(html, "twitter:image") ?? ExtractMetaContent(html, "twitter:image:src");
+        if (!string.IsNullOrEmpty(twitterImage))
+        {
+            images.Add(MakeAbsoluteUrl(twitterImage, baseUri));
+        }
+
+        // Extract all img tags
+        var imgPattern = @"<img[^>]*src=[""']([^""']+)[""'][^>]*>";
+        var matches = Regex.Matches(html, imgPattern, RegexOptions.IgnoreCase);
+
+        foreach (Match match in matches)
+        {
+            var src = match.Groups[1].Value;
+
+            // Skip common icon/tracking/placeholder patterns
+            if (ShouldSkipImage(src))
+            {
+                continue;
+            }
+
+            var absoluteUrl = MakeAbsoluteUrl(src, baseUri);
+            images.Add(absoluteUrl);
+
+            // Limit to 12 images max
+            if (images.Count >= 12)
+            {
+                break;
+            }
+        }
+
+        // Also check for srcset images (higher resolution alternatives)
+        var srcsetPattern = @"<img[^>]*srcset=[""']([^""']+)[""'][^>]*>";
+        var srcsetMatches = Regex.Matches(html, srcsetPattern, RegexOptions.IgnoreCase);
+
+        foreach (Match match in srcsetMatches)
+        {
+            var srcset = match.Groups[1].Value;
+            // Parse srcset (format: "url 1x, url 2x" or "url 300w, url 600w")
+            var srcsetParts = srcset.Split(',');
+            foreach (var part in srcsetParts)
+            {
+                var urlPart = part.Trim().Split(' ')[0];
+                if (!string.IsNullOrEmpty(urlPart) && !ShouldSkipImage(urlPart))
+                {
+                    var absoluteUrl = MakeAbsoluteUrl(urlPart, baseUri);
+                    images.Add(absoluteUrl);
+                }
+
+                if (images.Count >= 12)
+                {
+                    break;
+                }
+            }
+
+            if (images.Count >= 12)
+            {
+                break;
+            }
+        }
+
+        // Also check for background images in style attributes
+        var bgPattern = @"background(?:-image)?:\s*url\([""']?([^""')]+)[""']?\)";
+        var bgMatches = Regex.Matches(html, bgPattern, RegexOptions.IgnoreCase);
+
+        foreach (Match match in bgMatches)
+        {
+            var src = match.Groups[1].Value;
+            if (!ShouldSkipImage(src))
+            {
+                var absoluteUrl = MakeAbsoluteUrl(src, baseUri);
+                images.Add(absoluteUrl);
+            }
+
+            if (images.Count >= 12)
+            {
+                break;
+            }
+        }
+
+        return images.ToList();
+    }
+
+    private bool ShouldSkipImage(string src)
+    {
+        if (string.IsNullOrEmpty(src))
+            return true;
+
+        var lowerSrc = src.ToLowerInvariant();
+
+        return lowerSrc.Contains("favicon") ||
+               lowerSrc.Contains("icon") ||
+               lowerSrc.Contains("logo") ||
+               lowerSrc.Contains("tracking") ||
+               lowerSrc.Contains("pixel") ||
+               lowerSrc.Contains("1x1") ||
+               lowerSrc.Contains("spacer") ||
+               lowerSrc.Contains("blank") ||
+               lowerSrc.Contains("spinner") ||
+               lowerSrc.Contains("loading") ||
+               lowerSrc.Contains("placeholder") ||
+               lowerSrc.Contains("avatar") ||
+               lowerSrc.Contains("profile") ||
+               lowerSrc.EndsWith(".svg") ||
+               lowerSrc.EndsWith(".gif") ||
+               lowerSrc.StartsWith("data:image") ||
+               lowerSrc.Contains("ad-") ||
+               lowerSrc.Contains("ads/") ||
+               lowerSrc.Contains("banner") ||
+               lowerSrc.Contains("button");
+    }
+
+    private string MakeAbsoluteUrl(string url, Uri baseUri)
+    {
+        if (string.IsNullOrEmpty(url))
+            return url;
+
+        if (url.StartsWith("//"))
+        {
+            return baseUri.Scheme + ":" + url;
+        }
+
+        if (!url.StartsWith("http"))
+        {
+            try
+            {
+                return new Uri(baseUri, url).ToString();
+            }
+            catch
+            {
+                return url;
+            }
+        }
+
+        return url;
     }
 
     private string? ExtractMetaContent(string html, string property)
@@ -142,7 +297,9 @@ public class UtilityController : ControllerBase
         var match = Regex.Match(html, propertyPattern, RegexOptions.IgnoreCase);
         if (match.Success)
         {
-            return match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value;
+            return match.Groups[1].Success && !string.IsNullOrEmpty(match.Groups[1].Value)
+                ? match.Groups[1].Value
+                : match.Groups[2].Value;
         }
 
         // Try name attribute (standard meta style)
@@ -150,7 +307,9 @@ public class UtilityController : ControllerBase
         match = Regex.Match(html, namePattern, RegexOptions.IgnoreCase);
         if (match.Success)
         {
-            return match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value;
+            return match.Groups[1].Success && !string.IsNullOrEmpty(match.Groups[1].Value)
+                ? match.Groups[1].Value
+                : match.Groups[2].Value;
         }
 
         return null;
@@ -160,43 +319,6 @@ public class UtilityController : ControllerBase
     {
         var match = Regex.Match(html, @"<title[^>]*>([^<]+)</title>", RegexOptions.IgnoreCase);
         return match.Success ? System.Net.WebUtility.HtmlDecode(match.Groups[1].Value.Trim()) : null;
-    }
-
-    private string? ExtractFirstImage(string html, Uri baseUri)
-    {
-        // Look for a prominent image - skip tiny images and icons
-        var imgPattern = @"<img[^>]*src=[""']([^""']+)[""'][^>]*>";
-        var matches = Regex.Matches(html, imgPattern, RegexOptions.IgnoreCase);
-
-        foreach (Match match in matches)
-        {
-            var src = match.Groups[1].Value;
-
-            // Skip common icon/tracking/placeholder patterns
-            if (src.Contains("favicon") ||
-                src.Contains("icon") ||
-                src.Contains("logo") ||
-                src.Contains("tracking") ||
-                src.Contains("pixel") ||
-                src.Contains("1x1") ||
-                src.Contains("spacer") ||
-                src.Contains("blank") ||
-                src.Contains(".svg") ||
-                src.Contains("data:image"))
-            {
-                continue;
-            }
-
-            // Make URL absolute
-            if (!src.StartsWith("http"))
-            {
-                src = new Uri(baseUri, src).ToString();
-            }
-
-            return src;
-        }
-
-        return null;
     }
 }
 

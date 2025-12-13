@@ -136,9 +136,7 @@ export default function AdminEvents() {
       const response = await utilityAPI.fetchUrlMetadata(thumbnailUrl);
       if (response.success && response.data) {
         setFetchedMetadata(response.data);
-        if (response.data.imageUrl) {
-          setThumbnailPreview(response.data.imageUrl);
-        }
+        // Don't auto-select - let user pick from the grid
       } else {
         alert(response.message || 'Failed to fetch metadata from URL');
       }
@@ -147,12 +145,6 @@ export default function AdminEvents() {
       alert(error.message || 'Failed to fetch metadata from URL');
     } finally {
       setFetchingMetadata(false);
-    }
-  };
-
-  const handleUseFetchedThumbnail = () => {
-    if (fetchedMetadata?.imageUrl) {
-      setThumbnailPreview(fetchedMetadata.imageUrl);
     }
   };
 
@@ -682,40 +674,63 @@ export default function AdminEvents() {
                   {/* Fetched Metadata Preview */}
                   {fetchedMetadata && (
                     <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-start gap-3">
-                        {fetchedMetadata.imageUrl && (
-                          <img
-                            src={fetchedMetadata.imageUrl}
-                            alt="Fetched thumbnail"
-                            className="w-24 h-18 object-cover rounded border"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                            }}
-                          />
+                      {/* Page Info */}
+                      <div className="mb-3">
+                        {fetchedMetadata.title && (
+                          <p className="font-medium text-sm text-gray-900">{fetchedMetadata.title}</p>
                         )}
-                        <div className="flex-1 min-w-0">
-                          {fetchedMetadata.title && (
-                            <p className="font-medium text-sm text-gray-900 truncate">{fetchedMetadata.title}</p>
-                          )}
-                          {fetchedMetadata.description && (
-                            <p className="text-xs text-gray-600 line-clamp-2 mt-1">{fetchedMetadata.description}</p>
-                          )}
-                          {fetchedMetadata.siteName && (
-                            <p className="text-xs text-blue-600 mt-1">{fetchedMetadata.siteName}</p>
-                          )}
-                        </div>
+                        {fetchedMetadata.description && (
+                          <p className="text-xs text-gray-600 line-clamp-2 mt-1">{fetchedMetadata.description}</p>
+                        )}
+                        {fetchedMetadata.siteName && (
+                          <p className="text-xs text-blue-600 mt-1">{fetchedMetadata.siteName}</p>
+                        )}
                       </div>
-                      {fetchedMetadata.imageUrl && (
-                        <button
-                          type="button"
-                          onClick={handleUseFetchedThumbnail}
-                          className="mt-2 btn btn-sm btn-primary w-full"
-                        >
-                          Use This Image as Thumbnail
-                        </button>
-                      )}
-                      {!fetchedMetadata.imageUrl && (
-                        <p className="mt-2 text-xs text-amber-600">No image found on this page</p>
+
+                      {/* Image Grid - Pick from available images */}
+                      {fetchedMetadata.images && fetchedMetadata.images.length > 0 ? (
+                        <div>
+                          <p className="text-xs font-medium text-gray-700 mb-2">
+                            Select a thumbnail ({fetchedMetadata.images.length} images found):
+                          </p>
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+                            {fetchedMetadata.images.map((imageUrl, index) => (
+                              <button
+                                key={index}
+                                type="button"
+                                onClick={() => setThumbnailPreview(imageUrl)}
+                                className={`relative aspect-video rounded border-2 overflow-hidden transition-all ${
+                                  thumbnailPreview === imageUrl
+                                    ? 'border-primary ring-2 ring-primary/30'
+                                    : 'border-gray-200 hover:border-gray-400'
+                                }`}
+                              >
+                                <img
+                                  src={imageUrl}
+                                  alt={`Option ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.target.parentElement.style.display = 'none';
+                                  }}
+                                />
+                                {thumbnailPreview === imageUrl && (
+                                  <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                                    <div className="bg-primary text-white rounded-full p-1">
+                                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                      </svg>
+                                    </div>
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2">
+                            Click an image to select it as the event thumbnail
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-amber-600">No images found on this page</p>
                       )}
                     </div>
                   )}
