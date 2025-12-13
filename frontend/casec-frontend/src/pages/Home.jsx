@@ -54,9 +54,9 @@ export default function Home() {
       if (container.scrollLeft >= maxScroll - 10) {
         container.scrollTo({ left: 0, behavior: 'smooth' });
       } else {
-        container.scrollBy({ left: 220, behavior: 'smooth' });
+        container.scrollBy({ left: 400, behavior: 'smooth' });
       }
-    }, 3500);
+    }, 4000);
 
     return () => clearInterval(scrollInterval);
   }, [pastFeaturedEvents.length, pastPaused]);
@@ -192,19 +192,19 @@ export default function Home() {
     </Link>
   );
 
-  // Compact card for past events
+  // Wide horizontal card for past events (similar to upcoming)
   const PastEventCard = ({ event }) => (
     <Link
       to={`/event/${event.eventId}`}
-      className="flex-shrink-0 w-52 bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-[1.03] opacity-90"
+      className="flex-shrink-0 w-[420px] bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-[1.02] flex opacity-95"
     >
-      {/* Thumbnail */}
-      <div className="h-28 relative bg-gradient-to-br from-primary/20 to-accent/20">
+      {/* Thumbnail on left */}
+      <div className="w-40 h-full relative bg-gradient-to-br from-gray-200 to-gray-300 flex-shrink-0">
         {event.thumbnailUrl ? (
           <img
             src={event.thumbnailUrl.startsWith('/api') ? getAssetUrl(event.thumbnailUrl) : event.thumbnailUrl}
             alt={event.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover grayscale-[30%]"
             referrerPolicy="no-referrer"
             crossOrigin="anonymous"
             onError={(e) => {
@@ -213,28 +213,50 @@ export default function Home() {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Calendar className="w-8 h-8 text-primary/30" />
+            <Calendar className="w-12 h-12 text-gray-400" />
           </div>
         )}
-        <div className="absolute inset-0 bg-black/20 flex items-end justify-start p-2">
-          <span className="px-2 py-0.5 bg-gray-800/80 text-white text-[10px] rounded">Past Event</span>
-        </div>
+        <span className="absolute top-2 left-2 px-2 py-0.5 bg-gray-700 text-white text-[10px] font-bold rounded-full">
+          Past Event
+        </span>
       </div>
 
-      {/* Content */}
-      <div className="p-3">
-        <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2 text-sm leading-tight">
-          {event.title}
-        </h4>
-        <div className="space-y-1 text-xs text-gray-600">
-          <div className="flex items-center gap-1.5">
-            <Calendar className="w-3 h-3 text-primary" />
-            <span>{formatDate(event.eventDate)}</span>
+      {/* Content on right */}
+      <div className="flex-1 p-4 flex flex-col justify-between min-h-[160px]">
+        <div>
+          <h4 className="font-bold text-gray-900 mb-2 line-clamp-2 text-base leading-tight">
+            {event.title}
+          </h4>
+          {event.description && (
+            <p className="text-xs text-gray-500 line-clamp-2 mb-2">
+              {event.description}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-1.5 text-xs text-gray-600">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-gray-500" />
+              <span>{formatDate(event.eventDate)}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-gray-500" />
+              <span>{formatTime(event.eventDate)}</span>
+            </div>
           </div>
+
           {event.location && (
             <div className="flex items-center gap-1.5">
-              <MapPin className="w-3 h-3 text-primary" />
+              <MapPin className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
               <span className="truncate">{event.location}</span>
+            </div>
+          )}
+
+          {event.hostClubName && (
+            <div className="flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-gray-500" />
+              <span className="truncate">{event.hostClubName}</span>
             </div>
           )}
         </div>
@@ -364,15 +386,15 @@ export default function Home() {
 
           {loading ? (
             <div className="flex gap-4 px-6 overflow-hidden">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex-shrink-0 w-52 h-56 bg-white/20 rounded-xl animate-pulse" />
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex-shrink-0 w-[420px] h-40 bg-white/20 rounded-xl animate-pulse" />
               ))}
             </div>
           ) : pastFeaturedEvents.length > 0 ? (
             <div className="relative group">
               {/* Left Arrow */}
               <button
-                onClick={() => scrollLeft(pastScrollRef, 240)}
+                onClick={() => scrollLeft(pastScrollRef, 440)}
                 className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -393,7 +415,7 @@ export default function Home() {
 
               {/* Right Arrow */}
               <button
-                onClick={() => scrollRight(pastScrollRef, 240)}
+                onClick={() => scrollRight(pastScrollRef, 440)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-white transition-all opacity-0 group-hover:opacity-100"
               >
                 <ChevronRight className="w-5 h-5" />
