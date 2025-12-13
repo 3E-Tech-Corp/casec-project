@@ -200,4 +200,9 @@ export const membershipPaymentsAPI = {
   }),
 };
 
+// Utility APIs
+export const utilityAPI = {
+  fetchUrlMetadata: (url) => api.post('/utility/fetch-url-metadata', { url }),
+};
+
 export default api;

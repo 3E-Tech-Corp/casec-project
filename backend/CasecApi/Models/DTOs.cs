@@ -860,3 +860,13 @@ public class PaymentMethodDto
     public string? Instructions { get; set; }
     public bool IsActive { get; set; } = true;
 }
+
+// URL Metadata DTO (for fetching Open Graph data from URLs)
+public class UrlMetadataDto
+{
+    public string Url { get; set; } = string.Empty;
+    public string? Title { get; set; }
+    public string? Description { get; set; }
+    public string? ImageUrl { get; set; }
+    public string? SiteName { get; set; }
+}

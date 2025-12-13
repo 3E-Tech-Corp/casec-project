@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, Edit, Trash2, Search, Calendar, MapPin, Users, Star,
-  X, DollarSign, Clock, Tag, ExternalLink, Building2, Eye, ImageIcon, Upload
+  X, DollarSign, Clock, Tag, ExternalLink, Building2, Eye, ImageIcon, Upload, Link, Loader2
 } from 'lucide-react';
-import { eventsAPI, clubsAPI, getAssetUrl } from '../../services/api';
+import { eventsAPI, clubsAPI, utilityAPI, getAssetUrl } from '../../services/api';
 import { useAuthStore } from '../../store/useStore';
 
 export default function AdminEvents() {
@@ -46,6 +46,12 @@ export default function AdminEvents() {
     isRegistrationRequired: true,
     isFeatured: false,
   });
+
+  // URL thumbnail fetching states
+  const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [fetchedMetadata, setFetchedMetadata] = useState(null);
+  const [fetchingMetadata, setFetchingMetadata] = useState(false);
+  const [thumbnailPreview, setThumbnailPreview] = useState('');
 
   const eventTypes = [
     { value: 'CasecEvent', label: 'CASEC Event', icon: '🎉' },
@@ -111,6 +117,43 @@ export default function AdminEvents() {
       isRegistrationRequired: true,
       isFeatured: false,
     });
+    // Reset thumbnail states
+    setThumbnailUrl('');
+    setFetchedMetadata(null);
+    setThumbnailPreview('');
+  };
+
+  const handleFetchMetadata = async () => {
+    if (!thumbnailUrl.trim()) {
+      alert('Please enter a URL first');
+      return;
+    }
+
+    setFetchingMetadata(true);
+    setFetchedMetadata(null);
+
+    try {
+      const response = await utilityAPI.fetchUrlMetadata(thumbnailUrl);
+      if (response.success && response.data) {
+        setFetchedMetadata(response.data);
+        if (response.data.imageUrl) {
+          setThumbnailPreview(response.data.imageUrl);
+        }
+      } else {
+        alert(response.message || 'Failed to fetch metadata from URL');
+      }
+    } catch (error) {
+      console.error('Error fetching URL metadata:', error);
+      alert(error.message || 'Failed to fetch metadata from URL');
+    } finally {
+      setFetchingMetadata(false);
+    }
+  };
+
+  const handleUseFetchedThumbnail = () => {
+    if (fetchedMetadata?.imageUrl) {
+      setThumbnailPreview(fetchedMetadata.imageUrl);
+    }
   };
 
   const handleCreate = async (e) => {
@@ -121,6 +164,7 @@ export default function AdminEvents() {
         hostClubId: formData.hostClubId ? parseInt(formData.hostClubId) : null,
         eventFee: parseFloat(formData.eventFee) || 0,
         maxCapacity: parseInt(formData.maxCapacity) || 100,
+        thumbnailUrl: thumbnailPreview || null,
       };
       await eventsAPI.create(data);
       alert('Event created successfully!');
@@ -153,6 +197,10 @@ export default function AdminEvents() {
       isRegistrationRequired: event.isRegistrationRequired ?? true,
       isFeatured: event.isFeatured || false,
     });
+    // Set existing thumbnail preview
+    setThumbnailUrl('');
+    setFetchedMetadata(null);
+    setThumbnailPreview(event.thumbnailUrl || '');
   };
 
   const handleUpdate = async (e) => {
@@ -164,6 +212,10 @@ export default function AdminEvents() {
         eventFee: parseFloat(formData.eventFee) || 0,
         maxCapacity: parseInt(formData.maxCapacity) || 100,
       };
+      // Include external thumbnail URL if it's different from the current one
+      if (thumbnailPreview && thumbnailPreview.startsWith('http') && thumbnailPreview !== editingEvent.thumbnailUrl) {
+        data.thumbnailUrl = thumbnailPreview;
+      }
       await eventsAPI.update(editingEvent.eventId, data);
       alert('Event updated successfully!');
       setEditingEvent(null);
@@ -580,30 +632,128 @@ export default function AdminEvents() {
                   />
                 </div>
 
-                {/* Thumbnail Upload - Only for editing existing events */}
-                {editingEvent && (
-                  <div className="border-t pt-4">
-                    <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                      <ImageIcon className="w-4 h-4" />
-                      Event Thumbnail
-                    </h3>
-                    <div className="flex items-start gap-4">
-                      {editingEvent.thumbnailUrl ? (
+                {/* Event Thumbnail Section */}
+                <div className="border-t pt-4">
+                  <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4" />
+                    Event Thumbnail
+                  </h3>
+
+                  {/* URL Fetch Section */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Generate from URL
+                    </label>
+                    <p className="text-xs text-gray-500 mb-2">
+                      Paste a URL to automatically fetch its thumbnail image (e.g., event page, news article)
+                    </p>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <input
+                          type="url"
+                          value={thumbnailUrl}
+                          onChange={(e) => setThumbnailUrl(e.target.value)}
+                          className="input pl-10 w-full"
+                          placeholder="https://example.com/event-page"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleFetchMetadata}
+                        disabled={fetchingMetadata || !thumbnailUrl.trim()}
+                        className="btn btn-secondary flex items-center gap-2 whitespace-nowrap"
+                      >
+                        {fetchingMetadata ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Fetching...
+                          </>
+                        ) : (
+                          <>
+                            <ExternalLink className="w-4 h-4" />
+                            Fetch
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Fetched Metadata Preview */}
+                  {fetchedMetadata && (
+                    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-start gap-3">
+                        {fetchedMetadata.imageUrl && (
+                          <img
+                            src={fetchedMetadata.imageUrl}
+                            alt="Fetched thumbnail"
+                            className="w-24 h-18 object-cover rounded border"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          {fetchedMetadata.title && (
+                            <p className="font-medium text-sm text-gray-900 truncate">{fetchedMetadata.title}</p>
+                          )}
+                          {fetchedMetadata.description && (
+                            <p className="text-xs text-gray-600 line-clamp-2 mt-1">{fetchedMetadata.description}</p>
+                          )}
+                          {fetchedMetadata.siteName && (
+                            <p className="text-xs text-blue-600 mt-1">{fetchedMetadata.siteName}</p>
+                          )}
+                        </div>
+                      </div>
+                      {fetchedMetadata.imageUrl && (
+                        <button
+                          type="button"
+                          onClick={handleUseFetchedThumbnail}
+                          className="mt-2 btn btn-sm btn-primary w-full"
+                        >
+                          Use This Image as Thumbnail
+                        </button>
+                      )}
+                      {!fetchedMetadata.imageUrl && (
+                        <p className="mt-2 text-xs text-amber-600">No image found on this page</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Current Thumbnail Preview */}
+                  <div className="flex items-start gap-4">
+                    {thumbnailPreview ? (
+                      <div className="relative">
                         <img
-                          src={getAssetUrl(editingEvent.thumbnailUrl)}
+                          src={thumbnailPreview.startsWith('/api') ? getAssetUrl(thumbnailPreview) : thumbnailPreview}
                           alt="Event thumbnail"
                           className="w-32 h-24 object-cover rounded-lg border"
+                          onError={(e) => {
+                            e.target.src = '';
+                            e.target.parentElement.innerHTML = '<div class="w-32 h-24 bg-red-50 rounded-lg border border-red-200 flex items-center justify-center text-xs text-red-500 text-center p-2">Image failed to load</div>';
+                          }}
                         />
-                      ) : (
-                        <div className="w-32 h-24 bg-gray-100 rounded-lg border flex items-center justify-center">
-                          <ImageIcon className="w-8 h-8 text-gray-400" />
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <label className="block">
+                        <button
+                          type="button"
+                          onClick={() => setThumbnailPreview('')}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                          title="Remove thumbnail"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="w-32 h-24 bg-gray-100 rounded-lg border flex items-center justify-center">
+                        <ImageIcon className="w-8 h-8 text-gray-400" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      {/* File Upload - For editing existing events */}
+                      {editingEvent && (
+                        <label className="block mb-2">
                           <span className="btn btn-secondary btn-sm cursor-pointer inline-flex items-center gap-2">
                             <Upload className="w-4 h-4" />
-                            Upload Thumbnail
+                            Upload Image
                           </span>
                           <input
                             type="file"
@@ -616,8 +766,8 @@ export default function AdminEvents() {
                                   const response = await eventsAPI.uploadThumbnail(editingEvent.eventId, file);
                                   if (response.success) {
                                     alert('Thumbnail uploaded successfully!');
-                                    // Update the editing event with new thumbnail
                                     setEditingEvent({ ...editingEvent, thumbnailUrl: response.data.url });
+                                    setThumbnailPreview(response.data.url);
                                     fetchEvents();
                                   }
                                 } catch (error) {
@@ -627,13 +777,18 @@ export default function AdminEvents() {
                             }}
                           />
                         </label>
-                        <p className="text-xs text-gray-500 mt-2">
-                          Recommended size: 800x400px. Max file size: 5MB
-                        </p>
-                      </div>
+                      )}
+                      <p className="text-xs text-gray-500">
+                        {editingEvent
+                          ? 'Upload an image or use the URL fetch above to set a thumbnail.'
+                          : 'Use the URL fetch above to set a thumbnail. You can upload images after creating the event.'}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Recommended size: 800x400px
+                      </p>
                     </div>
                   </div>
-                )}
+                </div>
 
                 {/* Registration & Capacity */}
                 <div className="border-t pt-4">

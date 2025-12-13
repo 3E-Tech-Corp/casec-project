@@ -29,6 +29,9 @@ else
 // Add Asset Service (wraps file storage and saves to database)
 builder.Services.AddScoped<IAssetService, AssetService>();
 
+// Add HttpClient for URL metadata fetching
+builder.Services.AddHttpClient();
+
 // Add Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "DefaultSecretKeyForDevelopmentOnly123!";
 var key = Encoding.ASCII.GetBytes(jwtKey);
