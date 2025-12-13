@@ -28,7 +28,7 @@ import Membership from './pages/Membership';
 
 function ProtectedRoute({ children }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  return isAuthenticated ? children : <Navigate to="/" />;
 }
 
 function PublicOnlyRoute({ children }) {
@@ -49,7 +49,7 @@ function AdminRoute({ children }) {
 // The AdminClubs page will filter to show only clubs the user can manage
 function ClubAdminRoute({ children }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  return isAuthenticated ? children : <Navigate to="/" />;
 }
 
 function App() {
