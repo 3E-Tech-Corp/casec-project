@@ -281,6 +281,11 @@ public class UpdateEventRequest
     public string? ThumbnailUrl { get; set; }
 }
 
+public class ThumbnailFromUrlRequest
+{
+    public string ImageUrl { get; set; } = string.Empty;
+}
+
 public class RegisterEventRequest
 {
     public int EventId { get; set; }

@@ -52,6 +52,7 @@ export default function AdminEvents() {
   const [fetchedMetadata, setFetchedMetadata] = useState(null);
   const [fetchingMetadata, setFetchingMetadata] = useState(false);
   const [thumbnailPreview, setThumbnailPreview] = useState('');
+  const [savingThumbnail, setSavingThumbnail] = useState(false);
 
   const eventTypes = [
     { value: 'CasecEvent', label: 'CASEC Event', icon: '🎉' },
@@ -145,6 +146,31 @@ export default function AdminEvents() {
       alert(error.message || 'Failed to fetch metadata from URL');
     } finally {
       setFetchingMetadata(false);
+    }
+  };
+
+  // Save selected thumbnail image locally (only works for existing events)
+  const handleSaveThumbnailLocally = async () => {
+    if (!editingEvent || !thumbnailPreview || !thumbnailPreview.startsWith('http')) {
+      return;
+    }
+
+    setSavingThumbnail(true);
+    try {
+      const response = await eventsAPI.saveThumbnailFromUrl(editingEvent.eventId, thumbnailPreview);
+      if (response.success) {
+        alert('Thumbnail saved locally!');
+        setEditingEvent({ ...editingEvent, thumbnailUrl: response.data.url });
+        setThumbnailPreview(response.data.url);
+        fetchEvents();
+      } else {
+        alert(response.message || 'Failed to save thumbnail');
+      }
+    } catch (error) {
+      console.error('Error saving thumbnail:', error);
+      alert(error.message || 'Failed to save thumbnail');
+    } finally {
+      setSavingThumbnail(false);
     }
   };
 
@@ -735,6 +761,45 @@ export default function AdminEvents() {
                     </div>
                   )}
 
+                  {/* Direct Image URL Input */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Or paste image URL directly
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={thumbnailPreview.startsWith('http') ? thumbnailPreview : ''}
+                        onChange={(e) => setThumbnailPreview(e.target.value)}
+                        className="input flex-1"
+                        placeholder="https://example.com/image.jpg"
+                      />
+                      {editingEvent && thumbnailPreview && thumbnailPreview.startsWith('http') && (
+                        <button
+                          type="button"
+                          onClick={handleSaveThumbnailLocally}
+                          disabled={savingThumbnail}
+                          className="btn btn-primary flex items-center gap-2 whitespace-nowrap"
+                        >
+                          {savingThumbnail ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4" />
+                              Save Locally
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Paste an image URL directly, or select from images above
+                    </p>
+                  </div>
+
                   {/* Current Thumbnail Preview */}
                   <div className="flex items-start gap-4">
                     {thumbnailPreview ? (
@@ -756,6 +821,13 @@ export default function AdminEvents() {
                         >
                           <X className="w-3 h-3" />
                         </button>
+                        {thumbnailPreview.startsWith('http') && (
+                          <span className="absolute -bottom-1 left-0 right-0 text-center">
+                            <span className="bg-amber-100 text-amber-800 text-[10px] px-1 rounded">
+                              External
+                            </span>
+                          </span>
+                        )}
                       </div>
                     ) : (
                       <div className="w-32 h-24 bg-gray-100 rounded-lg border flex items-center justify-center">
@@ -795,12 +867,17 @@ export default function AdminEvents() {
                       )}
                       <p className="text-xs text-gray-500">
                         {editingEvent
-                          ? 'Upload an image or use the URL fetch above to set a thumbnail.'
-                          : 'Use the URL fetch above to set a thumbnail. You can upload images after creating the event.'}
+                          ? 'Upload an image, paste URL, or fetch from a page above.'
+                          : 'Use the URL fetch above or paste an image URL. You can save images locally after creating the event.'}
                       </p>
                       <p className="text-xs text-gray-400 mt-1">
                         Recommended size: 800x400px
                       </p>
+                      {editingEvent && thumbnailPreview && thumbnailPreview.startsWith('http') && (
+                        <p className="text-xs text-amber-600 mt-1">
+                          Click "Save Locally" to download and store this image on the server.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

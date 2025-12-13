@@ -120,6 +120,7 @@ export const eventsAPI = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
+  saveThumbnailFromUrl: (id, imageUrl) => api.post(`/events/${id}/thumbnail-from-url`, { imageUrl }),
 };
 
 // Users APIs
