@@ -246,18 +246,18 @@ public class CreateEventRequest
     public string? Description { get; set; }
     public DateTime EventDate { get; set; }
     public string? Location { get; set; }
-    public string EventType { get; set; } = "CasecEvent";
+    public string? EventType { get; set; }
     public string? EventCategory { get; set; }
-    public string EventScope { get; set; } = "AllMembers";
+    public string? EventScope { get; set; }
     public int? HostClubId { get; set; }
     public string? PartnerName { get; set; }
     public string? PartnerLogo { get; set; }
     public string? PartnerWebsite { get; set; }
     public string? RegistrationUrl { get; set; }
-    public decimal EventFee { get; set; } = 0;
-    public int MaxCapacity { get; set; } = 0;
-    public bool IsRegistrationRequired { get; set; } = true;
-    public bool IsFeatured { get; set; } = false;
+    public decimal? EventFee { get; set; }
+    public int? MaxCapacity { get; set; }
+    public bool? IsRegistrationRequired { get; set; }
+    public bool? IsFeatured { get; set; }
     public string? ThumbnailUrl { get; set; }
     public string? SourceUrl { get; set; }
 }

@@ -341,10 +341,10 @@ public class EventsController : ControllerBase
                 PartnerLogo = request.PartnerLogo,
                 PartnerWebsite = request.PartnerWebsite,
                 RegistrationUrl = request.RegistrationUrl,
-                EventFee = request.EventFee,
-                MaxCapacity = request.MaxCapacity,
-                IsRegistrationRequired = request.IsRegistrationRequired,
-                IsFeatured = request.IsFeatured,
+                EventFee = request.EventFee ?? 0,
+                MaxCapacity = request.MaxCapacity ?? 0,
+                IsRegistrationRequired = request.IsRegistrationRequired ?? true,
+                IsFeatured = request.IsFeatured ?? false,
                 ThumbnailUrl = request.ThumbnailUrl,
                 SourceUrl = request.SourceUrl
             };
