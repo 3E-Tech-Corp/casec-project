@@ -278,7 +278,7 @@ export default function EventDetail() {
           </div>
         )}
 
-        {/* External Source Content */}
+        {/* External Source Link */}
         {event.sourceUrl && (
           <div className="mt-6 pt-6 border-t">
             <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
@@ -289,19 +289,21 @@ export default function EventDetail() {
               href={event.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline text-sm mb-4 inline-block"
+              className="flex items-center gap-4 p-4 bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/20 rounded-xl hover:from-primary/10 hover:to-accent/10 hover:border-primary/30 transition-all group"
             >
-              {event.sourceUrl}
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <ExternalLink className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-gray-900 group-hover:text-primary transition-colors">
+                  View Original Event Details
+                </p>
+                <p className="text-sm text-gray-500 truncate">
+                  {event.sourceUrl}
+                </p>
+              </div>
+              <ExternalLink className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors flex-shrink-0" />
             </a>
-            <div className="mt-4 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-              <iframe
-                src={event.sourceUrl}
-                title="Event Source Content"
-                className="w-full h-[600px] border-0"
-                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                loading="lazy"
-              />
-            </div>
           </div>
         )}
 
