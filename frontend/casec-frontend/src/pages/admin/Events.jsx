@@ -163,10 +163,8 @@ export default function AdminEvents() {
     try {
       const response = await eventsAPI.saveThumbnailFromUrl(editingEvent.eventId, thumbnailPreview);
       if (response.success) {
-        alert('Thumbnail saved locally!');
         setEditingEvent({ ...editingEvent, thumbnailUrl: response.data.url });
         setThumbnailPreview(response.data.url);
-        fetchEvents();
       } else {
         alert(response.message || 'Failed to save thumbnail');
       }
@@ -863,10 +861,8 @@ export default function AdminEvents() {
                                 try {
                                   const response = await eventsAPI.uploadThumbnail(editingEvent.eventId, file);
                                   if (response.success) {
-                                    alert('Thumbnail uploaded successfully!');
                                     setEditingEvent({ ...editingEvent, thumbnailUrl: response.data.url });
                                     setThumbnailPreview(response.data.url);
-                                    fetchEvents();
                                   }
                                 } catch (error) {
                                   alert('Failed to upload thumbnail: ' + (error.message || 'Unknown error'));
