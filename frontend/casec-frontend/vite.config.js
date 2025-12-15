@@ -10,9 +10,12 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: "auto",
       // Use our custom manifest.json from public folder (editable after deployment)
-      // Don't generate manifest.webmanifest
+      // Setting manifest: false means we use our own manifest.json in public/
       manifest: false,
+      // Include manifest link in service worker scope
+      includeManifestIcons: false,
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
