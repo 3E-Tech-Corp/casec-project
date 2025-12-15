@@ -11,9 +11,10 @@ export const getAssetUrl = (path) => {
     return path;
   }
   // If path starts with /api, replace with API_BASE_URL
-  if (path.startsWith('/api/')) {
-    return `${API_BASE_URL}${path.substring(4)}`;
-  }
+  // if (path.startsWith('/api/')) {
+  //   return `${API_BASE_URL}${path.substring(4)}`;
+  // }
+  
   // If path starts with /, prepend API_BASE_URL
   if (path.startsWith('/')) {
     return `${API_BASE_URL}${path}`;
