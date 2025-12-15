@@ -10,6 +10,9 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: "autoUpdate",
+      // Use our custom manifest.json from public folder (editable after deployment)
+      // Don't generate manifest.webmanifest
+      manifest: false,
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
