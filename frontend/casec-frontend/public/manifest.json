@@ -1,7 +1,7 @@
 {
-  "name": "CASEC - 美国佛州华人华侨联合会",
-  "short_name": "CASEC - 华联",
-  "description": "Florida Chinese Association of Science, Education, and Culture.",
+  "name": "Community Membership Portal",
+  "short_name": "Community",
+  "description": "Community membership management portal",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8fafc",
@@ -47,7 +47,7 @@
       "purpose": "maskable"
     }
   ],
-  "categories": ["education", "culture", "science", "community"],
+  "categories": ["community", "membership"],
   "orientation": "portrait",
   "scope": "/",
   "lang": "en-US",

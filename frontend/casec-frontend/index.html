@@ -19,8 +19,14 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- Runtime config - edit config.js to change API URL after deployment -->
+    <!-- Runtime config - edit config.js to change settings after deployment -->
     <script src="/config.js"></script>
+    <script>
+      // Set document title from config
+      if (window.APP_CONFIG?.APP_TITLE) {
+        document.title = window.APP_CONFIG.APP_TITLE;
+      }
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

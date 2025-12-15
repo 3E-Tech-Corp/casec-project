@@ -8,7 +8,7 @@ window.APP_CONFIG = {
   //   'https://example.com/api'     - API on subdirectory
   API_URL: '/api',
 
-  // Add other runtime config options here as needed
-  // APP_NAME: 'CASEC',
-  // DEBUG: false,
+  // App name - displayed in browser title and other places
+  APP_NAME: 'CASEC',
+  APP_TITLE: 'CASEC - Community Membership Portal',
 };
