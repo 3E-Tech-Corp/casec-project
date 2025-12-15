@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Use runtime config (from public/config.js) first, then env var, then default
+const API_BASE_URL = window.APP_CONFIG?.API_URL || import.meta.env.VITE_API_URL || '/api';
 
 // Helper function to get full asset URL (for avatars, images, etc.)
 export const getAssetUrl = (path) => {
