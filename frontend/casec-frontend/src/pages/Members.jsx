@@ -53,6 +53,23 @@ export default function Members() {
     return matchesSearch && matchesProfession && matchesCity;
   });
 
+  // Sort members: board members first (by boardSortOrder), then regular members alphabetically
+  const sortedMembers = [...filteredMembers].sort((a, b) => {
+    // Board members come first
+    if (a.isBoardMember && !b.isBoardMember) return -1;
+    if (!a.isBoardMember && b.isBoardMember) return 1;
+
+    // Both are board members - sort by boardSortOrder
+    if (a.isBoardMember && b.isBoardMember) {
+      return (a.boardSortOrder || 999) - (b.boardSortOrder || 999);
+    }
+
+    // Both are regular members - sort alphabetically by name
+    const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+    const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -110,7 +127,7 @@ export default function Members() {
           </div>
         </div>
         <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-          <span>Showing {filteredMembers.length} of {members.length} members</span>
+          <span>Showing {sortedMembers.length} of {members.length} members</span>
           {(searchTerm || professionFilter || cityFilter) && (
             <button
               onClick={() => {
@@ -128,7 +145,7 @@ export default function Members() {
 
       {/* Members Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredMembers.map((member) => (
+        {sortedMembers.map((member) => (
           <div
             key={member.userId}
             className="card hover:shadow-xl transition-all duration-300 group cursor-pointer"
@@ -194,7 +211,7 @@ export default function Members() {
       </div>
 
       {/* Empty State */}
-      {filteredMembers.length === 0 && (
+      {sortedMembers.length === 0 && (
         <div className="card text-center py-12">
           <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-gray-600 mb-2">No Members Found</h3>
