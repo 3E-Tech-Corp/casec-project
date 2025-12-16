@@ -6,10 +6,13 @@ import {
 } from 'lucide-react';
 import { eventsAPI, clubsAPI, utilityAPI, eventTypesAPI, getAssetUrl } from '../../services/api';
 import { useAuthStore } from '../../store/useStore';
+import { useTheme } from '../../components/ThemeProvider';
 
 export default function AdminEvents() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const { theme } = useTheme();
+  const appName = theme?.organizationName || 'Organization';
   const isSystemAdmin = user?.isAdmin;
 
   const [events, setEvents] = useState([]);
@@ -383,7 +386,7 @@ export default function AdminEvents() {
             className="input w-full"
           >
             <option value="all">All Clubs</option>
-            <option value="casec">CASEC (No Club)</option>
+            <option value="casec">{appName} (No Club)</option>
             {clubs.map(club => (
               <option key={club.clubId} value={club.clubId}>{club.name}</option>
             ))}
@@ -657,7 +660,7 @@ export default function AdminEvents() {
                       onChange={(e) => setFormData({ ...formData, hostClubId: e.target.value })}
                       className="input"
                     >
-                      <option value="">No host club (CASEC Event)</option>
+                      <option value="">No host club ({appName} Event)</option>
                       {clubs.map(club => (
                         <option key={club.clubId} value={club.clubId}>{club.name}</option>
                       ))}

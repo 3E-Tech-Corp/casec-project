@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Linkedin, Twitter, Award, Calendar, MapPin, Briefcase, Heart, Users } from 'lucide-react';
 import api, { getAssetUrl } from '../services/api';
+import { useTheme } from '../components/ThemeProvider';
 
 export default function PublicProfile() {
+  const { theme } = useTheme();
+  const appName = theme?.organizationName || 'Community';
   const { userId } = useParams();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
@@ -204,7 +207,7 @@ export default function PublicProfile() {
               Board Leadership
             </h3>
             <p className="text-gray-700">
-              As {profile.boardTitle}, {profile.firstName} plays a vital role in guiding CASEC's
+              As {profile.boardTitle}, {profile.firstName} plays a vital role in guiding {appName}'s
               mission to build stronger community connections and foster meaningful relationships
               among our members.
             </p>

@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Users, Briefcase, MapPin, Calendar, ExternalLink } from 'lucide-react';
 import api, { getAssetUrl } from '../services/api';
+import { useTheme } from '../components/ThemeProvider';
 
 export default function Members() {
+  const { theme } = useTheme();
+  const appName = theme?.organizationName || 'Community';
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -63,7 +66,7 @@ export default function Members() {
       {/* Header */}
       <div>
         <h1 className="text-4xl font-display font-bold text-gray-900 mb-2">Member Directory</h1>
-        <p className="text-gray-600 text-lg">Connect with fellow CASEC members</p>
+        <p className="text-gray-600 text-lg">Connect with fellow {appName} members</p>
       </div>
 
       {/* Search and Filters */}

@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react';
 import { Users, Calendar, Award, TrendingUp, Search, UserCheck } from 'lucide-react';
 import { usersAPI } from '../services/api';
 import { useAuthStore } from '../store/useStore';
+import { useTheme } from '../components/ThemeProvider';
 
 export default function Dashboard() {
   const user = useAuthStore((state) => state.user);
+  const { theme } = useTheme();
+  const appName = theme?.organizationName || 'Community';
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +44,7 @@ export default function Dashboard() {
           Welcome Back, {user?.firstName}! 👋
         </h1>
         <p className="text-gray-600 text-lg">
-          Here's what's happening in your CASEC community
+          Here's what's happening in your {appName} community
         </p>
       </div>
 
@@ -119,7 +122,7 @@ export default function Dashboard() {
             <h3 className="text-xl font-bold text-gray-900">Members</h3>
           </div>
           <p className="text-gray-600 mb-4 text-sm">
-            Search and connect with fellow CASEC community members.
+            Search and connect with fellow {appName} community members.
           </p>
           <a href="/members" className="btn bg-blue-600 text-white hover:bg-blue-700 inline-block text-sm">
             Find Members

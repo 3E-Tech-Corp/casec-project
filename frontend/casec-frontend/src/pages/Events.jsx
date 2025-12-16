@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin, DollarSign, Users, ExternalLink, Sparkles, Megaphone, Handshake, Building2, ImageIcon } from 'lucide-react';
 import { eventsAPI, clubsAPI, eventTypesAPI, getAssetUrl } from '../services/api';
+import { useTheme } from '../components/ThemeProvider';
 
 export default function EnhancedEvents() {
+  const { theme } = useTheme();
+  const appName = theme?.organizationName || 'Community';
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -175,7 +178,7 @@ export default function EnhancedEvents() {
       {/* Header */}
       <div>
         <h1 className="text-4xl font-display font-bold text-gray-900 mb-2">Community Events</h1>
-        <p className="text-gray-600 text-lg">Discover CASEC events, partner opportunities, and community announcements</p>
+        <p className="text-gray-600 text-lg">Discover {appName} events, partner opportunities, and community announcements</p>
       </div>
 
       {/* Filters */}
@@ -190,7 +193,7 @@ export default function EnhancedEvents() {
               className="input w-full"
             >
               <option value="all">All Types</option>
-              <option value="CasecEvent">🎉 CASEC Events</option>
+              <option value="CasecEvent">🎉 {appName} Events</option>
               <option value="ClubEvent">👥 Club Events</option>
               <option value="PartnerEvent">🤝 Partner Events</option>
               <option value="Announcement">📢 Announcements</option>
@@ -221,7 +224,7 @@ export default function EnhancedEvents() {
               className="input w-full"
             >
               <option value="all">All Clubs</option>
-              <option value="casec">CASEC Organization</option>
+              <option value="casec">{appName} Organization</option>
               {clubs.map(club => (
                 <option key={club.clubId} value={club.clubId}>{club.name}</option>
               ))}
@@ -268,7 +271,7 @@ export default function EnhancedEvents() {
             )}
             {selectedClub !== 'all' && (
               <span className="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
-                {selectedClub === 'casec' ? 'CASEC' : clubs.find(c => c.clubId.toString() === selectedClub)?.name}
+                {selectedClub === 'casec' ? appName : clubs.find(c => c.clubId.toString() === selectedClub)?.name}
                 <button onClick={() => setSelectedClub('all')} className="ml-2">×</button>
               </span>
             )}

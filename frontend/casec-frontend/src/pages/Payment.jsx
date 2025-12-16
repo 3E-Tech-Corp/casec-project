@@ -6,10 +6,13 @@ import {
 } from 'lucide-react';
 import { membershipPaymentsAPI, membershipTypesAPI, getAssetUrl } from '../services/api';
 import { useAuthStore } from '../store/useStore';
+import { useTheme } from '../components/ThemeProvider';
 
 export default function Payment() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const { theme } = useTheme();
+  const appName = theme?.organizationName || 'our community';
   const [membershipTypes, setMembershipTypes] = useState([]);
   const [durations, setDurations] = useState([]);
   const [paymentMethods, setPaymentMethods] = useState([]);
@@ -208,7 +211,7 @@ export default function Payment() {
           <PartyPopper className="w-8 h-8 text-accent" />
         </div>
         <h1 className="text-3xl font-display font-bold text-gray-900 mb-2">
-          Welcome to {user?.firstName ? `${user.firstName}!` : 'CASEC!'}
+          Welcome to {user?.firstName ? `${user.firstName}!` : `${appName}!`}
         </h1>
         <p className="text-gray-600 text-lg">
           Complete your membership payment to activate all features.
