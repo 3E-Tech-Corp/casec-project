@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Clock, ChevronLeft, ChevronRight, DollarSign, Building2 } from 'lucide-react';
 import { eventsAPI, getAssetUrl } from '../services/api';
 import { useTheme } from '../components/ThemeProvider';
+import PollWidget from '../components/PollWidget';
 
 export default function Home() {
   const { theme } = useTheme();
@@ -481,6 +482,11 @@ export default function Home() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Featured Poll */}
+        <div className="max-w-7xl mx-auto px-6">
+          <PollWidget featured />
         </div>
 
         {/* Past Featured Events Carousel */}
