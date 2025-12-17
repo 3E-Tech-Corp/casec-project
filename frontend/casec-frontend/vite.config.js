@@ -117,6 +117,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      "/surveys": {
+        target: "https://localhost:5001",
+        changeOrigin: true,
+        secure: false,
+      },
       "/family": {
         target: "https://localhost:5001",
         changeOrigin: true,
