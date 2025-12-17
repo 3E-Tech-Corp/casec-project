@@ -40,6 +40,11 @@ public class CasecDbContext : DbContext
     // Auth entities
     public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
+    // Poll entities
+    public DbSet<Poll> Polls { get; set; }
+    public DbSet<PollOption> PollOptions { get; set; }
+    public DbSet<PollResponse> PollResponses { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -262,6 +267,58 @@ public class CasecDbContext : DbContext
             entity.Property(e => e.Code).IsRequired().HasMaxLength(50);
             entity.Property(e => e.DisplayName).IsRequired().HasMaxLength(100);
             entity.HasIndex(e => e.Code).IsUnique();
+        });
+
+        // Poll entity configuration
+        modelBuilder.Entity<Poll>(entity =>
+        {
+            entity.HasKey(e => e.PollId);
+            entity.Property(e => e.Question).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.PollType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Visibility).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+
+            entity.HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedBy)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.IsFeatured);
+        });
+
+        // PollOption entity configuration
+        modelBuilder.Entity<PollOption>(entity =>
+        {
+            entity.HasKey(e => e.OptionId);
+            entity.Property(e => e.OptionText).IsRequired().HasMaxLength(500);
+
+            entity.HasOne(e => e.Poll)
+                .WithMany(p => p.Options)
+                .HasForeignKey(e => e.PollId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.PollId);
+        });
+
+        // PollResponse entity configuration
+        modelBuilder.Entity<PollResponse>(entity =>
+        {
+            entity.HasKey(e => e.ResponseId);
+
+            entity.HasOne(e => e.Poll)
+                .WithMany(p => p.Responses)
+                .HasForeignKey(e => e.PollId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(e => e.PollId);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.SessionId);
         });
     }
 }

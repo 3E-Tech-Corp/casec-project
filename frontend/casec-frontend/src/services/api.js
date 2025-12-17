@@ -232,6 +232,22 @@ export const membershipPaymentsAPI = {
     }),
 };
 
+// Polls APIs
+export const pollsAPI = {
+  // Public endpoints
+  getActive: () => api.get("/polls"),
+  getFeatured: () => api.get("/polls/featured"),
+  getById: (id) => api.get(`/polls/${id}`),
+  vote: (id, data) => api.post(`/polls/${id}/vote`, data),
+
+  // Admin endpoints
+  getAllAdmin: () => api.get("/polls/admin/all"),
+  getResults: (id) => api.get(`/polls/${id}/results`),
+  create: (data) => api.post("/polls", data),
+  update: (id, data) => api.put(`/polls/${id}`, data),
+  delete: (id) => api.delete(`/polls/${id}`),
+};
+
 // Utility APIs
 export const utilityAPI = {
   fetchUrlMetadata: (url) => api.post("/utility/fetch-url-metadata", { url }),

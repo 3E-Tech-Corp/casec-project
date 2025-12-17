@@ -789,3 +789,137 @@ public class EventType
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
+
+// Poll Entity - For collecting feedback from visitors and members
+public class Poll
+{
+    [Key]
+    public int PollId { get; set; }
+
+    [Required]
+    [MaxLength(500)]
+    public string Question { get; set; } = string.Empty;
+
+    [MaxLength(2000)]
+    public string? Description { get; set; }
+
+    // Poll type: SingleChoice, MultipleChoice, Rating, Text
+    [Required]
+    [MaxLength(50)]
+    public string PollType { get; set; } = "SingleChoice";
+
+    // Who can respond: Anyone, MembersOnly
+    [Required]
+    [MaxLength(50)]
+    public string Visibility { get; set; } = "Anyone";
+
+    // Allow anonymous responses from logged-in members
+    public bool AllowAnonymous { get; set; } = true;
+
+    // Show results to voters after they vote
+    public bool ShowResultsToVoters { get; set; } = true;
+
+    // Allow changing vote
+    public bool AllowChangeVote { get; set; } = false;
+
+    // Maximum selections for MultipleChoice
+    public int? MaxSelections { get; set; }
+
+    // For Rating type: min and max values
+    public int? RatingMin { get; set; } = 1;
+    public int? RatingMax { get; set; } = 5;
+
+    public DateTime? StartDate { get; set; }
+
+    public DateTime? EndDate { get; set; }
+
+    // Status: Draft, Active, Closed
+    [Required]
+    [MaxLength(50)]
+    public string Status { get; set; } = "Draft";
+
+    public bool IsFeatured { get; set; } = false;
+
+    public int DisplayOrder { get; set; } = 0;
+
+    public int? CreatedBy { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("CreatedBy")]
+    public virtual User? CreatedByUser { get; set; }
+
+    public virtual ICollection<PollOption> Options { get; set; } = new List<PollOption>();
+    public virtual ICollection<PollResponse> Responses { get; set; } = new List<PollResponse>();
+}
+
+// PollOption Entity - Options for polls
+public class PollOption
+{
+    [Key]
+    public int OptionId { get; set; }
+
+    [Required]
+    public int PollId { get; set; }
+
+    [Required]
+    [MaxLength(500)]
+    public string OptionText { get; set; } = string.Empty;
+
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
+
+    public int DisplayOrder { get; set; } = 0;
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("PollId")]
+    public virtual Poll? Poll { get; set; }
+}
+
+// PollResponse Entity - Responses/votes for polls
+public class PollResponse
+{
+    [Key]
+    public int ResponseId { get; set; }
+
+    [Required]
+    public int PollId { get; set; }
+
+    // For SingleChoice/MultipleChoice - the selected option(s)
+    // Stored as comma-separated option IDs for multiple choice
+    public string? SelectedOptionIds { get; set; }
+
+    // For Rating type
+    public int? RatingValue { get; set; }
+
+    // For Text type
+    [MaxLength(4000)]
+    public string? TextResponse { get; set; }
+
+    // User who responded (null for anonymous visitors)
+    public int? UserId { get; set; }
+
+    // If user chose to be anonymous (only for logged-in users)
+    public bool IsAnonymous { get; set; } = false;
+
+    // For tracking anonymous/visitor responses
+    [MaxLength(100)]
+    public string? SessionId { get; set; }
+
+    [MaxLength(50)]
+    public string? IpAddress { get; set; }
+
+    public DateTime RespondedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("PollId")]
+    public virtual Poll? Poll { get; set; }
+
+    [ForeignKey("UserId")]
+    public virtual User? User { get; set; }
+}

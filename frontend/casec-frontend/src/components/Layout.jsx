@@ -32,6 +32,7 @@ export default function Layout() {
     { path: '/admin/clubs', label: 'Manage Clubs' },
     { path: '/admin/events', label: 'Manage Events' },
     { path: '/admin/event-types', label: 'Event Types' },
+    { path: '/admin/polls', label: 'Polls' },
     { path: '/admin/theme', label: 'Theme' },
   ] : [];
 
