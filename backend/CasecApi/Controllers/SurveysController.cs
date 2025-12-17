@@ -194,6 +194,11 @@ public class SurveysController : ControllerBase
         return int.TryParse(userIdClaim, out var userId) ? userId : null;
     }
 
+    private bool IsAdmin()
+    {
+        return User.IsInRole("Admin");
+    }
+
     private string GetOrCreateSessionId()
     {
         if (Request.Cookies.TryGetValue(SessionCookieName, out var sessionId) && !string.IsNullOrEmpty(sessionId))
