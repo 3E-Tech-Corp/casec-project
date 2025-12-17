@@ -194,11 +194,6 @@ public class SurveysController : ControllerBase
         return int.TryParse(userIdClaim, out var userId) ? userId : null;
     }
 
-    private bool IsAdmin()
-    {
-        return User.FindFirst("IsAdmin")?.Value == "True";
-    }
-
     private string GetOrCreateSessionId()
     {
         if (Request.Cookies.TryGetValue(SessionCookieName, out var sessionId) && !string.IsNullOrEmpty(sessionId))
@@ -611,14 +606,9 @@ public class SurveysController : ControllerBase
 
     // GET: api/surveys/admin/all - Get all surveys (admin)
     [HttpGet("admin/all")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<List<SurveyAdminDto>>>> GetAllSurveysAdmin()
     {
-        if (!IsAdmin())
-        {
-            return Forbid();
-        }
-
         try
         {
             var surveys = await _context.Surveys
@@ -663,16 +653,11 @@ public class SurveysController : ControllerBase
         }
     }
 
-    // GET: api/surveys/{id}/results - Get survey results (admin)
+    /// GET: api/surveys/{id}/results - Get survey results (admin)
     [HttpGet("{id}/results")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<SurveyResultsDto>>> GetSurveyResults(int id)
     {
-        if (!IsAdmin())
-        {
-            return Forbid();
-        }
-
         try
         {
             var survey = await _context.Surveys
@@ -784,16 +769,11 @@ public class SurveysController : ControllerBase
         }
     }
 
-    // POST: api/surveys - Create survey (admin)
+    /// POST: api/surveys - Create survey (admin)
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<SurveyAdminDto>>> CreateSurvey([FromBody] CreateSurveyDto dto)
     {
-        if (!IsAdmin())
-        {
-            return Forbid();
-        }
-
         try
         {
             var userId = GetUserId();
@@ -906,16 +886,11 @@ public class SurveysController : ControllerBase
         }
     }
 
-    // PUT: api/surveys/{id} - Update survey (admin)
+    /// PUT: api/surveys/{id} - Update survey (admin)
     [HttpPut("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<SurveyAdminDto>>> UpdateSurvey(int id, [FromBody] CreateSurveyDto dto)
     {
-        if (!IsAdmin())
-        {
-            return Forbid();
-        }
-
         try
         {
             var survey = await _context.Surveys
@@ -1031,16 +1006,11 @@ public class SurveysController : ControllerBase
         }
     }
 
-    // DELETE: api/surveys/{id} - Delete survey (admin)
+    /// DELETE: api/surveys/{id} - Delete survey (admin)
     [HttpDelete("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<bool>>> DeleteSurvey(int id)
     {
-        if (!IsAdmin())
-        {
-            return Forbid();
-        }
-
         try
         {
             var survey = await _context.Surveys.FindAsync(id);
