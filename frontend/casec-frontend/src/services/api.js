@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// Use runtime config (from public/config.js) first, then env var, then default
-// Default is empty string since backend routes are at root level (no /api prefix)
+// Priority: config.json (runtime) > VITE_API_URL (build-time) > empty string (same origin)
+// config.json is loaded in main.jsx before the app renders
 let API_BASE_URL =
   window.APP_CONFIG?.API_URL || import.meta.env.VITE_API_URL || "";
 
