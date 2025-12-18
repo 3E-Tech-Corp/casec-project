@@ -21,12 +21,12 @@ export default defineConfig({
         clientsClaim: true,
         // Don't cache index.html - always fetch fresh
         navigateFallback: null,
-        // Exclude config.js and manifest.json from precaching so they can be edited after deployment
-        globIgnores: ['**/config.js', '**/manifest.json'],
+        // Exclude config files and manifest.json from precaching so they can be edited after deployment
+        globIgnores: ['**/config.js', '**/config.json', '**/manifest.json'],
         runtimeCaching: [
           {
-            // Always fetch config.js and manifest.json from network (never cache)
-            urlPattern: /\/(config\.js|manifest\.json)$/,
+            // Always fetch config files and manifest.json from network (never cache)
+            urlPattern: /\/(config\.js|config\.json|manifest\.json)$/,
             handler: 'NetworkOnly',
           },
           {
