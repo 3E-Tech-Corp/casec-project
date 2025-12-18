@@ -19,28 +19,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- Runtime config - edit config.json to change settings after deployment -->
-    <script>
-      // Load config.json before app starts
-      fetch('/config.json?' + Date.now())
-        .then(response => response.json())
-        .then(config => {
-          window.APP_CONFIG = config;
-          if (config.APP_TITLE) {
-            document.title = config.APP_TITLE;
-          }
-        })
-        .catch(err => {
-          console.warn('Could not load config.json, using defaults:', err);
-          window.APP_CONFIG = {};
-        })
-        .finally(() => {
-          // Load the app after config is ready
-          const script = document.createElement('script');
-          script.type = 'module';
-          script.src = '/src/main.jsx';
-          document.body.appendChild(script);
-        });
-    </script>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
