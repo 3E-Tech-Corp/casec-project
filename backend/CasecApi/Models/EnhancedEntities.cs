@@ -1116,6 +1116,35 @@ public class SurveyResponse
     public virtual ICollection<SurveyAnswer> Answers { get; set; } = new List<SurveyAnswer>();
 }
 
+// PaymentMethod Entity - Configurable payment methods for membership payments
+public class PaymentMethod
+{
+    [Key]
+    public int PaymentMethodId { get; set; }
+
+    [Required]
+    [MaxLength(50)]
+    public string Code { get; set; } = string.Empty; // e.g., "Zelle", "Check", "Cash"
+
+    [Required]
+    [MaxLength(100)]
+    public string Name { get; set; } = string.Empty; // Display name
+
+    [MaxLength(2000)]
+    public string? Instructions { get; set; } // Payment instructions shown to users
+
+    [MaxLength(50)]
+    public string? Icon { get; set; } // Lucide icon name
+
+    public bool IsActive { get; set; } = true;
+
+    public int DisplayOrder { get; set; } = 0;
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
 // SurveyAnswer Entity - Individual answers to questions within a response
 public class SurveyAnswer
 {

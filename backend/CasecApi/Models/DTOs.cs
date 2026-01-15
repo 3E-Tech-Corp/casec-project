@@ -913,13 +913,38 @@ public class MembershipStatusDto
     public List<FamilyMemberSummaryDto> FamilyMembers { get; set; } = new();
 }
 
-// Payment Methods DTO (for future extensibility)
+// Payment Methods DTO
 public class PaymentMethodDto
+{
+    public int PaymentMethodId { get; set; }
+    public string Code { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? Instructions { get; set; }
+    public string? Icon { get; set; }
+    public bool IsActive { get; set; } = true;
+    public int DisplayOrder { get; set; }
+}
+
+// Create Payment Method Request DTO
+public class CreatePaymentMethodRequest
 {
     public string Code { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? Instructions { get; set; }
+    public string? Icon { get; set; }
     public bool IsActive { get; set; } = true;
+    public int DisplayOrder { get; set; }
+}
+
+// Update Payment Method Request DTO
+public class UpdatePaymentMethodRequest
+{
+    public string Code { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? Instructions { get; set; }
+    public string? Icon { get; set; }
+    public bool IsActive { get; set; } = true;
+    public int DisplayOrder { get; set; }
 }
 
 // URL Metadata DTO (for fetching Open Graph data from URLs)

@@ -51,6 +51,9 @@ public class CasecDbContext : DbContext
     public DbSet<SurveyResponse> SurveyResponses { get; set; }
     public DbSet<SurveyAnswer> SurveyAnswers { get; set; }
 
+    // Payment configuration entities
+    public DbSet<PaymentMethod> PaymentMethods { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -405,6 +408,16 @@ public class CasecDbContext : DbContext
             entity.HasIndex(e => e.ResponseId);
             entity.HasIndex(e => e.QuestionId);
             entity.HasIndex(e => new { e.ResponseId, e.QuestionId }).IsUnique();
+        });
+
+        // PaymentMethod entity configuration
+        modelBuilder.Entity<PaymentMethod>(entity =>
+        {
+            entity.HasKey(e => e.PaymentMethodId);
+            entity.Property(e => e.Code).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.HasIndex(e => e.Code).IsUnique();
+            entity.HasIndex(e => e.DisplayOrder);
         });
     }
 }

@@ -25,6 +25,7 @@ import AdminEventDetail from './pages/admin/EventDetail';
 import AdminEventTypes from './pages/admin/EventTypes';
 import AdminTheme from './pages/admin/ThemeCustomization';
 import AdminPayments from './pages/admin/Payments';
+import AdminPaymentMethods from './pages/admin/PaymentMethods';
 import AdminPolls from './pages/admin/Polls';
 import AdminSurveys from './pages/admin/Surveys';
 import Membership from './pages/Membership';
@@ -115,6 +116,9 @@ function App() {
           } />
           <Route path="admin/payments" element={
             <AdminRoute><AdminPayments /></AdminRoute>
+          } />
+          <Route path="admin/payment-methods" element={
+            <AdminRoute><AdminPaymentMethods /></AdminRoute>
           } />
           <Route path="admin/polls" element={
             <AdminRoute><AdminPolls /></AdminRoute>

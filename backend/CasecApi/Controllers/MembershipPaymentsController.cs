@@ -160,27 +160,56 @@ public class MembershipPaymentsController : ControllerBase
     }
 
     // GET: api/MembershipPayments/methods
-    // Get available payment methods
+    // Get available payment methods (active only for non-admin)
     [HttpGet("methods")]
     [AllowAnonymous]
-    public ActionResult<ApiResponse<List<PaymentMethodDto>>> GetPaymentMethods()
+    public async Task<ActionResult<ApiResponse<List<PaymentMethodDto>>>> GetPaymentMethods()
     {
-        var methods = new List<PaymentMethodDto>
+        try
         {
-            new PaymentMethodDto
-            {
-                Code = "Zelle",
-                Name = "Zelle",
-                Instructions = "Send payment via Zelle to treasurer@casec.org. Include your name and 'Membership' in the memo.",
-                IsActive = true
-            }
-        };
+            var methods = await _context.PaymentMethods
+                .Where(m => m.IsActive)
+                .OrderBy(m => m.DisplayOrder)
+                .ThenBy(m => m.Name)
+                .Select(m => new PaymentMethodDto
+                {
+                    PaymentMethodId = m.PaymentMethodId,
+                    Code = m.Code,
+                    Name = m.Name,
+                    Instructions = m.Instructions,
+                    Icon = m.Icon,
+                    IsActive = m.IsActive,
+                    DisplayOrder = m.DisplayOrder
+                })
+                .ToListAsync();
 
-        return Ok(new ApiResponse<List<PaymentMethodDto>>
+            // If no methods in database, return default Zelle
+            if (methods.Count == 0)
+            {
+                methods.Add(new PaymentMethodDto
+                {
+                    Code = "Zelle",
+                    Name = "Zelle",
+                    Instructions = "Send payment via Zelle to treasurer@casec.org. Include your name and 'Membership' in the memo.",
+                    IsActive = true
+                });
+            }
+
+            return Ok(new ApiResponse<List<PaymentMethodDto>>
+            {
+                Success = true,
+                Data = methods
+            });
+        }
+        catch (Exception ex)
         {
-            Success = true,
-            Data = methods
-        });
+            _logger.LogError(ex, "Error fetching payment methods");
+            return StatusCode(500, new ApiResponse<List<PaymentMethodDto>>
+            {
+                Success = false,
+                Message = "An error occurred while fetching payment methods"
+            });
+        }
     }
 
     // POST: api/MembershipPayments
@@ -1020,6 +1049,228 @@ public class MembershipPaymentsController : ControllerBase
         }
 
         return dto;
+    }
+
+    // ============ PAYMENT METHOD ADMIN ENDPOINTS ============
+
+    // GET: api/MembershipPayments/admin/methods
+    // Get all payment methods including inactive (Admin only)
+    [HttpGet("admin/methods")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<List<PaymentMethodDto>>>> GetAllPaymentMethods()
+    {
+        try
+        {
+            var methods = await _context.PaymentMethods
+                .OrderBy(m => m.DisplayOrder)
+                .ThenBy(m => m.Name)
+                .Select(m => new PaymentMethodDto
+                {
+                    PaymentMethodId = m.PaymentMethodId,
+                    Code = m.Code,
+                    Name = m.Name,
+                    Instructions = m.Instructions,
+                    Icon = m.Icon,
+                    IsActive = m.IsActive,
+                    DisplayOrder = m.DisplayOrder
+                })
+                .ToListAsync();
+
+            return Ok(new ApiResponse<List<PaymentMethodDto>>
+            {
+                Success = true,
+                Data = methods
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching all payment methods");
+            return StatusCode(500, new ApiResponse<List<PaymentMethodDto>>
+            {
+                Success = false,
+                Message = "An error occurred while fetching payment methods"
+            });
+        }
+    }
+
+    // POST: api/MembershipPayments/admin/methods
+    // Create a new payment method (Admin only)
+    [HttpPost("admin/methods")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<PaymentMethodDto>>> CreatePaymentMethod([FromBody] CreatePaymentMethodRequest request)
+    {
+        try
+        {
+            // Check if code already exists
+            var existingCode = await _context.PaymentMethods.AnyAsync(m => m.Code == request.Code);
+            if (existingCode)
+            {
+                return BadRequest(new ApiResponse<PaymentMethodDto>
+                {
+                    Success = false,
+                    Message = "A payment method with this code already exists"
+                });
+            }
+
+            var method = new PaymentMethod
+            {
+                Code = request.Code,
+                Name = request.Name,
+                Instructions = request.Instructions,
+                Icon = request.Icon,
+                IsActive = request.IsActive,
+                DisplayOrder = request.DisplayOrder
+            };
+
+            _context.PaymentMethods.Add(method);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<PaymentMethodDto>
+            {
+                Success = true,
+                Message = "Payment method created successfully",
+                Data = new PaymentMethodDto
+                {
+                    PaymentMethodId = method.PaymentMethodId,
+                    Code = method.Code,
+                    Name = method.Name,
+                    Instructions = method.Instructions,
+                    Icon = method.Icon,
+                    IsActive = method.IsActive,
+                    DisplayOrder = method.DisplayOrder
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating payment method");
+            return StatusCode(500, new ApiResponse<PaymentMethodDto>
+            {
+                Success = false,
+                Message = "An error occurred while creating payment method"
+            });
+        }
+    }
+
+    // PUT: api/MembershipPayments/admin/methods/{id}
+    // Update a payment method (Admin only)
+    [HttpPut("admin/methods/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<PaymentMethodDto>>> UpdatePaymentMethod(int id, [FromBody] UpdatePaymentMethodRequest request)
+    {
+        try
+        {
+            var method = await _context.PaymentMethods.FindAsync(id);
+            if (method == null)
+            {
+                return NotFound(new ApiResponse<PaymentMethodDto>
+                {
+                    Success = false,
+                    Message = "Payment method not found"
+                });
+            }
+
+            // Check if code already exists (if changed)
+            if (request.Code != method.Code)
+            {
+                var existingCode = await _context.PaymentMethods.AnyAsync(m => m.Code == request.Code && m.PaymentMethodId != id);
+                if (existingCode)
+                {
+                    return BadRequest(new ApiResponse<PaymentMethodDto>
+                    {
+                        Success = false,
+                        Message = "A payment method with this code already exists"
+                    });
+                }
+            }
+
+            method.Code = request.Code;
+            method.Name = request.Name;
+            method.Instructions = request.Instructions;
+            method.Icon = request.Icon;
+            method.IsActive = request.IsActive;
+            method.DisplayOrder = request.DisplayOrder;
+            method.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<PaymentMethodDto>
+            {
+                Success = true,
+                Message = "Payment method updated successfully",
+                Data = new PaymentMethodDto
+                {
+                    PaymentMethodId = method.PaymentMethodId,
+                    Code = method.Code,
+                    Name = method.Name,
+                    Instructions = method.Instructions,
+                    Icon = method.Icon,
+                    IsActive = method.IsActive,
+                    DisplayOrder = method.DisplayOrder
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating payment method");
+            return StatusCode(500, new ApiResponse<PaymentMethodDto>
+            {
+                Success = false,
+                Message = "An error occurred while updating payment method"
+            });
+        }
+    }
+
+    // DELETE: api/MembershipPayments/admin/methods/{id}
+    // Delete a payment method (Admin only)
+    [HttpDelete("admin/methods/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeletePaymentMethod(int id)
+    {
+        try
+        {
+            var method = await _context.PaymentMethods.FindAsync(id);
+            if (method == null)
+            {
+                return NotFound(new ApiResponse<bool>
+                {
+                    Success = false,
+                    Message = "Payment method not found"
+                });
+            }
+
+            // Check if any payments use this method
+            var paymentsUsingMethod = await _context.MembershipPayments
+                .AnyAsync(p => p.PaymentMethod == method.Code);
+
+            if (paymentsUsingMethod)
+            {
+                return BadRequest(new ApiResponse<bool>
+                {
+                    Success = false,
+                    Message = "Cannot delete payment method that has been used for payments. Consider deactivating it instead."
+                });
+            }
+
+            _context.PaymentMethods.Remove(method);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<bool>
+            {
+                Success = true,
+                Message = "Payment method deleted successfully",
+                Data = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting payment method");
+            return StatusCode(500, new ApiResponse<bool>
+            {
+                Success = false,
+                Message = "An error occurred while deleting payment method"
+            });
+        }
     }
 
     // Async helper to map payment with covered member details

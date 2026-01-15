@@ -29,6 +29,7 @@ export default function Layout() {
     { path: '/admin/users', label: 'Manage Users' },
     { path: '/admin/membership-types', label: 'Membership Types' },
     { path: '/admin/payments', label: 'Payments' },
+    { path: '/admin/payment-methods', label: 'Payment Methods' },
     { path: '/admin/clubs', label: 'Manage Clubs' },
     { path: '/admin/events', label: 'Manage Events' },
     { path: '/admin/event-types', label: 'Event Types' },

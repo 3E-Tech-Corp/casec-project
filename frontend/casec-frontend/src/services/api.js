@@ -230,6 +230,13 @@ export const membershipPaymentsAPI = {
     api.get("/membershippayments/admin/users/search", {
       params: { query, excludeUserId },
     }),
+
+  // Payment Methods Admin endpoints
+  getAllMethods: () => api.get("/membershippayments/admin/methods"),
+  createMethod: (data) => api.post("/membershippayments/admin/methods", data),
+  updateMethod: (id, data) =>
+    api.put(`/membershippayments/admin/methods/${id}`, data),
+  deleteMethod: (id) => api.delete(`/membershippayments/admin/methods/${id}`),
 };
 
 // Polls APIs
