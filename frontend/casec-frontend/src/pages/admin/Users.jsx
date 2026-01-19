@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Edit, Trash2, Search, UserPlus, Shield, ShieldOff, CheckCircle, XCircle } from 'lucide-react';
+import { Edit, Trash2, Search, UserPlus, Shield, ShieldOff, CheckCircle, XCircle, Calendar } from 'lucide-react';
 import api from '../../services/api';
 
 export default function ManageUsers() {
@@ -37,6 +37,8 @@ export default function ManageUsers() {
       isActive: user.isActive,
       isBoardMember: user.isBoardMember || false,
       boardTitle: user.boardTitle || '',
+      boardDisplayOrder: user.boardDisplayOrder || 0,
+      memberSince: user.memberSince ? user.memberSince.split('T')[0] : '',
     });
   };
 
@@ -136,9 +138,17 @@ export default function ManageUsers() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="h-10 w-10 flex-shrink-0">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">
-                          {user.firstName[0]}{user.lastName[0]}
-                        </div>
+                        {user.avatarUrl ? (
+                          <img
+                            src={user.avatarUrl}
+                            alt={`${user.firstName} ${user.lastName}`}
+                            className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">
+                            {user.firstName[0]}{user.lastName[0]}
+                          </div>
+                        )}
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">
@@ -213,7 +223,23 @@ export default function ManageUsers() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Edit User</h2>
+              <div className="flex items-center space-x-4 mb-6">
+                {editingUser.avatarUrl ? (
+                  <img
+                    src={editingUser.avatarUrl}
+                    alt={`${editingUser.firstName} ${editingUser.lastName}`}
+                    className="w-16 h-16 rounded-full object-cover border-2 border-primary"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-xl font-bold">
+                    {editingUser.firstName[0]}{editingUser.lastName[0]}
+                  </div>
+                )}
+                <div>
+                  <h2 className="text-2xl font-bold">Edit User</h2>
+                  <p className="text-gray-500 text-sm">{editingUser.email}</p>
+                </div>
+              </div>
               <form onSubmit={handleUpdate} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -300,19 +326,45 @@ export default function ManageUsers() {
                 </div>
 
                 {formData.isBoardMember && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Board Title
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.boardTitle}
-                      onChange={(e) => setFormData({ ...formData, boardTitle: e.target.value })}
-                      className="input"
-                      placeholder="e.g., President, Vice President"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Board Title
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.boardTitle}
+                        onChange={(e) => setFormData({ ...formData, boardTitle: e.target.value })}
+                        className="input"
+                        placeholder="e.g., President, Vice President"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Display Order
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.boardDisplayOrder}
+                        onChange={(e) => setFormData({ ...formData, boardDisplayOrder: parseInt(e.target.value) || 0 })}
+                        className="input"
+                        placeholder="0"
+                      />
+                    </div>
                   </div>
                 )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Member Since
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.memberSince}
+                    onChange={(e) => setFormData({ ...formData, memberSince: e.target.value })}
+                    className="input"
+                  />
+                </div>
 
                 <div className="flex justify-end space-x-3 mt-6">
                   <button

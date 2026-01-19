@@ -551,6 +551,7 @@ public class AdminEditUserRequest
     public string? LinkedInUrl { get; set; }
     public string? TwitterHandle { get; set; }
     public bool? IsActive { get; set; }
+    public DateTime? MemberSince { get; set; }
 }
 
 // Board Member DTO
@@ -578,6 +579,7 @@ public class PublicProfileDto
     public string LastName { get; set; } = string.Empty;
     public string? AvatarUrl { get; set; }
     public string? Profession { get; set; }
+    public string? Hobbies { get; set; }
     public string? Bio { get; set; }
     public string? City { get; set; }
     public string? State { get; set; }
@@ -585,5 +587,88 @@ public class PublicProfileDto
     public string? BoardTitle { get; set; }
     public string? LinkedInUrl { get; set; }
     public string? TwitterHandle { get; set; }
+    public string? MembershipTypeName { get; set; }
     public DateTime MemberSince { get; set; }
+    public List<ProfileClubDto> Clubs { get; set; } = new();
+}
+
+// Simple club info for profile display
+public class ProfileClubDto
+{
+    public int ClubId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? AvatarUrl { get; set; }
+    public string? Icon { get; set; }
+}
+
+// Event Asset DTOs
+public class EventAssetDto
+{
+    public int FileId { get; set; }
+    public string FileName { get; set; } = string.Empty;
+    public string ContentType { get; set; } = string.Empty;
+    public long FileSize { get; set; }
+    public string Url { get; set; } = string.Empty;
+    public string Status { get; set; } = "Private";
+    public int SortOrder { get; set; }
+    public string? Caption { get; set; }
+    public DateTime UploadedAt { get; set; }
+}
+
+public class EventAssetsDto
+{
+    public int EventId { get; set; }
+    public List<EventAssetDto> Photos { get; set; } = new();
+    public List<EventAssetDto> Documents { get; set; } = new();
+}
+
+// Update Asset Request DTO
+public class UpdateAssetRequest
+{
+    public string? Status { get; set; }
+    public int? SortOrder { get; set; }
+    public string? Caption { get; set; }
+}
+
+// Event Registrant DTO
+public class EventRegistrantDto
+{
+    public int UserId { get; set; }
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string? AvatarUrl { get; set; }
+    public int NumberOfGuests { get; set; }
+    public DateTime RegistrationDate { get; set; }
+    public string PaymentStatus { get; set; } = string.Empty;
+}
+
+// Event Detail DTO (for public view with assets and registrants)
+public class EventDetailDto
+{
+    public int EventId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DateTime EventDate { get; set; }
+    public string? Location { get; set; }
+    public string EventType { get; set; } = "CasecEvent";
+    public string? EventCategory { get; set; }
+    public string EventScope { get; set; } = "AllMembers";
+    public int? HostClubId { get; set; }
+    public string? HostClubName { get; set; }
+    public string? HostClubAvatar { get; set; }
+    public string? PartnerName { get; set; }
+    public string? PartnerLogo { get; set; }
+    public string? PartnerWebsite { get; set; }
+    public string? RegistrationUrl { get; set; }
+    public decimal EventFee { get; set; }
+    public int MaxCapacity { get; set; }
+    public bool IsRegistrationRequired { get; set; }
+    public bool IsFeatured { get; set; }
+    public int TotalRegistrations { get; set; }
+    public int SpotsRemaining { get; set; }
+    public bool IsUserRegistered { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public List<EventAssetDto> Photos { get; set; } = new();
+    public List<EventAssetDto> Documents { get; set; } = new();
+    public List<EventRegistrantDto> Registrants { get; set; } = new();
 }

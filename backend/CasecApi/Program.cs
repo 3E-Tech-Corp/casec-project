@@ -4,12 +4,30 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using CasecApi.Data;
+using CasecApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddDbContext<CasecDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add File Storage Service
+builder.Services.Configure<FileStorageSettings>(
+    builder.Configuration.GetSection("FileStorage"));
+
+var storageProvider = builder.Configuration.GetValue<string>("FileStorage:Provider") ?? "Local";
+if (storageProvider.Equals("S3", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddSingleton<IFileStorageService, S3FileStorageService>();
+}
+else
+{
+    builder.Services.AddSingleton<IFileStorageService, LocalFileStorageService>();
+}
+
+// Add Asset Service (wraps file storage and saves to database)
+builder.Services.AddScoped<IAssetService, AssetService>();
 
 // Add Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "DefaultSecretKeyForDevelopmentOnly123!";
@@ -48,13 +66,25 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
-    
+
+    // Load production CORS origins from configuration
+    var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
     options.AddPolicy("Production", policy =>
     {
-        policy.WithOrigins("https://localhost:3000", "https://www.yourdomain.com")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+        if (corsOrigins.Length > 0)
+        {
+            policy.WithOrigins(corsOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
+        else
+        {
+            // Fallback if no origins configured
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
     });
 });
 
@@ -144,7 +174,8 @@ app.MapGet("/", () => new
         "/api/events",
         "/api/users/profile",
         "/api/users/dashboard",
-        "/api/payments/process"
+        "/api/payments/process",
+        "/api/asset/{id}"
     }
 });
 

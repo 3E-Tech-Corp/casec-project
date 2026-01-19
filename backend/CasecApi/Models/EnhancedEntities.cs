@@ -541,6 +541,66 @@ public class ThemePreset
     public bool IsDefault { get; set; } = false;
 }
 
+// Asset Entity - for tracking uploaded files
+public class Asset
+{
+    [Key]
+    public int FileId { get; set; }
+
+    [Required]
+    [MaxLength(255)]
+    public string FileName { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(255)]
+    public string OriginalFileName { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(100)]
+    public string ContentType { get; set; } = string.Empty;
+
+    public long FileSize { get; set; }
+
+    [Required]
+    [MaxLength(50)]
+    public string StorageProvider { get; set; } = "Local";
+
+    [Required]
+    [MaxLength(1000)]
+    public string StoragePath { get; set; } = string.Empty;
+
+    [MaxLength(255)]
+    public string? Folder { get; set; }
+
+    [MaxLength(100)]
+    public string? ObjectType { get; set; }
+
+    public int? ObjectId { get; set; }
+
+    public int? UploadedBy { get; set; }
+
+    // Status: Public, Private, MembersOnly
+    [MaxLength(50)]
+    public string Status { get; set; } = "Private";
+
+    // Sort order for displaying assets
+    public int SortOrder { get; set; } = 0;
+
+    // Optional caption/description for the asset
+    [MaxLength(500)]
+    public string? Caption { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public bool IsDeleted { get; set; } = false;
+
+    public DateTime? DeletedAt { get; set; }
+
+    // Navigation properties
+    [ForeignKey("UploadedBy")]
+    public virtual User? UploadedByUser { get; set; }
+}
+
 // FamilyMember Entity (for backward compatibility - use FamilyGroup for new features)
 public class FamilyMember
 {
