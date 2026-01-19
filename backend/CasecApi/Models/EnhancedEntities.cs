@@ -1186,3 +1186,227 @@ public class SurveyAnswer
     [ForeignKey("QuestionId")]
     public virtual SurveyQuestion? Question { get; set; }
 }
+
+// ============ SLIDESHOW ENTITIES ============
+
+// SlideShow Entity - A collection of slides that can be played as an intro/presentation
+public class SlideShow
+{
+    [Key]
+    public int SlideShowId { get; set; }
+
+    [Required]
+    [MaxLength(50)]
+    public string Code { get; set; } = string.Empty; // Unique identifier, e.g., "home-intro"
+
+    [Required]
+    [MaxLength(200)]
+    public string Name { get; set; } = string.Empty;
+
+    [MaxLength(500)]
+    public string? Description { get; set; }
+
+    public bool IsActive { get; set; } = true;
+
+    // Transition settings
+    [MaxLength(20)]
+    public string TransitionType { get; set; } = "fade"; // fade, slide, none
+
+    public int TransitionDuration { get; set; } = 500; // ms
+
+    // Playback settings
+    public bool ShowProgress { get; set; } = true; // Show progress dots/bar
+    public bool AllowSkip { get; set; } = true; // Allow skipping intro
+    public bool Loop { get; set; } = false; // Loop after completion
+    public bool AutoPlay { get; set; } = true; // Auto-start on load
+
+    public int? CreatedBy { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("CreatedBy")]
+    public virtual User? CreatedByUser { get; set; }
+
+    public virtual ICollection<Slide> Slides { get; set; } = new List<Slide>();
+}
+
+// Slide Entity - Individual slide within a slideshow
+public class Slide
+{
+    [Key]
+    public int SlideId { get; set; }
+
+    [Required]
+    public int SlideShowId { get; set; }
+
+    public int DisplayOrder { get; set; } = 0;
+
+    public int Duration { get; set; } = 5000; // Total slide duration in ms
+
+    // Video background
+    [MaxLength(500)]
+    public string? VideoUrl { get; set; } // Specific video URL, or null to use random from pool
+
+    public bool UseRandomVideo { get; set; } = false; // If true, pick random from shared pool
+
+    // Layout & styling
+    [MaxLength(20)]
+    public string Layout { get; set; } = "center"; // center, left, right, split
+
+    [MaxLength(20)]
+    public string OverlayType { get; set; } = "dark"; // dark, light, gradient, none
+
+    [MaxLength(50)]
+    public string? OverlayColor { get; set; } // Custom overlay color (optional)
+
+    public int OverlayOpacity { get; set; } = 50; // 0-100
+
+    // Title configuration
+    [MaxLength(500)]
+    public string? TitleText { get; set; }
+
+    [MaxLength(50)]
+    public string TitleAnimation { get; set; } = "fadeIn"; // fadeIn, slideUp, slideDown, typewriter, zoomIn
+
+    public int TitleDuration { get; set; } = 800; // Animation duration in ms
+
+    public int TitleDelay { get; set; } = 500; // Delay before animation starts
+
+    [MaxLength(20)]
+    public string? TitleSize { get; set; } = "large"; // small, medium, large, xlarge
+
+    [MaxLength(50)]
+    public string? TitleColor { get; set; } // Custom color (optional)
+
+    // Subtitle configuration
+    [MaxLength(500)]
+    public string? SubtitleText { get; set; }
+
+    [MaxLength(50)]
+    public string SubtitleAnimation { get; set; } = "fadeIn";
+
+    public int SubtitleDuration { get; set; } = 600;
+
+    public int SubtitleDelay { get; set; } = 1200;
+
+    [MaxLength(20)]
+    public string? SubtitleSize { get; set; } = "medium";
+
+    [MaxLength(50)]
+    public string? SubtitleColor { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("SlideShowId")]
+    public virtual SlideShow? SlideShow { get; set; }
+
+    public virtual ICollection<SlideImage> Images { get; set; } = new List<SlideImage>();
+}
+
+// SlideImage Entity - Images displayed within a slide
+public class SlideImage
+{
+    [Key]
+    public int SlideImageId { get; set; }
+
+    [Required]
+    public int SlideId { get; set; }
+
+    [Required]
+    [MaxLength(500)]
+    public string ImageUrl { get; set; } = string.Empty; // Can be from shared pool or direct URL
+
+    public int DisplayOrder { get; set; } = 0;
+
+    // Position & size
+    [MaxLength(30)]
+    public string Position { get; set; } = "center"; // center, left, right, bottom-left, bottom-right, top-left, top-right
+
+    [MaxLength(20)]
+    public string Size { get; set; } = "medium"; // small, medium, large, full
+
+    // Animation
+    [MaxLength(50)]
+    public string Animation { get; set; } = "fadeIn"; // fadeIn, zoomIn, slideInLeft, slideInRight, bounce
+
+    public int Duration { get; set; } = 500; // Animation duration in ms
+
+    public int Delay { get; set; } = 1500; // Delay before animation starts
+
+    // Optional styling
+    [MaxLength(50)]
+    public string? BorderRadius { get; set; } // e.g., "rounded-lg", "rounded-full"
+
+    [MaxLength(50)]
+    public string? Shadow { get; set; } // e.g., "shadow-lg", "shadow-2xl"
+
+    public int? Opacity { get; set; } // 0-100
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("SlideId")]
+    public virtual Slide? Slide { get; set; }
+}
+
+// SharedVideo Entity - Pool of videos that can be used across slideshows
+public class SharedVideo
+{
+    [Key]
+    public int VideoId { get; set; }
+
+    [Required]
+    [MaxLength(500)]
+    public string Url { get; set; } = string.Empty;
+
+    [MaxLength(200)]
+    public string? Title { get; set; }
+
+    [MaxLength(500)]
+    public string? ThumbnailUrl { get; set; }
+
+    [MaxLength(100)]
+    public string? Category { get; set; } // For grouping/filtering
+
+    public bool IsActive { get; set; } = true;
+
+    public int DisplayOrder { get; set; } = 0;
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
+// SharedImage Entity - Pool of images that can be used across slideshows
+public class SharedImage
+{
+    [Key]
+    public int ImageId { get; set; }
+
+    [Required]
+    [MaxLength(500)]
+    public string Url { get; set; } = string.Empty;
+
+    [MaxLength(200)]
+    public string? Title { get; set; }
+
+    [MaxLength(500)]
+    public string? ThumbnailUrl { get; set; }
+
+    [MaxLength(100)]
+    public string? Category { get; set; } // For grouping/filtering
+
+    public bool IsActive { get; set; } = true;
+
+    public int DisplayOrder { get; set; } = 0;
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}

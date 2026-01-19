@@ -279,4 +279,47 @@ export const utilityAPI = {
   fetchUrlMetadata: (url) => api.post("/utility/fetch-url-metadata", { url }),
 };
 
+// SlideShow APIs
+export const slideShowsAPI = {
+  // Public endpoints
+  getByCode: (code) => api.get(`/slideshows/code/${code}`),
+  getById: (id) => api.get(`/slideshows/${id}`),
+  getVideos: (category) =>
+    api.get("/slideshows/videos", { params: category ? { category } : {} }),
+  getImages: (category) =>
+    api.get("/slideshows/images", { params: category ? { category } : {} }),
+
+  // Admin slideshow endpoints
+  getAllAdmin: () => api.get("/slideshows/admin/all"),
+  getAdmin: (id) => api.get(`/slideshows/admin/${id}`),
+  create: (data) => api.post("/slideshows/admin", data),
+  update: (id, data) => api.put(`/slideshows/admin/${id}`, data),
+  delete: (id) => api.delete(`/slideshows/admin/${id}`),
+
+  // Admin slide endpoints
+  createSlide: (data) => api.post("/slideshows/admin/slides", data),
+  updateSlide: (id, data) => api.put(`/slideshows/admin/slides/${id}`, data),
+  deleteSlide: (id) => api.delete(`/slideshows/admin/slides/${id}`),
+  reorderSlides: (slideIds) =>
+    api.put("/slideshows/admin/slides/reorder", slideIds),
+
+  // Admin slide image endpoints
+  createSlideImage: (data) => api.post("/slideshows/admin/slide-images", data),
+  updateSlideImage: (id, data) =>
+    api.put(`/slideshows/admin/slide-images/${id}`, data),
+  deleteSlideImage: (id) => api.delete(`/slideshows/admin/slide-images/${id}`),
+
+  // Admin shared video endpoints
+  getAllVideosAdmin: () => api.get("/slideshows/admin/videos"),
+  createVideo: (data) => api.post("/slideshows/admin/videos", data),
+  updateVideo: (id, data) => api.put(`/slideshows/admin/videos/${id}`, data),
+  deleteVideo: (id) => api.delete(`/slideshows/admin/videos/${id}`),
+
+  // Admin shared image endpoints
+  getAllImagesAdmin: () => api.get("/slideshows/admin/images"),
+  createImage: (data) => api.post("/slideshows/admin/images", data),
+  updateImage: (id, data) => api.put(`/slideshows/admin/images/${id}`, data),
+  deleteImage: (id) => api.delete(`/slideshows/admin/images/${id}`),
+};
+
 export default api;

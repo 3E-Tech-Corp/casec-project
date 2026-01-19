@@ -957,3 +957,252 @@ public class UrlMetadataDto
     public string? SiteName { get; set; }
     public List<string> Images { get; set; } = new();
 }
+
+// ============ SLIDESHOW DTOs ============
+
+// SlideShow DTOs
+public class SlideShowDto
+{
+    public int SlideShowId { get; set; }
+    public string Code { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsActive { get; set; }
+    public string TransitionType { get; set; } = "fade";
+    public int TransitionDuration { get; set; }
+    public bool ShowProgress { get; set; }
+    public bool AllowSkip { get; set; }
+    public bool Loop { get; set; }
+    public bool AutoPlay { get; set; }
+    public int? CreatedBy { get; set; }
+    public string? CreatedByName { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public List<SlideDto> Slides { get; set; } = new();
+}
+
+public class SlideShowSummaryDto
+{
+    public int SlideShowId { get; set; }
+    public string Code { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsActive { get; set; }
+    public int SlideCount { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+public class CreateSlideShowRequest
+{
+    public string Code { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsActive { get; set; } = true;
+    public string TransitionType { get; set; } = "fade";
+    public int TransitionDuration { get; set; } = 500;
+    public bool ShowProgress { get; set; } = true;
+    public bool AllowSkip { get; set; } = true;
+    public bool Loop { get; set; } = false;
+    public bool AutoPlay { get; set; } = true;
+}
+
+public class UpdateSlideShowRequest
+{
+    public string Code { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsActive { get; set; }
+    public string TransitionType { get; set; } = "fade";
+    public int TransitionDuration { get; set; }
+    public bool ShowProgress { get; set; }
+    public bool AllowSkip { get; set; }
+    public bool Loop { get; set; }
+    public bool AutoPlay { get; set; }
+}
+
+// Slide DTOs
+public class SlideDto
+{
+    public int SlideId { get; set; }
+    public int SlideShowId { get; set; }
+    public int DisplayOrder { get; set; }
+    public int Duration { get; set; }
+    public string? VideoUrl { get; set; }
+    public bool UseRandomVideo { get; set; }
+    public string Layout { get; set; } = "center";
+    public string OverlayType { get; set; } = "dark";
+    public string? OverlayColor { get; set; }
+    public int OverlayOpacity { get; set; }
+    public string? TitleText { get; set; }
+    public string TitleAnimation { get; set; } = "fadeIn";
+    public int TitleDuration { get; set; }
+    public int TitleDelay { get; set; }
+    public string? TitleSize { get; set; }
+    public string? TitleColor { get; set; }
+    public string? SubtitleText { get; set; }
+    public string SubtitleAnimation { get; set; } = "fadeIn";
+    public int SubtitleDuration { get; set; }
+    public int SubtitleDelay { get; set; }
+    public string? SubtitleSize { get; set; }
+    public string? SubtitleColor { get; set; }
+    public List<SlideImageDto> Images { get; set; } = new();
+}
+
+public class CreateSlideRequest
+{
+    public int SlideShowId { get; set; }
+    public int DisplayOrder { get; set; }
+    public int Duration { get; set; } = 5000;
+    public string? VideoUrl { get; set; }
+    public bool UseRandomVideo { get; set; }
+    public string Layout { get; set; } = "center";
+    public string OverlayType { get; set; } = "dark";
+    public string? OverlayColor { get; set; }
+    public int OverlayOpacity { get; set; } = 50;
+    public string? TitleText { get; set; }
+    public string TitleAnimation { get; set; } = "fadeIn";
+    public int TitleDuration { get; set; } = 800;
+    public int TitleDelay { get; set; } = 500;
+    public string? TitleSize { get; set; } = "large";
+    public string? TitleColor { get; set; }
+    public string? SubtitleText { get; set; }
+    public string SubtitleAnimation { get; set; } = "fadeIn";
+    public int SubtitleDuration { get; set; } = 600;
+    public int SubtitleDelay { get; set; } = 1200;
+    public string? SubtitleSize { get; set; } = "medium";
+    public string? SubtitleColor { get; set; }
+}
+
+public class UpdateSlideRequest
+{
+    public int DisplayOrder { get; set; }
+    public int Duration { get; set; }
+    public string? VideoUrl { get; set; }
+    public bool UseRandomVideo { get; set; }
+    public string Layout { get; set; } = "center";
+    public string OverlayType { get; set; } = "dark";
+    public string? OverlayColor { get; set; }
+    public int OverlayOpacity { get; set; }
+    public string? TitleText { get; set; }
+    public string TitleAnimation { get; set; } = "fadeIn";
+    public int TitleDuration { get; set; }
+    public int TitleDelay { get; set; }
+    public string? TitleSize { get; set; }
+    public string? TitleColor { get; set; }
+    public string? SubtitleText { get; set; }
+    public string SubtitleAnimation { get; set; } = "fadeIn";
+    public int SubtitleDuration { get; set; }
+    public int SubtitleDelay { get; set; }
+    public string? SubtitleSize { get; set; }
+    public string? SubtitleColor { get; set; }
+}
+
+// SlideImage DTOs
+public class SlideImageDto
+{
+    public int SlideImageId { get; set; }
+    public int SlideId { get; set; }
+    public string ImageUrl { get; set; } = string.Empty;
+    public int DisplayOrder { get; set; }
+    public string Position { get; set; } = "center";
+    public string Size { get; set; } = "medium";
+    public string Animation { get; set; } = "fadeIn";
+    public int Duration { get; set; }
+    public int Delay { get; set; }
+    public string? BorderRadius { get; set; }
+    public string? Shadow { get; set; }
+    public int? Opacity { get; set; }
+}
+
+public class CreateSlideImageRequest
+{
+    public int SlideId { get; set; }
+    public string ImageUrl { get; set; } = string.Empty;
+    public int DisplayOrder { get; set; }
+    public string Position { get; set; } = "center";
+    public string Size { get; set; } = "medium";
+    public string Animation { get; set; } = "fadeIn";
+    public int Duration { get; set; } = 500;
+    public int Delay { get; set; } = 1500;
+    public string? BorderRadius { get; set; }
+    public string? Shadow { get; set; }
+    public int? Opacity { get; set; }
+}
+
+public class UpdateSlideImageRequest
+{
+    public string ImageUrl { get; set; } = string.Empty;
+    public int DisplayOrder { get; set; }
+    public string Position { get; set; } = "center";
+    public string Size { get; set; } = "medium";
+    public string Animation { get; set; } = "fadeIn";
+    public int Duration { get; set; }
+    public int Delay { get; set; }
+    public string? BorderRadius { get; set; }
+    public string? Shadow { get; set; }
+    public int? Opacity { get; set; }
+}
+
+// SharedVideo DTOs
+public class SharedVideoDto
+{
+    public int VideoId { get; set; }
+    public string Url { get; set; } = string.Empty;
+    public string? Title { get; set; }
+    public string? ThumbnailUrl { get; set; }
+    public string? Category { get; set; }
+    public bool IsActive { get; set; }
+    public int DisplayOrder { get; set; }
+}
+
+public class CreateSharedVideoRequest
+{
+    public string Url { get; set; } = string.Empty;
+    public string? Title { get; set; }
+    public string? ThumbnailUrl { get; set; }
+    public string? Category { get; set; }
+    public bool IsActive { get; set; } = true;
+    public int DisplayOrder { get; set; }
+}
+
+public class UpdateSharedVideoRequest
+{
+    public string Url { get; set; } = string.Empty;
+    public string? Title { get; set; }
+    public string? ThumbnailUrl { get; set; }
+    public string? Category { get; set; }
+    public bool IsActive { get; set; }
+    public int DisplayOrder { get; set; }
+}
+
+// SharedImage DTOs
+public class SharedImageDto
+{
+    public int ImageId { get; set; }
+    public string Url { get; set; } = string.Empty;
+    public string? Title { get; set; }
+    public string? ThumbnailUrl { get; set; }
+    public string? Category { get; set; }
+    public bool IsActive { get; set; }
+    public int DisplayOrder { get; set; }
+}
+
+public class CreateSharedImageRequest
+{
+    public string Url { get; set; } = string.Empty;
+    public string? Title { get; set; }
+    public string? ThumbnailUrl { get; set; }
+    public string? Category { get; set; }
+    public bool IsActive { get; set; } = true;
+    public int DisplayOrder { get; set; }
+}
+
+public class UpdateSharedImageRequest
+{
+    public string Url { get; set; } = string.Empty;
+    public string? Title { get; set; }
+    public string? ThumbnailUrl { get; set; }
+    public string? Category { get; set; }
+    public bool IsActive { get; set; }
+    public int DisplayOrder { get; set; }
+}
