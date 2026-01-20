@@ -63,8 +63,7 @@ export default function AdminEvents() {
 
   const eventScopes = [
     { value: 'AllMembers', label: 'All Members' },
-    { value: 'ClubMembers', label: 'Club Members Only' },
-    { value: 'Public', label: 'Public' },
+    { value: 'ClubSpecific', label: 'Club Specific' },
   ];
 
   useEffect(() => {
