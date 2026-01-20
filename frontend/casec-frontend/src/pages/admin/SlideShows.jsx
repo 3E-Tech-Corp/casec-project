@@ -156,11 +156,13 @@ export default function AdminSlideShows() {
     setSaving(true);
     try {
       let response;
+      console.log('Saving slideshow:', selectedShow ? `UPDATE ${selectedShow.slideShowId}` : 'CREATE', formData);
       if (selectedShow) {
         response = await slideShowsAPI.update(selectedShow.slideShowId, formData);
       } else {
         response = await slideShowsAPI.create(formData);
       }
+      console.log('Save response:', response);
 
       if (response.success) {
         setShowForm(false);
@@ -172,7 +174,9 @@ export default function AdminSlideShows() {
         alert(response.message || 'Failed to save slideshow');
       }
     } catch (err) {
-      alert('Error saving slideshow: ' + (err.message || 'Please try again'));
+      console.error('Save slideshow error:', err);
+      const errorMsg = err.response?.data?.message || err.message || 'Please try again';
+      alert('Error saving slideshow: ' + errorMsg);
     } finally {
       setSaving(false);
     }
