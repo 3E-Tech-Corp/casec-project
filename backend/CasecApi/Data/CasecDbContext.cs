@@ -58,6 +58,7 @@ public class CasecDbContext : DbContext
     public DbSet<SlideShow> SlideShows { get; set; }
     public DbSet<Slide> Slides { get; set; }
     public DbSet<SlideImage> SlideImages { get; set; }
+    public DbSet<SlideText> SlideTexts { get; set; }
     public DbSet<SharedVideo> SharedVideos { get; set; }
     public DbSet<SharedImage> SharedImages { get; set; }
 

@@ -1307,6 +1307,7 @@ public class Slide
     public virtual SlideShow? SlideShow { get; set; }
 
     public virtual ICollection<SlideImage> Images { get; set; } = new List<SlideImage>();
+    public virtual ICollection<SlideText> Texts { get; set; } = new List<SlideText>();
 }
 
 // SlideImage Entity - Images displayed within a slide
@@ -1350,6 +1351,53 @@ public class SlideImage
     public string? Shadow { get; set; } // e.g., "shadow-lg", "shadow-2xl"
 
     public int? Opacity { get; set; } // 0-100
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("SlideId")]
+    public virtual Slide? Slide { get; set; }
+}
+
+// SlideText Entity - Text elements displayed within a slide
+public class SlideText
+{
+    [Key]
+    public int SlideTextId { get; set; }
+
+    [Required]
+    public int SlideId { get; set; }
+
+    [Required]
+    [MaxLength(500)]
+    public string Text { get; set; } = string.Empty;
+
+    public int DisplayOrder { get; set; } = 0;
+
+    // Position - split into horizontal and vertical
+    [MaxLength(20)]
+    public string HorizontalPosition { get; set; } = "center"; // left, center, right
+
+    [MaxLength(20)]
+    public string VerticalPosition { get; set; } = "center"; // top, center, bottom
+
+    // Text styling
+    [MaxLength(20)]
+    public string Size { get; set; } = "large"; // small, medium, large, xlarge
+
+    [MaxLength(50)]
+    public string? Color { get; set; } = "#ffffff";
+
+    [MaxLength(100)]
+    public string? FontFamily { get; set; }
+
+    // Animation
+    [MaxLength(50)]
+    public string Animation { get; set; } = "fadeIn"; // fadeIn, slideUp, slideDown, zoomIn, typewriter
+
+    public int Duration { get; set; } = 800; // Animation duration in ms
+
+    public int Delay { get; set; } = 500; // Delay before animation starts
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

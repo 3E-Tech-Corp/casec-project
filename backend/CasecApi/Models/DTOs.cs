@@ -1046,6 +1046,7 @@ public class SlideDto
     public string? SubtitleSize { get; set; }
     public string? SubtitleColor { get; set; }
     public List<SlideImageDto> Images { get; set; } = new();
+    public List<SlideTextDto> Texts { get; set; } = new();
 }
 
 public class CreateSlideRequest
@@ -1144,6 +1145,52 @@ public class UpdateSlideImageRequest
     public string? BorderRadius { get; set; }
     public string? Shadow { get; set; }
     public int? Opacity { get; set; }
+}
+
+// SlideText DTOs
+public class SlideTextDto
+{
+    public int SlideTextId { get; set; }
+    public int SlideId { get; set; }
+    public string Text { get; set; } = string.Empty;
+    public int DisplayOrder { get; set; }
+    public string HorizontalPosition { get; set; } = "center";
+    public string VerticalPosition { get; set; } = "center";
+    public string Size { get; set; } = "large";
+    public string? Color { get; set; }
+    public string? FontFamily { get; set; }
+    public string Animation { get; set; } = "fadeIn";
+    public int Duration { get; set; }
+    public int Delay { get; set; }
+}
+
+public class CreateSlideTextRequest
+{
+    public int SlideId { get; set; }
+    public string Text { get; set; } = string.Empty;
+    public int DisplayOrder { get; set; }
+    public string HorizontalPosition { get; set; } = "center";
+    public string VerticalPosition { get; set; } = "center";
+    public string Size { get; set; } = "large";
+    public string? Color { get; set; } = "#ffffff";
+    public string? FontFamily { get; set; }
+    public string Animation { get; set; } = "fadeIn";
+    public int Duration { get; set; } = 800;
+    public int Delay { get; set; } = 500;
+}
+
+public class UpdateSlideTextRequest
+{
+    public string Text { get; set; } = string.Empty;
+    public int DisplayOrder { get; set; }
+    public string HorizontalPosition { get; set; } = "center";
+    public string VerticalPosition { get; set; } = "center";
+    public string Size { get; set; } = "large";
+    public string? Color { get; set; }
+    public string? FontFamily { get; set; }
+    public string Animation { get; set; } = "fadeIn";
+    public int Duration { get; set; }
+    public int Delay { get; set; }
 }
 
 // SharedVideo DTOs

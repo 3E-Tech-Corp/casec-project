@@ -43,6 +43,8 @@ public class SlideShowsController : ControllerBase
             var slideShow = await _context.SlideShows
                 .Include(s => s.Slides.OrderBy(sl => sl.DisplayOrder))
                     .ThenInclude(sl => sl.Images.OrderBy(i => i.DisplayOrder))
+                .Include(s => s.Slides)
+                    .ThenInclude(sl => sl.Texts.OrderBy(t => t.DisplayOrder))
                 .Include(s => s.CreatedByUser)
                 .FirstOrDefaultAsync(s => s.Code == code && s.IsActive);
 
@@ -83,6 +85,8 @@ public class SlideShowsController : ControllerBase
             var slideShow = await _context.SlideShows
                 .Include(s => s.Slides.OrderBy(sl => sl.DisplayOrder))
                     .ThenInclude(sl => sl.Images.OrderBy(i => i.DisplayOrder))
+                .Include(s => s.Slides)
+                    .ThenInclude(sl => sl.Texts.OrderBy(t => t.DisplayOrder))
                 .Include(s => s.CreatedByUser)
                 .FirstOrDefaultAsync(s => s.SlideShowId == id && s.IsActive);
 
@@ -261,6 +265,8 @@ public class SlideShowsController : ControllerBase
             var slideShow = await _context.SlideShows
                 .Include(s => s.Slides.OrderBy(sl => sl.DisplayOrder))
                     .ThenInclude(sl => sl.Images.OrderBy(i => i.DisplayOrder))
+                .Include(s => s.Slides)
+                    .ThenInclude(sl => sl.Texts.OrderBy(t => t.DisplayOrder))
                 .Include(s => s.CreatedByUser)
                 .FirstOrDefaultAsync(s => s.SlideShowId == id);
 
@@ -806,6 +812,151 @@ public class SlideShowsController : ControllerBase
             {
                 Success = false,
                 Message = "An error occurred while deleting slide image"
+            });
+        }
+    }
+
+    // ============ ADMIN SLIDE TEXT ENDPOINTS ============
+
+    // POST: /slideshows/admin/slide-texts
+    // Add a text element to a slide
+    [HttpPost("admin/slide-texts")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<SlideTextDto>>> CreateSlideText([FromBody] CreateSlideTextRequest request)
+    {
+        try
+        {
+            var slide = await _context.Slides.FindAsync(request.SlideId);
+            if (slide == null)
+            {
+                return NotFound(new ApiResponse<SlideTextDto>
+                {
+                    Success = false,
+                    Message = "Slide not found"
+                });
+            }
+
+            var slideText = new SlideText
+            {
+                SlideId = request.SlideId,
+                Text = request.Text,
+                DisplayOrder = request.DisplayOrder,
+                HorizontalPosition = request.HorizontalPosition,
+                VerticalPosition = request.VerticalPosition,
+                Size = request.Size,
+                Color = request.Color,
+                FontFamily = request.FontFamily,
+                Animation = request.Animation,
+                Duration = request.Duration,
+                Delay = request.Delay
+            };
+
+            _context.SlideTexts.Add(slideText);
+            slide.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<SlideTextDto>
+            {
+                Success = true,
+                Message = "Text added to slide successfully",
+                Data = MapToSlideTextDto(slideText)
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding text to slide");
+            return StatusCode(500, new ApiResponse<SlideTextDto>
+            {
+                Success = false,
+                Message = "An error occurred while adding text"
+            });
+        }
+    }
+
+    // PUT: /slideshows/admin/slide-texts/{id}
+    // Update a slide text
+    [HttpPut("admin/slide-texts/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<SlideTextDto>>> UpdateSlideText(int id, [FromBody] UpdateSlideTextRequest request)
+    {
+        try
+        {
+            var slideText = await _context.SlideTexts.FindAsync(id);
+            if (slideText == null)
+            {
+                return NotFound(new ApiResponse<SlideTextDto>
+                {
+                    Success = false,
+                    Message = "Slide text not found"
+                });
+            }
+
+            slideText.Text = request.Text;
+            slideText.DisplayOrder = request.DisplayOrder;
+            slideText.HorizontalPosition = request.HorizontalPosition;
+            slideText.VerticalPosition = request.VerticalPosition;
+            slideText.Size = request.Size;
+            slideText.Color = request.Color;
+            slideText.FontFamily = request.FontFamily;
+            slideText.Animation = request.Animation;
+            slideText.Duration = request.Duration;
+            slideText.Delay = request.Delay;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<SlideTextDto>
+            {
+                Success = true,
+                Message = "Slide text updated successfully",
+                Data = MapToSlideTextDto(slideText)
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating slide text {Id}", id);
+            return StatusCode(500, new ApiResponse<SlideTextDto>
+            {
+                Success = false,
+                Message = "An error occurred while updating slide text"
+            });
+        }
+    }
+
+    // DELETE: /slideshows/admin/slide-texts/{id}
+    // Delete a slide text
+    [HttpDelete("admin/slide-texts/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteSlideText(int id)
+    {
+        try
+        {
+            var slideText = await _context.SlideTexts.FindAsync(id);
+            if (slideText == null)
+            {
+                return NotFound(new ApiResponse<bool>
+                {
+                    Success = false,
+                    Message = "Slide text not found"
+                });
+            }
+
+            _context.SlideTexts.Remove(slideText);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<bool>
+            {
+                Success = true,
+                Message = "Slide text deleted successfully",
+                Data = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting slide text {Id}", id);
+            return StatusCode(500, new ApiResponse<bool>
+            {
+                Success = false,
+                Message = "An error occurred while deleting slide text"
             });
         }
     }
@@ -1413,7 +1564,8 @@ public class SlideShowsController : ControllerBase
             SubtitleDelay = slide.SubtitleDelay,
             SubtitleSize = slide.SubtitleSize,
             SubtitleColor = slide.SubtitleColor,
-            Images = slide.Images?.Select(MapToSlideImageDto).ToList() ?? new List<SlideImageDto>()
+            Images = slide.Images?.Select(MapToSlideImageDto).ToList() ?? new List<SlideImageDto>(),
+            Texts = slide.Texts?.Select(MapToSlideTextDto).ToList() ?? new List<SlideTextDto>()
         };
     }
 
@@ -1434,6 +1586,25 @@ public class SlideShowsController : ControllerBase
             BorderRadius = image.BorderRadius,
             Shadow = image.Shadow,
             Opacity = image.Opacity
+        };
+    }
+
+    private SlideTextDto MapToSlideTextDto(SlideText text)
+    {
+        return new SlideTextDto
+        {
+            SlideTextId = text.SlideTextId,
+            SlideId = text.SlideId,
+            Text = text.Text,
+            DisplayOrder = text.DisplayOrder,
+            HorizontalPosition = text.HorizontalPosition,
+            VerticalPosition = text.VerticalPosition,
+            Size = text.Size,
+            Color = text.Color,
+            FontFamily = text.FontFamily,
+            Animation = text.Animation,
+            Duration = text.Duration,
+            Delay = text.Delay
         };
     }
 }

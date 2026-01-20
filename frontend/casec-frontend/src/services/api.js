@@ -314,6 +314,12 @@ export const slideShowsAPI = {
     api.put(`/slideshows/admin/slide-images/${id}`, data),
   deleteSlideImage: (id) => api.delete(`/slideshows/admin/slide-images/${id}`),
 
+  // Admin slide text endpoints
+  createSlideText: (data) => api.post("/slideshows/admin/slide-texts", data),
+  updateSlideText: (id, data) =>
+    api.put(`/slideshows/admin/slide-texts/${id}`, data),
+  deleteSlideText: (id) => api.delete(`/slideshows/admin/slide-texts/${id}`),
+
   // Admin shared video endpoints
   getAllVideosAdmin: () => api.get("/slideshows/admin/videos"),
   createVideo: (data) => api.post("/slideshows/admin/videos", data),

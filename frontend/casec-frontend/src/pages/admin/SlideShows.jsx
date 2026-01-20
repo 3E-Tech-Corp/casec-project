@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   Play, Plus, Edit2, Trash2, ChevronRight, ChevronDown, GripVertical,
-  Image, Video, Settings, Eye, Copy, Check, X, Film, Layers, Share2, Link
+  Image, Video, Settings, Eye, Copy, Check, X, Film, Layers, Share2, Link, Type
 } from 'lucide-react';
 import { slideShowsAPI, getAssetUrl } from '../../services/api';
 import SlideShowPreview from '../../components/SlideShow';
@@ -9,11 +9,15 @@ import SlideShowPreview from '../../components/SlideShow';
 // Animation options
 const ANIMATIONS = ['fadeIn', 'slideUp', 'slideDown', 'zoomIn', 'typewriter'];
 const IMAGE_ANIMATIONS = ['fadeIn', 'zoomIn', 'slideInLeft', 'slideInRight', 'bounce'];
+const TEXT_ANIMATIONS = ['fadeIn', 'slideUp', 'slideDown', 'zoomIn', 'typewriter'];
 const LAYOUTS = ['center', 'left', 'right', 'split'];
 const OVERLAYS = ['dark', 'light', 'gradient', 'none'];
 const POSITIONS = ['center', 'left', 'right', 'bottom-left', 'bottom-right', 'top-left', 'top-right'];
 const SIZES = ['small', 'medium', 'large', 'full', 'maximum'];
+const TEXT_SIZES = ['small', 'medium', 'large', 'xlarge'];
 const ORIENTATIONS = ['auto', 'portrait', 'landscape'];
+const HORIZONTAL_POSITIONS = ['left', 'center', 'right'];
+const VERTICAL_POSITIONS = ['top', 'center', 'bottom'];
 const TITLE_SIZES = ['small', 'medium', 'large', 'xlarge'];
 const SUBTITLE_SIZES = ['small', 'medium', 'large'];
 
@@ -641,6 +645,8 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
   const [localData, setLocalData] = useState(slide);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [savingImage, setSavingImage] = useState(false);
+  const [showTextForm, setShowTextForm] = useState(false);
+  const [savingText, setSavingText] = useState(false);
 
   useEffect(() => {
     setLocalData(slide);
@@ -724,6 +730,60 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
       }
     } catch (err) {
       alert('Error removing image');
+    }
+  };
+
+  // Add text to slide
+  const handleAddText = async (textData) => {
+    setSavingText(true);
+    try {
+      const response = await slideShowsAPI.createSlideText({
+        slideId: slide.slideId,
+        text: textData.text,
+        displayOrder: slide.texts?.length || 0,
+        horizontalPosition: textData.horizontalPosition || 'center',
+        verticalPosition: textData.verticalPosition || 'center',
+        size: textData.size || 'large',
+        color: textData.color || '#ffffff',
+        animation: textData.animation || 'fadeIn',
+        duration: textData.duration || 800,
+        delay: textData.delay || 500
+      });
+      if (response.success) {
+        setShowTextForm(false);
+        onRefresh?.();
+      } else {
+        alert(response.message || 'Failed to add text');
+      }
+    } catch (err) {
+      alert('Error adding text: ' + (err.message || 'Please try again'));
+    } finally {
+      setSavingText(false);
+    }
+  };
+
+  // Update slide text
+  const handleUpdateText = async (textId, data) => {
+    try {
+      const response = await slideShowsAPI.updateSlideText(textId, data);
+      if (response.success) {
+        onRefresh?.();
+      }
+    } catch (err) {
+      alert('Error updating text');
+    }
+  };
+
+  // Delete slide text
+  const handleDeleteText = async (textId) => {
+    if (!confirm('Remove this text from the slide?')) return;
+    try {
+      const response = await slideShowsAPI.deleteSlideText(textId);
+      if (response.success) {
+        onRefresh?.();
+      }
+    } catch (err) {
+      alert('Error removing text');
     }
   };
 
@@ -1096,6 +1156,142 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
             )}
           </div>
 
+          {/* Texts */}
+          <div className="border-t pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-medium flex items-center gap-2">
+                <Type className="w-4 h-4" />
+                Texts ({slide.texts?.length || 0})
+              </h4>
+              <button
+                type="button"
+                onClick={() => setShowTextForm(true)}
+                className="btn btn-sm btn-secondary"
+              >
+                <Plus className="w-3 h-3 mr-1" /> Add Text
+              </button>
+            </div>
+
+            {slide.texts?.length > 0 ? (
+              <div className="space-y-3">
+                {slide.texts.map((txt) => (
+                  <div key={txt.slideTextId} className="p-3 bg-gray-50 rounded-lg">
+                    {/* Row 1: Text preview + Timing controls */}
+                    <div className="flex items-center gap-3 mb-3">
+                      <div
+                        className="w-32 h-12 flex items-center justify-center rounded border bg-gray-800 text-white text-xs font-medium overflow-hidden px-2"
+                        style={{ color: txt.color || '#ffffff' }}
+                      >
+                        {txt.text?.substring(0, 30) || 'Empty'}
+                      </div>
+                      <div className="bg-blue-50 px-3 py-2 rounded border border-blue-200 flex-shrink-0">
+                        <label className="block text-xs font-bold text-blue-700 mb-1">Start (ms)</label>
+                        <input
+                          type="number"
+                          className="w-20 text-sm py-1 px-2 border rounded text-center font-medium"
+                          value={txt.delay}
+                          onChange={(e) => handleUpdateText(txt.slideTextId, { ...txt, delay: parseInt(e.target.value) || 0 })}
+                        />
+                      </div>
+                      <div className="bg-green-50 px-3 py-2 rounded border border-green-200 flex-shrink-0">
+                        <label className="block text-xs font-bold text-green-700 mb-1">Duration (ms)</label>
+                        <input
+                          type="number"
+                          className="w-20 text-sm py-1 px-2 border rounded text-center font-medium"
+                          value={txt.duration}
+                          onChange={(e) => handleUpdateText(txt.slideTextId, { ...txt, duration: parseInt(e.target.value) || 800 })}
+                        />
+                      </div>
+                      <div className="flex-1"></div>
+                      <button
+                        onClick={() => handleDeleteText(txt.slideTextId)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    {/* Row 2: Text content */}
+                    <div className="mb-3">
+                      <label className="block text-xs text-gray-500 mb-1">Text Content</label>
+                      <input
+                        type="text"
+                        className="input w-full text-sm"
+                        value={txt.text || ''}
+                        onChange={(e) => handleUpdateText(txt.slideTextId, { ...txt, text: e.target.value })}
+                        placeholder="Enter text..."
+                      />
+                    </div>
+                    {/* Row 3: Position and style options */}
+                    <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Horizontal</label>
+                        <select
+                          className="input text-xs py-1 w-full"
+                          value={txt.horizontalPosition || 'center'}
+                          onChange={(e) => handleUpdateText(txt.slideTextId, { ...txt, horizontalPosition: e.target.value })}
+                        >
+                          {HORIZONTAL_POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Vertical</label>
+                        <select
+                          className="input text-xs py-1 w-full"
+                          value={txt.verticalPosition || 'center'}
+                          onChange={(e) => handleUpdateText(txt.slideTextId, { ...txt, verticalPosition: e.target.value })}
+                        >
+                          {VERTICAL_POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Size</label>
+                        <select
+                          className="input text-xs py-1 w-full"
+                          value={txt.size || 'large'}
+                          onChange={(e) => handleUpdateText(txt.slideTextId, { ...txt, size: e.target.value })}
+                        >
+                          {TEXT_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Animation</label>
+                        <select
+                          className="input text-xs py-1 w-full"
+                          value={txt.animation || 'fadeIn'}
+                          onChange={(e) => handleUpdateText(txt.slideTextId, { ...txt, animation: e.target.value })}
+                        >
+                          {TEXT_ANIMATIONS.map(a => <option key={a} value={a}>{a}</option>)}
+                        </select>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-xs text-gray-500 mb-1">Color</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            className="w-8 h-8 rounded border cursor-pointer flex-shrink-0"
+                            value={txt.color || '#ffffff'}
+                            onChange={(e) => handleUpdateText(txt.slideTextId, { ...txt, color: e.target.value })}
+                          />
+                          <input
+                            type="text"
+                            className="input flex-1 text-xs py-1"
+                            placeholder="#ffffff"
+                            value={txt.color || ''}
+                            onChange={(e) => handleUpdateText(txt.slideTextId, { ...txt, color: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 bg-gray-50 rounded-lg text-gray-500 text-sm">
+                No texts. Click "Add Text" to add one.
+              </div>
+            )}
+          </div>
+
           {/* Actions */}
           <div className="flex justify-between pt-4 border-t">
             <button onClick={onDelete} className="btn btn-sm text-red-600 hover:bg-red-50">
@@ -1115,6 +1311,15 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
           onSelect={handleAddImage}
           onClose={() => setShowImagePicker(false)}
           saving={savingImage}
+        />
+      )}
+
+      {/* Text Form Modal */}
+      {showTextForm && (
+        <TextFormModal
+          onSave={handleAddText}
+          onClose={() => setShowTextForm(false)}
+          saving={savingText}
         />
       )}
     </div>
@@ -1256,6 +1461,174 @@ function ImagePickerModal({ sharedImages, onSelect, onClose, saving }) {
             className="btn btn-primary"
           >
             {saving ? 'Adding...' : 'Add Image'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Text Form Modal Component
+function TextFormModal({ onSave, onClose, saving }) {
+  const [formData, setFormData] = useState({
+    text: '',
+    horizontalPosition: 'center',
+    verticalPosition: 'center',
+    size: 'large',
+    color: '#ffffff',
+    animation: 'fadeIn',
+    duration: 800,
+    delay: 500
+  });
+
+  const handleSave = () => {
+    if (!formData.text.trim()) {
+      alert('Please enter text content');
+      return;
+    }
+    onSave(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="p-4 border-b">
+          <h3 className="text-lg font-bold flex items-center gap-2">
+            <Type className="w-5 h-5" />
+            Add Text to Slide
+          </h3>
+        </div>
+
+        <div className="p-4 space-y-4">
+          {/* Text Content */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Text Content *</label>
+            <input
+              type="text"
+              className="input w-full"
+              value={formData.text}
+              onChange={(e) => setFormData({ ...formData, text: e.target.value })}
+              placeholder="Enter your text..."
+              autoFocus
+            />
+          </div>
+
+          {/* Timing - prominent */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+              <label className="block text-xs font-bold text-blue-700 mb-1">Start Delay (ms)</label>
+              <input
+                type="number"
+                className="input w-full text-sm font-medium"
+                value={formData.delay}
+                onChange={(e) => setFormData({ ...formData, delay: parseInt(e.target.value) || 0 })}
+                placeholder="500"
+              />
+              <p className="text-xs text-blue-600 mt-1">When animation begins</p>
+            </div>
+            <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+              <label className="block text-xs font-bold text-green-700 mb-1">Duration (ms)</label>
+              <input
+                type="number"
+                className="input w-full text-sm font-medium"
+                value={formData.duration}
+                onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 800 })}
+                placeholder="800"
+              />
+              <p className="text-xs text-green-600 mt-1">How long animation takes</p>
+            </div>
+          </div>
+
+          {/* Position */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Horizontal Position</label>
+              <select
+                className="input w-full"
+                value={formData.horizontalPosition}
+                onChange={(e) => setFormData({ ...formData, horizontalPosition: e.target.value })}
+              >
+                {HORIZONTAL_POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Vertical Position</label>
+              <select
+                className="input w-full"
+                value={formData.verticalPosition}
+                onChange={(e) => setFormData({ ...formData, verticalPosition: e.target.value })}
+              >
+                {VERTICAL_POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Style */}
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+              <select
+                className="input w-full"
+                value={formData.size}
+                onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+              >
+                {TEXT_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Animation</label>
+              <select
+                className="input w-full"
+                value={formData.animation}
+                onChange={(e) => setFormData({ ...formData, animation: e.target.value })}
+              >
+                {TEXT_ANIMATIONS.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  className="w-10 h-10 rounded border cursor-pointer"
+                  value={formData.color}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                />
+                <input
+                  type="text"
+                  className="input flex-1 text-sm"
+                  placeholder="#ffffff"
+                  value={formData.color}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Preview */}
+          <div className="bg-gray-800 rounded-lg p-4 text-center">
+            <span
+              className="inline-block"
+              style={{
+                color: formData.color,
+                fontSize: formData.size === 'small' ? '14px' : formData.size === 'medium' ? '18px' : formData.size === 'large' ? '24px' : '32px'
+              }}
+            >
+              {formData.text || 'Preview text'}
+            </span>
+          </div>
+        </div>
+
+        <div className="p-4 border-t flex justify-end gap-3">
+          <button onClick={onClose} className="btn btn-secondary">
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!formData.text.trim() || saving}
+            className="btn btn-primary"
+          >
+            {saving ? 'Adding...' : 'Add Text'}
           </button>
         </div>
       </div>
