@@ -4,9 +4,11 @@ import {
   Image, Video, Settings, Eye, Copy, Check, X, Film, Layers
 } from 'lucide-react';
 import { slideShowsAPI, getAssetUrl } from '../../services/api';
+import SlideShowPreview from '../../components/SlideShow';
 
 // Animation options
 const ANIMATIONS = ['fadeIn', 'slideUp', 'slideDown', 'zoomIn', 'typewriter'];
+const IMAGE_ANIMATIONS = ['fadeIn', 'zoomIn', 'slideInLeft', 'slideInRight', 'bounce'];
 const LAYOUTS = ['center', 'left', 'right', 'split'];
 const OVERLAYS = ['dark', 'light', 'gradient', 'none'];
 const POSITIONS = ['center', 'left', 'right', 'bottom-left', 'bottom-right', 'top-left', 'top-right'];
@@ -20,6 +22,7 @@ export default function AdminSlideShows() {
   const [showForm, setShowForm] = useState(false);
   const [editingSlide, setEditingSlide] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Shared media
   const [sharedVideos, setSharedVideos] = useState([]);
@@ -314,6 +317,13 @@ export default function AdminSlideShows() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
+                      onClick={() => setShowPreview(true)}
+                      className="btn btn-accent btn-sm"
+                      disabled={!selectedShow.slides?.length}
+                    >
+                      <Play className="w-4 h-4 mr-1" /> Preview
+                    </button>
+                    <button
                       onClick={() => handleEditShow(selectedShow)}
                       className="btn btn-secondary btn-sm"
                     >
@@ -350,8 +360,10 @@ export default function AdminSlideShows() {
                           slide={slide}
                           index={index}
                           sharedVideos={sharedVideos}
+                          sharedImages={sharedImages}
                           onUpdate={(data) => handleUpdateSlide(slide.slideId, data)}
                           onDelete={() => handleDeleteSlide(slide.slideId)}
+                          onRefresh={() => loadSlideShowDetails(selectedShow.slideShowId)}
                           isExpanded={editingSlide === slide.slideId}
                           onToggle={() => setEditingSlide(
                             editingSlide === slide.slideId ? null : slide.slideId
@@ -396,6 +408,24 @@ export default function AdminSlideShows() {
           items={sharedImages}
           onRefresh={loadSharedMedia}
         />
+      )}
+
+      {/* SlideShow Preview Modal */}
+      {showPreview && selectedShow && (
+        <div className="fixed inset-0 z-50">
+          <SlideShowPreview
+            id={selectedShow.slideShowId}
+            onComplete={() => setShowPreview(false)}
+            onSkip={() => setShowPreview(false)}
+          />
+          <button
+            onClick={() => setShowPreview(false)}
+            className="fixed top-4 left-4 z-[60] bg-white/90 hover:bg-white text-gray-800 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2"
+          >
+            <X className="w-4 h-4" />
+            Close Preview
+          </button>
+        </div>
       )}
 
       {/* SlideShow Form Modal */}
@@ -531,8 +561,10 @@ export default function AdminSlideShows() {
 }
 
 // Slide Editor Component
-function SlideEditor({ slide, index, sharedVideos, onUpdate, onDelete, isExpanded, onToggle }) {
+function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDelete, onRefresh, isExpanded, onToggle }) {
   const [localData, setLocalData] = useState(slide);
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const [savingImage, setSavingImage] = useState(false);
 
   useEffect(() => {
     setLocalData(slide);
@@ -540,6 +572,58 @@ function SlideEditor({ slide, index, sharedVideos, onUpdate, onDelete, isExpande
 
   const handleSave = () => {
     onUpdate(localData);
+  };
+
+  // Add image to slide
+  const handleAddImage = async (imageUrl, animation = 'fadeIn', position = 'center', size = 'medium') => {
+    setSavingImage(true);
+    try {
+      const response = await slideShowsAPI.createSlideImage({
+        slideId: slide.slideId,
+        imageUrl,
+        displayOrder: slide.images?.length || 0,
+        position,
+        size,
+        animation,
+        duration: 500,
+        delay: 1500
+      });
+      if (response.success) {
+        setShowImagePicker(false);
+        onRefresh?.();
+      } else {
+        alert(response.message || 'Failed to add image');
+      }
+    } catch (err) {
+      alert('Error adding image: ' + (err.message || 'Please try again'));
+    } finally {
+      setSavingImage(false);
+    }
+  };
+
+  // Update slide image
+  const handleUpdateImage = async (imageId, data) => {
+    try {
+      const response = await slideShowsAPI.updateSlideImage(imageId, data);
+      if (response.success) {
+        onRefresh?.();
+      }
+    } catch (err) {
+      alert('Error updating image');
+    }
+  };
+
+  // Delete slide image
+  const handleDeleteImage = async (imageId) => {
+    if (!confirm('Remove this image from the slide?')) return;
+    try {
+      const response = await slideShowsAPI.deleteSlideImage(imageId);
+      if (response.success) {
+        onRefresh?.();
+      }
+    } catch (err) {
+      alert('Error removing image');
+    }
   };
 
   return (
@@ -716,6 +800,58 @@ function SlideEditor({ slide, index, sharedVideos, onUpdate, onDelete, isExpande
             </div>
           </div>
 
+          {/* Images */}
+          <div className="border-t pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-medium">Images ({slide.images?.length || 0})</h4>
+              <button
+                type="button"
+                onClick={() => setShowImagePicker(true)}
+                className="btn btn-sm btn-secondary"
+              >
+                <Plus className="w-3 h-3 mr-1" /> Add Image
+              </button>
+            </div>
+
+            {slide.images?.length > 0 ? (
+              <div className="space-y-2">
+                {slide.images.map((img) => (
+                  <div key={img.slideImageId} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                    <img
+                      src={getAssetUrl(img.imageUrl)}
+                      alt=""
+                      className="w-12 h-12 object-cover rounded"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <span className="bg-gray-200 px-1.5 py-0.5 rounded">{img.position}</span>
+                        <span className="bg-gray-200 px-1.5 py-0.5 rounded">{img.size}</span>
+                        <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">{img.animation}</span>
+                      </div>
+                    </div>
+                    <select
+                      className="input text-xs py-1 w-24"
+                      value={img.animation}
+                      onChange={(e) => handleUpdateImage(img.slideImageId, { ...img, animation: e.target.value })}
+                    >
+                      {IMAGE_ANIMATIONS.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                    <button
+                      onClick={() => handleDeleteImage(img.slideImageId)}
+                      className="p-1 text-gray-400 hover:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 bg-gray-50 rounded-lg text-gray-500 text-sm">
+                No images. Click "Add Image" to add one.
+              </div>
+            )}
+          </div>
+
           {/* Actions */}
           <div className="flex justify-between pt-4 border-t">
             <button onClick={onDelete} className="btn btn-sm text-red-600 hover:bg-red-50">
@@ -727,6 +863,119 @@ function SlideEditor({ slide, index, sharedVideos, onUpdate, onDelete, isExpande
           </div>
         </div>
       )}
+
+      {/* Image Picker Modal */}
+      {showImagePicker && (
+        <ImagePickerModal
+          sharedImages={sharedImages}
+          onSelect={handleAddImage}
+          onClose={() => setShowImagePicker(false)}
+          saving={savingImage}
+        />
+      )}
+    </div>
+  );
+}
+
+// Image Picker Modal Component
+function ImagePickerModal({ sharedImages, onSelect, onClose, saving }) {
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [animation, setAnimation] = useState('fadeIn');
+  const [position, setPosition] = useState('center');
+  const [size, setSize] = useState('medium');
+
+  const handleAdd = () => {
+    if (selectedImage) {
+      onSelect(selectedImage.url, animation, position, size);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="p-4 border-b">
+          <h3 className="text-lg font-bold">Add Image to Slide</h3>
+        </div>
+
+        <div className="p-4 overflow-y-auto max-h-[50vh]">
+          {sharedImages?.length > 0 ? (
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+              {sharedImages.map((img) => (
+                <div
+                  key={img.imageId}
+                  onClick={() => setSelectedImage(img)}
+                  className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                    selectedImage?.imageId === img.imageId
+                      ? 'border-primary ring-2 ring-primary/30'
+                      : 'border-transparent hover:border-gray-300'
+                  }`}
+                >
+                  <img
+                    src={getAssetUrl(img.url)}
+                    alt={img.title || 'Image'}
+                    className="w-full aspect-square object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Image className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+              <p>No images in pool. Add images in the "Image Pool" tab first.</p>
+            </div>
+          )}
+        </div>
+
+        {selectedImage && (
+          <div className="p-4 border-t bg-gray-50">
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Animation</label>
+                <select
+                  className="input w-full text-sm"
+                  value={animation}
+                  onChange={(e) => setAnimation(e.target.value)}
+                >
+                  {IMAGE_ANIMATIONS.map(a => <option key={a} value={a}>{a}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Position</label>
+                <select
+                  className="input w-full text-sm"
+                  value={position}
+                  onChange={(e) => setPosition(e.target.value)}
+                >
+                  {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Size</label>
+                <select
+                  className="input w-full text-sm"
+                  value={size}
+                  onChange={(e) => setSize(e.target.value)}
+                >
+                  {SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="p-4 border-t flex justify-end gap-3">
+          <button onClick={onClose} className="btn btn-secondary">
+            Cancel
+          </button>
+          <button
+            onClick={handleAdd}
+            disabled={!selectedImage || saving}
+            className="btn btn-primary"
+          >
+            {saving ? 'Adding...' : 'Add Image'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
