@@ -410,12 +410,13 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
 }
 
 // SlideObject Component - renders text, image, or video with animations
+// Uses wrapper pattern: outer div handles positioning, inner element handles animation
 function SlideObject({ object, slideIndex }) {
   const [animationPhase, setAnimationPhase] = useState('in'); // 'in', 'visible', 'out', 'hidden'
   const props = object.properties ? (typeof object.properties === 'string' ? JSON.parse(object.properties) : object.properties) : {};
 
-  // Calculate position style based on alignment and offsets
-  const getPositionStyle = () => {
+  // Calculate position style for the WRAPPER (handles positioning with transforms)
+  const getWrapperStyle = () => {
     const style = {
       position: 'absolute',
     };
@@ -494,7 +495,7 @@ function SlideObject({ object, slideIndex }) {
   // Don't render if hidden
   if (animationPhase === 'hidden') return null;
 
-  // Get animation class and style
+  // Get animation class and style for the CONTENT (handles animation with its own transforms)
   const getAnimationProps = () => {
     if (animationPhase === 'in') {
       return {
@@ -517,27 +518,28 @@ function SlideObject({ object, slideIndex }) {
   };
 
   const animProps = getAnimationProps();
-  const posStyle = getPositionStyle();
+  const wrapperStyle = getWrapperStyle();
 
-  // Render based on object type
+  // Render based on object type - wrapper handles position, inner element handles animation
   if (object.objectType === 'text') {
     const fontSize = props.fontSize || 'text-4xl';
     const fontWeight = props.fontWeight || 'font-bold';
     const color = props.color || 'white';
 
     return (
-      <div
-        key={`${object.slideObjectId}-${slideIndex}`}
-        className={`${animProps.className} ${fontSize} ${fontWeight}`}
-        style={{
-          ...posStyle,
-          ...animProps.style,
-          color,
-          textAlign: props.textAlign || 'center',
-          maxWidth: props.maxWidth || '80%',
-        }}
-      >
-        {props.text}
+      <div style={wrapperStyle}>
+        <div
+          key={`${object.slideObjectId}-${slideIndex}`}
+          className={`${animProps.className} ${fontSize} ${fontWeight}`}
+          style={{
+            ...animProps.style,
+            color,
+            textAlign: props.textAlign || 'center',
+            maxWidth: props.maxWidth || '80%',
+          }}
+        >
+          {props.text}
+        </div>
       </div>
     );
   }
@@ -550,19 +552,20 @@ function SlideObject({ object, slideIndex }) {
     const height = props.height || 'auto';
 
     return (
-      <img
-        key={`${object.slideObjectId}-${slideIndex}`}
-        src={getAssetUrl(imageUrl)}
-        alt={props.alt || ''}
-        className={`${animProps.className} ${props.borderRadius || 'rounded-lg'} ${props.shadow || ''}`}
-        style={{
-          ...posStyle,
-          ...animProps.style,
-          width,
-          height,
-          objectFit: props.objectFit || 'cover',
-        }}
-      />
+      <div style={wrapperStyle}>
+        <img
+          key={`${object.slideObjectId}-${slideIndex}`}
+          src={getAssetUrl(imageUrl)}
+          alt={props.alt || ''}
+          className={`${animProps.className} ${props.borderRadius || 'rounded-lg'} ${props.shadow || ''}`}
+          style={{
+            ...animProps.style,
+            width,
+            height,
+            objectFit: props.objectFit || 'cover',
+          }}
+        />
+      </div>
     );
   }
 
@@ -571,21 +574,22 @@ function SlideObject({ object, slideIndex }) {
     if (!videoUrl) return null;
 
     return (
-      <video
-        key={`${object.slideObjectId}-${slideIndex}`}
-        src={getAssetUrl(videoUrl)}
-        className={`${animProps.className} ${props.borderRadius || 'rounded-lg'}`}
-        style={{
-          ...posStyle,
-          ...animProps.style,
-          width: props.width || 'auto',
-          height: props.height || 'auto',
-        }}
-        autoPlay={props.autoPlay !== false}
-        muted={props.muted !== false}
-        loop={props.loop !== false}
-        playsInline
-      />
+      <div style={wrapperStyle}>
+        <video
+          key={`${object.slideObjectId}-${slideIndex}`}
+          src={getAssetUrl(videoUrl)}
+          className={`${animProps.className} ${props.borderRadius || 'rounded-lg'}`}
+          style={{
+            ...animProps.style,
+            width: props.width || 'auto',
+            height: props.height || 'auto',
+          }}
+          autoPlay={props.autoPlay !== false}
+          muted={props.muted !== false}
+          loop={props.loop !== false}
+          playsInline
+        />
+      </div>
     );
   }
 
