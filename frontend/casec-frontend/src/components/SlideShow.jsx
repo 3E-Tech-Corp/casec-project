@@ -538,7 +538,7 @@ function SlideObject({ object, slideIndex }) {
             maxWidth: props.maxWidth || '80%',
           }}
         >
-          {props.text}
+          {props.content || props.text}
         </div>
       </div>
     );
