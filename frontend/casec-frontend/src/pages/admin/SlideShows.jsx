@@ -226,13 +226,18 @@ export default function AdminSlideShows() {
   };
 
   const handleUpdateSlide = async (slideId, data) => {
+    console.log('handleUpdateSlide called:', { slideId, data });
     try {
       const response = await slideShowsAPI.updateSlide(slideId, data);
+      console.log('updateSlide response:', response);
       if (response.success) {
         loadSlideShowDetails(selectedShow.slideShowId);
+      } else {
+        alert(response.message || 'Failed to update slide');
       }
     } catch (err) {
-      alert('Error updating slide');
+      console.error('updateSlide error:', err);
+      alert('Error updating slide: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -641,7 +646,31 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
   }, [slide]);
 
   const handleSave = () => {
-    onUpdate(localData);
+    // Only send the fields that the backend expects
+    const updateData = {
+      displayOrder: localData.displayOrder,
+      duration: localData.duration,
+      videoUrl: localData.videoUrl,
+      useRandomVideo: localData.useRandomVideo,
+      layout: localData.layout,
+      overlayType: localData.overlayType,
+      overlayColor: localData.overlayColor,
+      overlayOpacity: localData.overlayOpacity,
+      titleText: localData.titleText,
+      titleAnimation: localData.titleAnimation,
+      titleDuration: localData.titleDuration,
+      titleDelay: localData.titleDelay,
+      titleSize: localData.titleSize,
+      titleColor: localData.titleColor,
+      subtitleText: localData.subtitleText,
+      subtitleAnimation: localData.subtitleAnimation,
+      subtitleDuration: localData.subtitleDuration,
+      subtitleDelay: localData.subtitleDelay,
+      subtitleSize: localData.subtitleSize,
+      subtitleColor: localData.subtitleColor,
+    };
+    console.log('SlideEditor handleSave called with:', updateData);
+    onUpdate(updateData);
   };
 
   // Add image to slide
