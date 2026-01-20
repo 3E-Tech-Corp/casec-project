@@ -43,8 +43,8 @@ BEGIN
         -- Position settings
         HorizontalAlign NVARCHAR(20) NOT NULL DEFAULT 'center',
         VerticalAlign NVARCHAR(20) NOT NULL DEFAULT 'middle',
-        HorizontalOffset INT NOT NULL DEFAULT 0,
-        VerticalOffset INT NOT NULL DEFAULT 0,
+        OffsetX INT NOT NULL DEFAULT 0,
+        OffsetY INT NOT NULL DEFAULT 0,
 
         -- Animation In settings
         AnimationIn NVARCHAR(50) NOT NULL DEFAULT 'fadeIn',
