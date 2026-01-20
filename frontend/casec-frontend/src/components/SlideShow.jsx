@@ -68,12 +68,16 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
   // Get current slide
   const currentSlide = config?.slides?.[currentSlideIndex];
 
-  // Get video URL for current slide
+  // Get video URL for current slide (only for heroVideos background type)
   const getVideoUrl = useCallback(() => {
     if (!currentSlide) return null;
 
+    // Only show video for heroVideos background type (or legacy slides without backgroundType)
+    const bgType = currentSlide.backgroundType || 'heroVideos';
+    if (bgType !== 'heroVideos') return null;
+
     // If using random video from shared pool
-    if (currentSlide.useRandomVideo) {
+    if (currentSlide.useRandomVideo || currentSlide.useRandomHeroVideos) {
       if (sharedVideos.length > 0) {
         // Use a consistent random video per slide based on slide index
         const videoIndex = currentSlideIndex % sharedVideos.length;
@@ -86,6 +90,31 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
     // Use specific video URL
     return currentSlide.videoUrl || null;
   }, [currentSlide, sharedVideos, currentSlideIndex]);
+
+  // Get background style based on backgroundType
+  const getBackgroundStyle = () => {
+    if (!currentSlide) return {};
+
+    const bgType = currentSlide.backgroundType || 'heroVideos';
+
+    switch (bgType) {
+      case 'color':
+        return { backgroundColor: currentSlide.backgroundColor || '#000000' };
+      case 'image':
+        return currentSlide.backgroundImageUrl
+          ? {
+              backgroundImage: `url(${getAssetUrl(currentSlide.backgroundImageUrl)})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }
+          : { backgroundColor: '#000000' };
+      case 'none':
+        return { backgroundColor: 'transparent' };
+      case 'heroVideos':
+      default:
+        return {}; // Video handled separately
+    }
+  };
 
   // Handle slide progression
   useEffect(() => {
@@ -218,10 +247,19 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
   }
 
   const videoUrl = getVideoUrl();
+  const backgroundStyle = getBackgroundStyle();
 
   return (
     <div className="fixed inset-0 z-50 bg-black">
-      {/* Video Background */}
+      {/* Static Background (color/image) */}
+      {!videoUrl && (
+        <div
+          className="absolute inset-0 z-0"
+          style={backgroundStyle}
+        />
+      )}
+
+      {/* Video Background (heroVideos only) */}
       {videoUrl && (
         <video
           ref={videoRef}
