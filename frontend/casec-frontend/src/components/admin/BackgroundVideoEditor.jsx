@@ -242,75 +242,9 @@ export default function BackgroundVideoEditor({
           )}
 
           {localBackgroundType === 'heroVideos' && (
-            <div className="space-y-4">
-              {/* Random option */}
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={localUseRandom}
-                    onChange={(e) => setLocalUseRandom(e.target.checked)}
-                    className="rounded"
-                  />
-                  <div>
-                    <span className="font-medium text-sm flex items-center gap-1">
-                      <Shuffle className="w-4 h-4" />
-                      Use Random Videos
-                    </span>
-                    <p className="text-xs text-gray-500">
-                      Randomly select from shared video pool instead of specific videos below
-                    </p>
-                  </div>
-                </label>
-              </div>
-
-              {/* Video List (only shown if not using random) */}
-              {!localUseRandom && (
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm text-gray-600">
-                      Background Videos ({backgroundVideos.length})
-                    </label>
-                    <button
-                      onClick={() => setShowAddVideo(true)}
-                      className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Video
-                    </button>
-                  </div>
-
-                  {backgroundVideos.length === 0 ? (
-                    <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed text-gray-500 text-sm">
-                      No background videos. Add videos or enable random selection.
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {backgroundVideos.map((bgVideo, index) => (
-                        <BackgroundVideoItem
-                          key={bgVideo.slideBackgroundVideoId}
-                          bgVideo={bgVideo}
-                          index={index}
-                          sharedVideos={sharedVideos}
-                          onUpdate={(data) => handleUpdateBackgroundVideo(bgVideo.slideBackgroundVideoId, data)}
-                          onDelete={() => handleDeleteBackgroundVideo(bgVideo.slideBackgroundVideoId)}
-                        />
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Add Video Panel */}
-                  {showAddVideo && (
-                    <AddBackgroundVideoPanel
-                      sharedVideos={sharedVideos}
-                      onAdd={handleAddBackgroundVideo}
-                      onCancel={() => setShowAddVideo(false)}
-                      saving={saving}
-                    />
-                  )}
-                </div>
-              )}
-            </div>
+            <p className="text-sm text-gray-500">
+              Uses videos from the shared video pool as background.
+            </p>
           )}
 
           {/* Save Button - always visible when expanded */}
