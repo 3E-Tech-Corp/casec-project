@@ -505,13 +505,16 @@ function SlideObject({ object, slideIndex }) {
   }
 
   if (object.objectType === 'image') {
+    const imageUrl = props.imageUrl || props.url;
+    if (!imageUrl) return null;
+
     const width = props.width || 'auto';
     const height = props.height || 'auto';
 
     return (
       <img
         key={`${object.slideObjectId}-${slideIndex}`}
-        src={getAssetUrl(props.url)}
+        src={getAssetUrl(imageUrl)}
         alt={props.alt || ''}
         className={`${animProps.className} ${props.borderRadius || 'rounded-lg'} ${props.shadow || ''}`}
         style={{
@@ -526,10 +529,13 @@ function SlideObject({ object, slideIndex }) {
   }
 
   if (object.objectType === 'video') {
+    const videoUrl = props.videoUrl || props.url;
+    if (!videoUrl) return null;
+
     return (
       <video
         key={`${object.slideObjectId}-${slideIndex}`}
-        src={getAssetUrl(props.url)}
+        src={getAssetUrl(videoUrl)}
         className={`${animProps.className} ${props.borderRadius || 'rounded-lg'}`}
         style={{
           ...posStyle,
