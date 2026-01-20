@@ -18,11 +18,11 @@
   animation-name: slideshow-fadeIn;
 }
 
-/* Slide Up */
+/* Slide Up - from bottom of screen */
 @keyframes slideshow-slideUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(100vh);
   }
   to {
     opacity: 1;
@@ -34,11 +34,11 @@
   animation-name: slideshow-slideUp;
 }
 
-/* Slide Down */
+/* Slide Down - from top of screen */
 @keyframes slideshow-slideDown {
   from {
     opacity: 0;
-    transform: translateY(-30px);
+    transform: translateY(-100vh);
   }
   to {
     opacity: 1;
@@ -50,11 +50,11 @@
   animation-name: slideshow-slideDown;
 }
 
-/* Zoom In */
+/* Zoom In - from scale 0 */
 @keyframes slideshow-zoomIn {
   from {
     opacity: 0;
-    transform: scale(0.8);
+    transform: scale(0);
   }
   to {
     opacity: 1;
@@ -66,11 +66,11 @@
   animation-name: slideshow-zoomIn;
 }
 
-/* Slide In Left */
+/* Slide In Left - from left edge of screen */
 @keyframes slideshow-slideInLeft {
   from {
     opacity: 0;
-    transform: translateX(-50px);
+    transform: translateX(-100vw);
   }
   to {
     opacity: 1;
@@ -82,11 +82,11 @@
   animation-name: slideshow-slideInLeft;
 }
 
-/* Slide In Right */
+/* Slide In Right - from right edge of screen */
 @keyframes slideshow-slideInRight {
   from {
     opacity: 0;
-    transform: translateX(50px);
+    transform: translateX(100vw);
   }
   to {
     opacity: 1;
