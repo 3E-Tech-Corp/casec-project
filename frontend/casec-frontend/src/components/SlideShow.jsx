@@ -247,44 +247,46 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
         style={getOverlayStyle()}
       />
 
-      {/* Content */}
-      <div className={`absolute inset-0 flex flex-col ${getLayoutClasses()}`}>
-        <div className="max-w-4xl px-6">
-          {/* Title */}
-          {currentSlide?.titleText && (
-            <h1
-              key={`title-${currentSlideIndex}`}
-              className={`font-display font-bold text-white mb-4 slideshow-animate slideshow-${currentSlide.titleAnimation} ${getTitleSizeClasses(currentSlide.titleSize)}`}
-              style={{
-                animationDuration: `${currentSlide.titleDuration}ms`,
-                animationDelay: `${currentSlide.titleDelay}ms`,
-                color: currentSlide.titleColor || 'white'
-              }}
-            >
-              {currentSlide.titleText}
-            </h1>
-          )}
+      {/* Content - SlideObjects */}
+      <div className="absolute inset-0">
+        {currentSlide?.slideObjects?.map((obj, objIndex) => (
+          <SlideObject
+            key={obj.slideObjectId || objIndex}
+            object={obj}
+            slideIndex={currentSlideIndex}
+          />
+        ))}
 
-          {/* Subtitle */}
-          {currentSlide?.subtitleText && (
-            <p
-              key={`subtitle-${currentSlideIndex}`}
-              className={`text-white/90 slideshow-animate slideshow-${currentSlide.subtitleAnimation} ${getSubtitleSizeClasses(currentSlide.subtitleSize)}`}
-              style={{
-                animationDuration: `${currentSlide.subtitleDuration}ms`,
-                animationDelay: `${currentSlide.subtitleDelay}ms`,
-                color: currentSlide.subtitleColor || 'rgba(255, 255, 255, 0.9)'
-              }}
-            >
-              {currentSlide.subtitleText}
-            </p>
-          )}
-
-          {/* Slide Images */}
-          {currentSlide?.images?.map((image, imgIndex) => (
-            <SlideImage key={image.slideImageId || imgIndex} image={image} />
-          ))}
-        </div>
+        {/* Legacy support: Title */}
+        {currentSlide?.titleText && !currentSlide?.slideObjects?.length && (
+          <div className={`absolute inset-0 flex flex-col ${getLayoutClasses()}`}>
+            <div className="max-w-4xl px-6">
+              <h1
+                key={`title-${currentSlideIndex}`}
+                className={`font-display font-bold text-white mb-4 slideshow-animate slideshow-${currentSlide.titleAnimation} ${getTitleSizeClasses(currentSlide.titleSize)}`}
+                style={{
+                  animationDuration: `${currentSlide.titleDuration}ms`,
+                  animationDelay: `${currentSlide.titleDelay}ms`,
+                  color: currentSlide.titleColor || 'white'
+                }}
+              >
+                {currentSlide.titleText}
+              </h1>
+              {currentSlide?.subtitleText && (
+                <p
+                  className={`text-white/90 slideshow-animate slideshow-${currentSlide.subtitleAnimation} ${getSubtitleSizeClasses(currentSlide.subtitleSize)}`}
+                  style={{
+                    animationDuration: `${currentSlide.subtitleDuration}ms`,
+                    animationDelay: `${currentSlide.subtitleDelay}ms`,
+                    color: currentSlide.subtitleColor || 'rgba(255, 255, 255, 0.9)'
+                  }}
+                >
+                  {currentSlide.subtitleText}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Progress Indicator */}
@@ -331,7 +333,184 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
   );
 }
 
-// Slide Image Component
+// SlideObject Component - renders text, image, or video with animations
+function SlideObject({ object, slideIndex }) {
+  const [animationPhase, setAnimationPhase] = useState('in'); // 'in', 'visible', 'out', 'hidden'
+  const props = object.properties ? (typeof object.properties === 'string' ? JSON.parse(object.properties) : object.properties) : {};
+
+  // Calculate position style based on alignment and offsets
+  const getPositionStyle = () => {
+    const style = {
+      position: 'absolute',
+    };
+
+    // Horizontal alignment
+    switch (object.horizontalAlign) {
+      case 'left':
+        style.left = `${object.offsetX || 0}px`;
+        break;
+      case 'right':
+        style.right = `${-(object.offsetX || 0)}px`;
+        break;
+      case 'center':
+      default:
+        style.left = '50%';
+        style.transform = 'translateX(-50%)';
+        style.marginLeft = `${object.offsetX || 0}px`;
+        break;
+    }
+
+    // Vertical alignment
+    switch (object.verticalAlign) {
+      case 'top':
+        style.top = `${object.offsetY || 0}px`;
+        break;
+      case 'bottom':
+        style.bottom = `${-(object.offsetY || 0)}px`;
+        break;
+      case 'middle':
+      default:
+        style.top = '50%';
+        if (style.transform) {
+          style.transform = 'translate(-50%, -50%)';
+        } else {
+          style.transform = 'translateY(-50%)';
+        }
+        style.marginTop = `${object.offsetY || 0}px`;
+        break;
+    }
+
+    return style;
+  };
+
+  // Handle exit animation timing
+  useEffect(() => {
+    setAnimationPhase('in');
+
+    // After animation in completes, set to visible
+    const inDuration = (object.animationInDelay || 0) + (object.animationInDuration || 500);
+    const visibleTimer = setTimeout(() => {
+      setAnimationPhase('visible');
+    }, inDuration);
+
+    // If there's an exit animation, schedule it
+    if (object.animationOut && object.animationOutDelay != null) {
+      const outTimer = setTimeout(() => {
+        setAnimationPhase('out');
+      }, object.animationOutDelay);
+
+      const hideTimer = setTimeout(() => {
+        if (!object.stayOnScreen) {
+          setAnimationPhase('hidden');
+        }
+      }, object.animationOutDelay + (object.animationOutDuration || 500));
+
+      return () => {
+        clearTimeout(visibleTimer);
+        clearTimeout(outTimer);
+        clearTimeout(hideTimer);
+      };
+    }
+
+    return () => clearTimeout(visibleTimer);
+  }, [slideIndex, object]);
+
+  // Don't render if hidden
+  if (animationPhase === 'hidden') return null;
+
+  // Get animation class and style
+  const getAnimationProps = () => {
+    if (animationPhase === 'in') {
+      return {
+        className: `slideshow-animate slideshow-${object.animationIn || 'fadeIn'}`,
+        style: {
+          animationDuration: `${object.animationInDuration || 500}ms`,
+          animationDelay: `${object.animationInDelay || 0}ms`,
+        }
+      };
+    } else if (animationPhase === 'out' && object.animationOut) {
+      return {
+        className: `slideshow-animate slideshow-${object.animationOut}`,
+        style: {
+          animationDuration: `${object.animationOutDuration || 500}ms`,
+          animationDelay: '0ms',
+        }
+      };
+    }
+    return { className: '', style: {} };
+  };
+
+  const animProps = getAnimationProps();
+  const posStyle = getPositionStyle();
+
+  // Render based on object type
+  if (object.objectType === 'text') {
+    const fontSize = props.fontSize || 'text-4xl';
+    const fontWeight = props.fontWeight || 'font-bold';
+    const color = props.color || 'white';
+
+    return (
+      <div
+        key={`${object.slideObjectId}-${slideIndex}`}
+        className={`${animProps.className} ${fontSize} ${fontWeight}`}
+        style={{
+          ...posStyle,
+          ...animProps.style,
+          color,
+          textAlign: props.textAlign || 'center',
+          maxWidth: props.maxWidth || '80%',
+        }}
+      >
+        {props.text}
+      </div>
+    );
+  }
+
+  if (object.objectType === 'image') {
+    const width = props.width || 'auto';
+    const height = props.height || 'auto';
+
+    return (
+      <img
+        key={`${object.slideObjectId}-${slideIndex}`}
+        src={getAssetUrl(props.url)}
+        alt={props.alt || ''}
+        className={`${animProps.className} ${props.borderRadius || 'rounded-lg'} ${props.shadow || ''}`}
+        style={{
+          ...posStyle,
+          ...animProps.style,
+          width,
+          height,
+          objectFit: props.objectFit || 'cover',
+        }}
+      />
+    );
+  }
+
+  if (object.objectType === 'video') {
+    return (
+      <video
+        key={`${object.slideObjectId}-${slideIndex}`}
+        src={getAssetUrl(props.url)}
+        className={`${animProps.className} ${props.borderRadius || 'rounded-lg'}`}
+        style={{
+          ...posStyle,
+          ...animProps.style,
+          width: props.width || 'auto',
+          height: props.height || 'auto',
+        }}
+        autoPlay={props.autoPlay !== false}
+        muted={props.muted !== false}
+        loop={props.loop !== false}
+        playsInline
+      />
+    );
+  }
+
+  return null;
+}
+
+// Slide Image Component (Legacy)
 function SlideImage({ image }) {
   // Get position classes
   const getPositionClasses = () => {

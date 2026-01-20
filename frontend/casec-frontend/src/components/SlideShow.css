@@ -204,6 +204,118 @@
   animation-name: slideshow-blurIn;
 }
 
+/* ============ EXIT ANIMATIONS ============ */
+
+/* Fade Out */
+@keyframes slideshow-fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.slideshow-fadeOut {
+  animation-name: slideshow-fadeOut;
+}
+
+/* Slide Out Up */
+@keyframes slideshow-slideOutUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+
+.slideshow-slideOutUp {
+  animation-name: slideshow-slideOutUp;
+}
+
+/* Slide Out Down */
+@keyframes slideshow-slideOutDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+}
+
+.slideshow-slideOutDown {
+  animation-name: slideshow-slideOutDown;
+}
+
+/* Zoom Out */
+@keyframes slideshow-zoomOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+.slideshow-zoomOut {
+  animation-name: slideshow-zoomOut;
+}
+
+/* Slide Out Left */
+@keyframes slideshow-slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+}
+
+.slideshow-slideOutLeft {
+  animation-name: slideshow-slideOutLeft;
+}
+
+/* Slide Out Right */
+@keyframes slideshow-slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+}
+
+.slideshow-slideOutRight {
+  animation-name: slideshow-slideOutRight;
+}
+
+/* Blur Out */
+@keyframes slideshow-blurOut {
+  from {
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    filter: blur(10px);
+  }
+}
+
+.slideshow-blurOut {
+  animation-name: slideshow-blurOut;
+}
+
 /* Debug Panel Animations */
 
 /* Slide In Left for Debug Panel */
