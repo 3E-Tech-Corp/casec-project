@@ -1262,6 +1262,7 @@ public class SlideObjectDto
     public int SlideId { get; set; }
     public string ObjectType { get; set; } = "text"; // text, image, video
     public int SortOrder { get; set; }
+    public string? Name { get; set; } // Name/Code for identification
 
     // Position
     public string HorizontalAlign { get; set; } = "center";
@@ -1292,6 +1293,7 @@ public class CreateSlideObjectRequest
     public int SlideId { get; set; }
     public string ObjectType { get; set; } = "text";
     public int SortOrder { get; set; }
+    public string? Name { get; set; } // Name/Code for identification
 
     // Position
     public string HorizontalAlign { get; set; } = "center";
@@ -1318,6 +1320,7 @@ public class UpdateSlideObjectRequest
 {
     public string ObjectType { get; set; } = "text";
     public int SortOrder { get; set; }
+    public string? Name { get; set; } // Name/Code for identification
 
     // Position
     public string HorizontalAlign { get; set; } = "center";

@@ -341,7 +341,8 @@ function ObjectItem({
           <GripVertical className="w-4 h-4 text-gray-400" />
           <Icon className="w-5 h-5" />
           <div>
-            <span className="font-medium capitalize">{object.objectType}</span>
+            <span className="font-medium">{localData.name || `${object.objectType} ${index + 1}`}</span>
+            <span className="text-xs text-gray-400 ml-2 capitalize">({object.objectType})</span>
             <span className="text-sm text-gray-500 ml-2">- {getObjectSummary()}</span>
           </div>
         </div>
@@ -359,6 +360,18 @@ function ObjectItem({
       {/* Expanded Content */}
       {expanded && (
         <div className="p-4 bg-white border-t space-y-6">
+          {/* Name/Code */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Name/Code</label>
+            <input
+              type="text"
+              value={localData.name || ''}
+              onChange={(e) => updateLocal('name', e.target.value)}
+              className="w-full px-3 py-2 border rounded text-sm"
+              placeholder={`${object.objectType} ${index + 1}`}
+            />
+          </div>
+
           {/* Position Settings */}
           <div>
             <h5 className="font-medium text-sm text-gray-700 mb-3 flex items-center gap-2">

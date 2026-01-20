@@ -1509,6 +1509,10 @@ public class SlideObject
 
     public int SortOrder { get; set; } = 0;
 
+    // Name/Code for identification in the admin UI
+    [MaxLength(100)]
+    public string? Name { get; set; }
+
     // Position - horizontal and vertical alignment
     [MaxLength(20)]
     public string HorizontalAlign { get; set; } = "center"; // left, center, right

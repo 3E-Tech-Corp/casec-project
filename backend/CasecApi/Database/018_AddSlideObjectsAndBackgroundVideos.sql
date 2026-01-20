@@ -39,6 +39,7 @@ BEGIN
         SlideId INT NOT NULL,
         ObjectType NVARCHAR(20) NOT NULL,
         SortOrder INT NOT NULL DEFAULT 0,
+        Name NVARCHAR(100) NULL,
 
         -- Position settings
         HorizontalAlign NVARCHAR(20) NOT NULL DEFAULT 'center',
@@ -74,6 +75,13 @@ END
 ELSE
 BEGIN
     PRINT 'SlideObjects table already exists';
+
+    -- Add Name column if it doesn't exist
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SlideObjects') AND name = 'Name')
+    BEGIN
+        ALTER TABLE SlideObjects ADD Name NVARCHAR(100) NULL;
+        PRINT 'Added Name column to SlideObjects';
+    END
 END
 GO
 

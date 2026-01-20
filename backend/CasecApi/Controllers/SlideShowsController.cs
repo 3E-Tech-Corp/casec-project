@@ -989,6 +989,7 @@ public class SlideShowsController : ControllerBase
                 SlideId = request.SlideId,
                 ObjectType = request.ObjectType,
                 SortOrder = request.SortOrder,
+                Name = request.Name,
                 HorizontalAlign = request.HorizontalAlign,
                 VerticalAlign = request.VerticalAlign,
                 OffsetX = request.OffsetX,
@@ -1045,6 +1046,7 @@ public class SlideShowsController : ControllerBase
 
             slideObject.ObjectType = request.ObjectType;
             slideObject.SortOrder = request.SortOrder;
+            slideObject.Name = request.Name;
             slideObject.HorizontalAlign = request.HorizontalAlign;
             slideObject.VerticalAlign = request.VerticalAlign;
             slideObject.OffsetX = request.OffsetX;
@@ -1987,6 +1989,7 @@ public class SlideShowsController : ControllerBase
             SlideId = obj.SlideId,
             ObjectType = obj.ObjectType,
             SortOrder = obj.SortOrder,
+            Name = obj.Name,
             HorizontalAlign = obj.HorizontalAlign,
             VerticalAlign = obj.VerticalAlign,
             OffsetX = obj.OffsetX,
