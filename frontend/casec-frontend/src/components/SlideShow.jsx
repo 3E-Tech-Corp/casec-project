@@ -226,7 +226,7 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
         <video
           ref={videoRef}
           key={videoUrl}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover z-0"
           src={getAssetUrl(videoUrl)}
           autoPlay
           muted
@@ -243,12 +243,12 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
 
       {/* Overlay */}
       <div
-        className="absolute inset-0 transition-colors duration-500"
+        className="absolute inset-0 transition-colors duration-500 z-10"
         style={getOverlayStyle()}
       />
 
       {/* Content - SlideObjects */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 z-20">
         {currentSlide?.objects?.map((obj, objIndex) => (
           <SlideObject
             key={obj.slideObjectId || objIndex}
@@ -291,7 +291,7 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
 
       {/* Progress Indicator */}
       {config.showProgress && config.slides.length > 1 && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center space-x-2">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center space-x-2 z-30">
           {config.slides.map((_, index) => (
             <div
               key={index}
@@ -318,7 +318,7 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
       {config.allowSkip && (
         <button
           onClick={handleSkip}
-          className="absolute top-6 right-6 flex items-center space-x-2 text-white/80 hover:text-white transition-colors bg-black/20 hover:bg-black/40 px-4 py-2 rounded-full"
+          className="absolute top-6 right-6 flex items-center space-x-2 text-white/80 hover:text-white transition-colors bg-black/20 hover:bg-black/40 px-4 py-2 rounded-full z-30"
         >
           <span className="text-sm">Skip</span>
           <ChevronRight className="w-4 h-4" />
@@ -326,7 +326,7 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
       )}
 
       {/* Slide Counter */}
-      <div className="absolute bottom-6 right-6 text-white/60 text-sm">
+      <div className="absolute bottom-6 right-6 text-white/60 text-sm z-30">
         {currentSlideIndex + 1} / {config.slides.length}
       </div>
     </div>
