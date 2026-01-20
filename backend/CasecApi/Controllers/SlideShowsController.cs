@@ -1180,6 +1180,8 @@ public class SlideShowsController : ControllerBase
     // Upload a video file and create a shared video entry
     [HttpPost("admin/videos/upload")]
     [Authorize(Roles = "Admin")]
+    [RequestSizeLimit(110 * 1024 * 1024)] // 110MB for videos
+    [RequestFormLimits(MultipartBodyLengthLimit = 110 * 1024 * 1024)]
     public async Task<ActionResult<ApiResponse<SharedVideoDto>>> UploadSharedVideo(
         IFormFile file,
         [FromForm] string? title = null,
@@ -1269,6 +1271,8 @@ public class SlideShowsController : ControllerBase
     // Upload an image file and create a shared image entry
     [HttpPost("admin/images/upload")]
     [Authorize(Roles = "Admin")]
+    [RequestSizeLimit(25 * 1024 * 1024)] // 25MB for images
+    [RequestFormLimits(MultipartBodyLengthLimit = 25 * 1024 * 1024)]
     public async Task<ActionResult<ApiResponse<SharedImageDto>>> UploadSharedImage(
         IFormFile file,
         [FromForm] string? title = null,
