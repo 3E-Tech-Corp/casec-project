@@ -226,12 +226,39 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
   return (
     <div className="fixed inset-0 z-50 bg-black">
       {/* Debug Display - Video URL */}
-      <div className="absolute top-4 left-4 z-[100] bg-black/80 text-white p-3 rounded-lg text-xs max-w-md font-mono">
+      <div className="absolute top-4 left-4 z-[100] bg-black/80 text-white p-3 rounded-lg text-xs max-w-md font-mono animate-slide-in-left">
         <div className="text-yellow-400 font-bold mb-1">Video Debug:</div>
         <div>Raw URL: {videoUrl || 'null'}</div>
         <div>Resolved: {videoUrl ? getAssetUrl(videoUrl) : 'null'}</div>
         <div>Shared Videos: {sharedVideos.length}</div>
         <div>UseRandom: {currentSlide?.useRandomVideo ? 'true' : 'false'}</div>
+
+        {/* Animated Video Preview Window */}
+        {videoUrl && (
+          <div className="mt-3 relative">
+            <div className="text-cyan-400 font-bold mb-1">Video Preview:</div>
+            <div className="relative w-48 h-28 rounded-lg overflow-hidden animate-pulse-border">
+              <video
+                className="w-full h-full object-cover"
+                src={getAssetUrl(videoUrl)}
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
+              {/* Animated corner indicators */}
+              <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-green-400 animate-pulse"></div>
+              <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-green-400 animate-pulse"></div>
+              <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-green-400 animate-pulse"></div>
+              <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-green-400 animate-pulse"></div>
+              {/* Video status indicator */}
+              <div className="absolute bottom-1 right-1 flex items-center gap-1 bg-black/70 px-1.5 py-0.5 rounded text-[10px]">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                <span>LIVE</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Video Background */}
