@@ -327,6 +327,24 @@ export const slideShowsAPI = {
     api.put(`/slideshows/admin/slide-texts/${id}`, data),
   deleteSlideText: (id) => api.delete(`/slideshows/admin/slide-texts/${id}`),
 
+  // NEW: Admin slide object endpoints (object-oriented system)
+  createSlideObject: (data) => api.post("/slideshows/admin/slide-objects", data),
+  updateSlideObject: (id, data) =>
+    api.put(`/slideshows/admin/slide-objects/${id}`, data),
+  deleteSlideObject: (id) => api.delete(`/slideshows/admin/slide-objects/${id}`),
+  reorderSlideObjects: (objectIds) =>
+    api.put("/slideshows/admin/slide-objects/reorder", objectIds),
+
+  // NEW: Admin slide background video endpoints
+  createSlideBackgroundVideo: (data) =>
+    api.post("/slideshows/admin/slide-background-videos", data),
+  updateSlideBackgroundVideo: (id, data) =>
+    api.put(`/slideshows/admin/slide-background-videos/${id}`, data),
+  deleteSlideBackgroundVideo: (id) =>
+    api.delete(`/slideshows/admin/slide-background-videos/${id}`),
+  reorderSlideBackgroundVideos: (videoIds) =>
+    api.put("/slideshows/admin/slide-background-videos/reorder", videoIds),
+
   // Admin shared video endpoints
   getAllVideosAdmin: () => api.get("/slideshows/admin/videos"),
   createVideo: (data) => api.post("/slideshows/admin/videos", data),

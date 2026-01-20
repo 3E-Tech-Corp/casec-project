@@ -45,6 +45,11 @@ public class SlideShowsController : ControllerBase
                     .ThenInclude(sl => sl.Images.OrderBy(i => i.DisplayOrder))
                 .Include(s => s.Slides)
                     .ThenInclude(sl => sl.Texts.OrderBy(t => t.DisplayOrder))
+                .Include(s => s.Slides)
+                    .ThenInclude(sl => sl.Objects.OrderBy(o => o.SortOrder))
+                .Include(s => s.Slides)
+                    .ThenInclude(sl => sl.BackgroundVideos.OrderBy(bv => bv.SortOrder))
+                        .ThenInclude(bv => bv.Video)
                 .Include(s => s.CreatedByUser)
                 .FirstOrDefaultAsync(s => s.Code == code && s.IsActive);
 
@@ -87,6 +92,11 @@ public class SlideShowsController : ControllerBase
                     .ThenInclude(sl => sl.Images.OrderBy(i => i.DisplayOrder))
                 .Include(s => s.Slides)
                     .ThenInclude(sl => sl.Texts.OrderBy(t => t.DisplayOrder))
+                .Include(s => s.Slides)
+                    .ThenInclude(sl => sl.Objects.OrderBy(o => o.SortOrder))
+                .Include(s => s.Slides)
+                    .ThenInclude(sl => sl.BackgroundVideos.OrderBy(bv => bv.SortOrder))
+                        .ThenInclude(bv => bv.Video)
                 .Include(s => s.CreatedByUser)
                 .FirstOrDefaultAsync(s => s.SlideShowId == id && s.IsActive);
 
@@ -267,6 +277,11 @@ public class SlideShowsController : ControllerBase
                     .ThenInclude(sl => sl.Images.OrderBy(i => i.DisplayOrder))
                 .Include(s => s.Slides)
                     .ThenInclude(sl => sl.Texts.OrderBy(t => t.DisplayOrder))
+                .Include(s => s.Slides)
+                    .ThenInclude(sl => sl.Objects.OrderBy(o => o.SortOrder))
+                .Include(s => s.Slides)
+                    .ThenInclude(sl => sl.BackgroundVideos.OrderBy(bv => bv.SortOrder))
+                        .ThenInclude(bv => bv.Video)
                 .Include(s => s.CreatedByUser)
                 .FirstOrDefaultAsync(s => s.SlideShowId == id);
 
@@ -474,6 +489,12 @@ public class SlideShowsController : ControllerBase
                 SlideShowId = request.SlideShowId,
                 DisplayOrder = request.DisplayOrder,
                 Duration = request.Duration,
+                // NEW: Background settings
+                BackgroundType = request.BackgroundType,
+                BackgroundColor = request.BackgroundColor,
+                BackgroundImageUrl = request.BackgroundImageUrl,
+                UseRandomHeroVideos = request.UseRandomHeroVideos,
+                // Legacy fields
                 VideoUrl = request.VideoUrl,
                 UseRandomVideo = request.UseRandomVideo,
                 Layout = request.Layout,
@@ -539,6 +560,12 @@ public class SlideShowsController : ControllerBase
 
             slide.DisplayOrder = request.DisplayOrder;
             slide.Duration = request.Duration;
+            // NEW: Background settings
+            slide.BackgroundType = request.BackgroundType;
+            slide.BackgroundColor = request.BackgroundColor;
+            slide.BackgroundImageUrl = request.BackgroundImageUrl;
+            slide.UseRandomHeroVideos = request.UseRandomHeroVideos;
+            // Legacy fields
             slide.VideoUrl = request.VideoUrl;
             slide.UseRandomVideo = request.UseRandomVideo;
             slide.Layout = request.Layout;
@@ -957,6 +984,376 @@ public class SlideShowsController : ControllerBase
             {
                 Success = false,
                 Message = "An error occurred while deleting slide text"
+            });
+        }
+    }
+
+    // ============ ADMIN SLIDE OBJECT ENDPOINTS (NEW OO System) ============
+
+    // POST: /slideshows/admin/slide-objects
+    // Add an object to a slide
+    [HttpPost("admin/slide-objects")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<SlideObjectDto>>> CreateSlideObject([FromBody] CreateSlideObjectRequest request)
+    {
+        try
+        {
+            var slide = await _context.Slides.FindAsync(request.SlideId);
+            if (slide == null)
+            {
+                return NotFound(new ApiResponse<SlideObjectDto>
+                {
+                    Success = false,
+                    Message = "Slide not found"
+                });
+            }
+
+            var slideObject = new SlideObject
+            {
+                SlideId = request.SlideId,
+                ObjectType = request.ObjectType,
+                SortOrder = request.SortOrder,
+                HorizontalAlign = request.HorizontalAlign,
+                VerticalAlign = request.VerticalAlign,
+                OffsetX = request.OffsetX,
+                OffsetY = request.OffsetY,
+                AnimationIn = request.AnimationIn,
+                AnimationInDelay = request.AnimationInDelay,
+                AnimationInDuration = request.AnimationInDuration,
+                AnimationOut = request.AnimationOut,
+                AnimationOutDelay = request.AnimationOutDelay,
+                AnimationOutDuration = request.AnimationOutDuration,
+                StayOnScreen = request.StayOnScreen,
+                Properties = request.Properties
+            };
+
+            _context.SlideObjects.Add(slideObject);
+            slide.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<SlideObjectDto>
+            {
+                Success = true,
+                Message = "Object added to slide successfully",
+                Data = MapToSlideObjectDto(slideObject)
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding object to slide");
+            return StatusCode(500, new ApiResponse<SlideObjectDto>
+            {
+                Success = false,
+                Message = "An error occurred while adding object"
+            });
+        }
+    }
+
+    // PUT: /slideshows/admin/slide-objects/{id}
+    // Update a slide object
+    [HttpPut("admin/slide-objects/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<SlideObjectDto>>> UpdateSlideObject(int id, [FromBody] UpdateSlideObjectRequest request)
+    {
+        try
+        {
+            var slideObject = await _context.SlideObjects.FindAsync(id);
+            if (slideObject == null)
+            {
+                return NotFound(new ApiResponse<SlideObjectDto>
+                {
+                    Success = false,
+                    Message = "Slide object not found"
+                });
+            }
+
+            slideObject.ObjectType = request.ObjectType;
+            slideObject.SortOrder = request.SortOrder;
+            slideObject.HorizontalAlign = request.HorizontalAlign;
+            slideObject.VerticalAlign = request.VerticalAlign;
+            slideObject.OffsetX = request.OffsetX;
+            slideObject.OffsetY = request.OffsetY;
+            slideObject.AnimationIn = request.AnimationIn;
+            slideObject.AnimationInDelay = request.AnimationInDelay;
+            slideObject.AnimationInDuration = request.AnimationInDuration;
+            slideObject.AnimationOut = request.AnimationOut;
+            slideObject.AnimationOutDelay = request.AnimationOutDelay;
+            slideObject.AnimationOutDuration = request.AnimationOutDuration;
+            slideObject.StayOnScreen = request.StayOnScreen;
+            slideObject.Properties = request.Properties;
+            slideObject.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<SlideObjectDto>
+            {
+                Success = true,
+                Message = "Slide object updated successfully",
+                Data = MapToSlideObjectDto(slideObject)
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating slide object {Id}", id);
+            return StatusCode(500, new ApiResponse<SlideObjectDto>
+            {
+                Success = false,
+                Message = "An error occurred while updating slide object"
+            });
+        }
+    }
+
+    // DELETE: /slideshows/admin/slide-objects/{id}
+    // Delete a slide object
+    [HttpDelete("admin/slide-objects/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteSlideObject(int id)
+    {
+        try
+        {
+            var slideObject = await _context.SlideObjects.FindAsync(id);
+            if (slideObject == null)
+            {
+                return NotFound(new ApiResponse<bool>
+                {
+                    Success = false,
+                    Message = "Slide object not found"
+                });
+            }
+
+            _context.SlideObjects.Remove(slideObject);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<bool>
+            {
+                Success = true,
+                Message = "Slide object deleted successfully",
+                Data = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting slide object {Id}", id);
+            return StatusCode(500, new ApiResponse<bool>
+            {
+                Success = false,
+                Message = "An error occurred while deleting slide object"
+            });
+        }
+    }
+
+    // PUT: /slideshows/admin/slide-objects/reorder
+    // Reorder objects within a slide
+    [HttpPut("admin/slide-objects/reorder")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<bool>>> ReorderSlideObjects([FromBody] List<int> objectIds)
+    {
+        try
+        {
+            for (int i = 0; i < objectIds.Count; i++)
+            {
+                var obj = await _context.SlideObjects.FindAsync(objectIds[i]);
+                if (obj != null)
+                {
+                    obj.SortOrder = i;
+                    obj.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<bool>
+            {
+                Success = true,
+                Message = "Objects reordered successfully",
+                Data = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reordering slide objects");
+            return StatusCode(500, new ApiResponse<bool>
+            {
+                Success = false,
+                Message = "An error occurred while reordering objects"
+            });
+        }
+    }
+
+    // ============ ADMIN SLIDE BACKGROUND VIDEO ENDPOINTS ============
+
+    // POST: /slideshows/admin/slide-background-videos
+    // Add a background video to a slide
+    [HttpPost("admin/slide-background-videos")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<SlideBackgroundVideoDto>>> CreateSlideBackgroundVideo([FromBody] CreateSlideBackgroundVideoRequest request)
+    {
+        try
+        {
+            var slide = await _context.Slides.FindAsync(request.SlideId);
+            if (slide == null)
+            {
+                return NotFound(new ApiResponse<SlideBackgroundVideoDto>
+                {
+                    Success = false,
+                    Message = "Slide not found"
+                });
+            }
+
+            var bgVideo = new SlideBackgroundVideo
+            {
+                SlideId = request.SlideId,
+                VideoId = request.VideoId,
+                VideoUrl = request.VideoUrl,
+                Duration = request.Duration,
+                SortOrder = request.SortOrder,
+                UseRandom = request.UseRandom
+            };
+
+            _context.SlideBackgroundVideos.Add(bgVideo);
+            slide.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            // Reload with video info
+            await _context.Entry(bgVideo).Reference(b => b.Video).LoadAsync();
+
+            return Ok(new ApiResponse<SlideBackgroundVideoDto>
+            {
+                Success = true,
+                Message = "Background video added successfully",
+                Data = MapToSlideBackgroundVideoDto(bgVideo)
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding background video to slide");
+            return StatusCode(500, new ApiResponse<SlideBackgroundVideoDto>
+            {
+                Success = false,
+                Message = "An error occurred while adding background video"
+            });
+        }
+    }
+
+    // PUT: /slideshows/admin/slide-background-videos/{id}
+    // Update a slide background video
+    [HttpPut("admin/slide-background-videos/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<SlideBackgroundVideoDto>>> UpdateSlideBackgroundVideo(int id, [FromBody] UpdateSlideBackgroundVideoRequest request)
+    {
+        try
+        {
+            var bgVideo = await _context.SlideBackgroundVideos
+                .Include(b => b.Video)
+                .FirstOrDefaultAsync(b => b.SlideBackgroundVideoId == id);
+
+            if (bgVideo == null)
+            {
+                return NotFound(new ApiResponse<SlideBackgroundVideoDto>
+                {
+                    Success = false,
+                    Message = "Background video not found"
+                });
+            }
+
+            bgVideo.VideoId = request.VideoId;
+            bgVideo.VideoUrl = request.VideoUrl;
+            bgVideo.Duration = request.Duration;
+            bgVideo.SortOrder = request.SortOrder;
+            bgVideo.UseRandom = request.UseRandom;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<SlideBackgroundVideoDto>
+            {
+                Success = true,
+                Message = "Background video updated successfully",
+                Data = MapToSlideBackgroundVideoDto(bgVideo)
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating background video {Id}", id);
+            return StatusCode(500, new ApiResponse<SlideBackgroundVideoDto>
+            {
+                Success = false,
+                Message = "An error occurred while updating background video"
+            });
+        }
+    }
+
+    // DELETE: /slideshows/admin/slide-background-videos/{id}
+    // Delete a slide background video
+    [HttpDelete("admin/slide-background-videos/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteSlideBackgroundVideo(int id)
+    {
+        try
+        {
+            var bgVideo = await _context.SlideBackgroundVideos.FindAsync(id);
+            if (bgVideo == null)
+            {
+                return NotFound(new ApiResponse<bool>
+                {
+                    Success = false,
+                    Message = "Background video not found"
+                });
+            }
+
+            _context.SlideBackgroundVideos.Remove(bgVideo);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<bool>
+            {
+                Success = true,
+                Message = "Background video deleted successfully",
+                Data = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting background video {Id}", id);
+            return StatusCode(500, new ApiResponse<bool>
+            {
+                Success = false,
+                Message = "An error occurred while deleting background video"
+            });
+        }
+    }
+
+    // PUT: /slideshows/admin/slide-background-videos/reorder
+    // Reorder background videos within a slide
+    [HttpPut("admin/slide-background-videos/reorder")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<bool>>> ReorderSlideBackgroundVideos([FromBody] List<int> videoIds)
+    {
+        try
+        {
+            for (int i = 0; i < videoIds.Count; i++)
+            {
+                var video = await _context.SlideBackgroundVideos.FindAsync(videoIds[i]);
+                if (video != null)
+                {
+                    video.SortOrder = i;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<bool>
+            {
+                Success = true,
+                Message = "Background videos reordered successfully",
+                Data = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reordering background videos");
+            return StatusCode(500, new ApiResponse<bool>
+            {
+                Success = false,
+                Message = "An error occurred while reordering background videos"
             });
         }
     }
@@ -1546,6 +1943,12 @@ public class SlideShowsController : ControllerBase
             SlideShowId = slide.SlideShowId,
             DisplayOrder = slide.DisplayOrder,
             Duration = slide.Duration,
+            // NEW: Background settings
+            BackgroundType = slide.BackgroundType,
+            BackgroundColor = slide.BackgroundColor,
+            BackgroundImageUrl = slide.BackgroundImageUrl,
+            UseRandomHeroVideos = slide.UseRandomHeroVideos,
+            // Legacy fields
             VideoUrl = slide.VideoUrl,
             UseRandomVideo = slide.UseRandomVideo,
             Layout = slide.Layout,
@@ -1564,8 +1967,12 @@ public class SlideShowsController : ControllerBase
             SubtitleDelay = slide.SubtitleDelay,
             SubtitleSize = slide.SubtitleSize,
             SubtitleColor = slide.SubtitleColor,
+            // Legacy collections
             Images = slide.Images?.Select(MapToSlideImageDto).ToList() ?? new List<SlideImageDto>(),
-            Texts = slide.Texts?.Select(MapToSlideTextDto).ToList() ?? new List<SlideTextDto>()
+            Texts = slide.Texts?.Select(MapToSlideTextDto).ToList() ?? new List<SlideTextDto>(),
+            // NEW: Object-oriented collections
+            Objects = slide.Objects?.Select(MapToSlideObjectDto).ToList() ?? new List<SlideObjectDto>(),
+            BackgroundVideos = slide.BackgroundVideos?.Select(MapToSlideBackgroundVideoDto).ToList() ?? new List<SlideBackgroundVideoDto>()
         };
     }
 
@@ -1605,6 +2012,55 @@ public class SlideShowsController : ControllerBase
             Animation = text.Animation,
             Duration = text.Duration,
             Delay = text.Delay
+        };
+    }
+
+    private SlideObjectDto MapToSlideObjectDto(SlideObject obj)
+    {
+        return new SlideObjectDto
+        {
+            SlideObjectId = obj.SlideObjectId,
+            SlideId = obj.SlideId,
+            ObjectType = obj.ObjectType,
+            SortOrder = obj.SortOrder,
+            HorizontalAlign = obj.HorizontalAlign,
+            VerticalAlign = obj.VerticalAlign,
+            OffsetX = obj.OffsetX,
+            OffsetY = obj.OffsetY,
+            AnimationIn = obj.AnimationIn,
+            AnimationInDelay = obj.AnimationInDelay,
+            AnimationInDuration = obj.AnimationInDuration,
+            AnimationOut = obj.AnimationOut,
+            AnimationOutDelay = obj.AnimationOutDelay,
+            AnimationOutDuration = obj.AnimationOutDuration,
+            StayOnScreen = obj.StayOnScreen,
+            Properties = obj.Properties,
+            CreatedAt = obj.CreatedAt,
+            UpdatedAt = obj.UpdatedAt
+        };
+    }
+
+    private SlideBackgroundVideoDto MapToSlideBackgroundVideoDto(SlideBackgroundVideo bgVideo)
+    {
+        return new SlideBackgroundVideoDto
+        {
+            SlideBackgroundVideoId = bgVideo.SlideBackgroundVideoId,
+            SlideId = bgVideo.SlideId,
+            VideoId = bgVideo.VideoId,
+            VideoUrl = bgVideo.VideoUrl,
+            Duration = bgVideo.Duration,
+            SortOrder = bgVideo.SortOrder,
+            UseRandom = bgVideo.UseRandom,
+            Video = bgVideo.Video != null ? new SharedVideoDto
+            {
+                VideoId = bgVideo.Video.VideoId,
+                Url = bgVideo.Video.Url,
+                Title = bgVideo.Video.Title,
+                ThumbnailUrl = bgVideo.Video.ThumbnailUrl,
+                Category = bgVideo.Video.Category,
+                IsActive = bgVideo.Video.IsActive,
+                DisplayOrder = bgVideo.Video.DisplayOrder
+            } : null
         };
     }
 }

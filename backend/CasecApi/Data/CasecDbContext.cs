@@ -62,6 +62,10 @@ public class CasecDbContext : DbContext
     public DbSet<SharedVideo> SharedVideos { get; set; }
     public DbSet<SharedImage> SharedImages { get; set; }
 
+    // NEW: Object-oriented slide entities
+    public DbSet<SlideObject> SlideObjects { get; set; }
+    public DbSet<SlideBackgroundVideo> SlideBackgroundVideos { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

@@ -1246,7 +1246,21 @@ public class Slide
 
     public int Duration { get; set; } = 5000; // Total slide duration in ms
 
-    // Video background
+    // ========== NEW: Background Settings (Object-Oriented Approach) ==========
+    // Background type: none, color, image, heroVideos
+    [MaxLength(20)]
+    public string BackgroundType { get; set; } = "heroVideos";
+
+    [MaxLength(50)]
+    public string? BackgroundColor { get; set; } // Used when BackgroundType = "color"
+
+    [MaxLength(500)]
+    public string? BackgroundImageUrl { get; set; } // Used when BackgroundType = "image"
+
+    // If true, ignore SlideBackgroundVideos and pick random videos from shared pool
+    public bool UseRandomHeroVideos { get; set; } = false;
+
+    // ========== LEGACY: Video background (kept for backwards compatibility) ==========
     [MaxLength(500)]
     public string? VideoUrl { get; set; } // Specific video URL, or null to use random from pool
 
@@ -1306,8 +1320,13 @@ public class Slide
     [ForeignKey("SlideShowId")]
     public virtual SlideShow? SlideShow { get; set; }
 
+    // Legacy collections (kept for backwards compatibility)
     public virtual ICollection<SlideImage> Images { get; set; } = new List<SlideImage>();
     public virtual ICollection<SlideText> Texts { get; set; } = new List<SlideText>();
+
+    // NEW: Object-oriented collections
+    public virtual ICollection<SlideObject> Objects { get; set; } = new List<SlideObject>();
+    public virtual ICollection<SlideBackgroundVideo> BackgroundVideos { get; set; } = new List<SlideBackgroundVideo>();
 }
 
 // SlideImage Entity - Images displayed within a slide
@@ -1460,4 +1479,99 @@ public class SharedImage
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
+// SlideObject Entity - Unified object for Text, Image, or Video on a slide
+// This is the new object-oriented approach for slide content
+public class SlideObject
+{
+    [Key]
+    public int SlideObjectId { get; set; }
+
+    [Required]
+    public int SlideId { get; set; }
+
+    // Object type: "text", "image", "video"
+    [Required]
+    [MaxLength(20)]
+    public string ObjectType { get; set; } = "text";
+
+    public int SortOrder { get; set; } = 0;
+
+    // Position - horizontal and vertical alignment
+    [MaxLength(20)]
+    public string HorizontalAlign { get; set; } = "center"; // left, center, right
+
+    [MaxLength(20)]
+    public string VerticalAlign { get; set; } = "middle"; // top, middle, bottom
+
+    // Position offsets in pixels (can be negative)
+    public int OffsetX { get; set; } = 0;
+    public int OffsetY { get; set; } = 0;
+
+    // Animation In (entry animation)
+    [MaxLength(50)]
+    public string AnimationIn { get; set; } = "fadeIn";
+
+    public int AnimationInDelay { get; set; } = 0; // ms from slide start
+
+    public int AnimationInDuration { get; set; } = 500; // ms
+
+    // Animation Out (exit animation) - null means stay on screen
+    [MaxLength(50)]
+    public string? AnimationOut { get; set; }
+
+    public int? AnimationOutDelay { get; set; } // ms from slide start when exit begins
+
+    public int? AnimationOutDuration { get; set; } // ms
+
+    public bool StayOnScreen { get; set; } = true; // if true, no exit animation
+
+    // Type-specific properties stored as JSON
+    // Text: { "content": "", "fontSize": "large", "fontWeight": "bold", "fontFamily": "", "color": "#fff", "backgroundColor": "", "textAlign": "center", "maxWidth": 800 }
+    // Image: { "imageUrl": "", "size": "medium", "objectFit": "cover", "borderRadius": "rounded-lg", "shadow": "", "opacity": 100 }
+    // Video: { "videoUrl": "", "size": "medium", "autoPlay": true, "muted": true, "loop": true, "showControls": false, "borderRadius": "rounded-lg" }
+    public string? Properties { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("SlideId")]
+    public virtual Slide? Slide { get; set; }
+}
+
+// SlideBackgroundVideo Entity - Hero videos for a slide's background sequence
+public class SlideBackgroundVideo
+{
+    [Key]
+    public int SlideBackgroundVideoId { get; set; }
+
+    [Required]
+    public int SlideId { get; set; }
+
+    // Reference to SharedVideo (optional - can use direct URL instead)
+    public int? VideoId { get; set; }
+
+    // Direct video URL if not using SharedVideo reference
+    [MaxLength(500)]
+    public string? VideoUrl { get; set; }
+
+    // How long to display this video before moving to next (in ms)
+    public int Duration { get; set; } = 5000;
+
+    public int SortOrder { get; set; } = 0;
+
+    // If true, pick a random video from the shared pool for this slot
+    public bool UseRandom { get; set; } = false;
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("SlideId")]
+    public virtual Slide? Slide { get; set; }
+
+    [ForeignKey("VideoId")]
+    public virtual SharedVideo? Video { get; set; }
 }
