@@ -32,6 +32,13 @@ export default function AdminSlideShows() {
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [toast, setToast] = useState(null); // { type: 'success' | 'error', message: string }
+
+  // Show toast notification
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   // Copy share link to clipboard
   const copyShareLink = async (code) => {
@@ -175,13 +182,14 @@ export default function AdminSlideShows() {
         if (selectedShow) {
           loadSlideShowDetails(selectedShow.slideShowId);
         }
+        showToast('success', 'SlideShow saved successfully!');
       } else {
-        alert(response.message || 'Failed to save slideshow');
+        showToast('error', response.message || 'Failed to save slideshow');
       }
     } catch (err) {
       console.error('Save slideshow error:', err);
       const errorMsg = err.response?.data?.message || err.message || 'Please try again';
-      alert('Error saving slideshow: ' + errorMsg);
+      showToast('error', 'Error saving slideshow: ' + errorMsg);
     } finally {
       setSaving(false);
     }
@@ -195,9 +203,10 @@ export default function AdminSlideShows() {
       if (response.success) {
         setSelectedShow(null);
         loadSlideShows();
+        showToast('success', 'SlideShow deleted');
       }
     } catch (err) {
-      alert('Error deleting slideshow');
+      showToast('error', 'Error deleting slideshow');
     }
   };
 
@@ -224,9 +233,10 @@ export default function AdminSlideShows() {
 
       if (response.success) {
         loadSlideShowDetails(selectedShow.slideShowId);
+        showToast('success', 'Slide added');
       }
     } catch (err) {
-      alert('Error adding slide');
+      showToast('error', 'Error adding slide');
     }
   };
 
@@ -237,12 +247,13 @@ export default function AdminSlideShows() {
       console.log('updateSlide response:', response);
       if (response.success) {
         loadSlideShowDetails(selectedShow.slideShowId);
+        showToast('success', 'Slide saved!');
       } else {
-        alert(response.message || 'Failed to update slide');
+        showToast('error', response.message || 'Failed to update slide');
       }
     } catch (err) {
       console.error('updateSlide error:', err);
-      alert('Error updating slide: ' + (err.response?.data?.message || err.message));
+      showToast('error', 'Error updating slide: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -253,9 +264,10 @@ export default function AdminSlideShows() {
       const response = await slideShowsAPI.deleteSlide(slideId);
       if (response.success) {
         loadSlideShowDetails(selectedShow.slideShowId);
+        showToast('success', 'Slide deleted');
       }
     } catch (err) {
-      alert('Error deleting slide');
+      showToast('error', 'Error deleting slide');
     }
   };
 
@@ -269,6 +281,25 @@ export default function AdminSlideShows() {
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in ${
+          toast.type === 'success'
+            ? 'bg-green-500 text-white'
+            : 'bg-red-500 text-white'
+        }`}>
+          {toast.type === 'success' ? (
+            <Check className="w-5 h-5" />
+          ) : (
+            <X className="w-5 h-5" />
+          )}
+          <span className="font-medium">{toast.message}</span>
+          <button onClick={() => setToast(null)} className="ml-2 hover:opacity-80">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-display font-bold text-gray-900">SlideShows</h1>
@@ -426,6 +457,7 @@ export default function AdminSlideShows() {
                         onUpdate={(data) => handleUpdateSlide(slide.slideId, data)}
                         onDelete={() => handleDeleteSlide(slide.slideId)}
                         onRefresh={() => loadSlideShowDetails(selectedShow.slideShowId)}
+                        onToast={showToast}
                         isExpanded={editingSlide === slide.slideId}
                         onToggle={() => setEditingSlide(
                           editingSlide === slide.slideId ? null : slide.slideId
@@ -622,7 +654,7 @@ export default function AdminSlideShows() {
 }
 
 // Slide Editor Component
-function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDelete, onRefresh, isExpanded, onToggle }) {
+function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDelete, onRefresh, onToast, isExpanded, onToggle }) {
   const [localData, setLocalData] = useState(slide);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [savingImage, setSavingImage] = useState(false);
@@ -679,11 +711,12 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
       if (response.success) {
         setShowImagePicker(false);
         onRefresh?.();
+        onToast?.('success', 'Image added');
       } else {
-        alert(response.message || 'Failed to add image');
+        onToast?.('error', response.message || 'Failed to add image');
       }
     } catch (err) {
-      alert('Error adding image: ' + (err.message || 'Please try again'));
+      onToast?.('error', 'Error adding image: ' + (err.message || 'Please try again'));
     } finally {
       setSavingImage(false);
     }
@@ -695,9 +728,10 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
       const response = await slideShowsAPI.updateSlideImage(imageId, data);
       if (response.success) {
         onRefresh?.();
+        onToast?.('success', 'Image updated');
       }
     } catch (err) {
-      alert('Error updating image');
+      onToast?.('error', 'Error updating image');
     }
   };
 
@@ -708,9 +742,10 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
       const response = await slideShowsAPI.deleteSlideImage(imageId);
       if (response.success) {
         onRefresh?.();
+        onToast?.('success', 'Image removed');
       }
     } catch (err) {
-      alert('Error removing image');
+      onToast?.('error', 'Error removing image');
     }
   };
 
@@ -733,11 +768,12 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
       if (response.success) {
         setShowTextForm(false);
         onRefresh?.();
+        onToast?.('success', 'Text added');
       } else {
-        alert(response.message || 'Failed to add text');
+        onToast?.('error', response.message || 'Failed to add text');
       }
     } catch (err) {
-      alert('Error adding text: ' + (err.message || 'Please try again'));
+      onToast?.('error', 'Error adding text: ' + (err.message || 'Please try again'));
     } finally {
       setSavingText(false);
     }
@@ -749,9 +785,10 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
       const response = await slideShowsAPI.updateSlideText(textId, data);
       if (response.success) {
         onRefresh?.();
+        onToast?.('success', 'Text updated');
       }
     } catch (err) {
-      alert('Error updating text');
+      onToast?.('error', 'Error updating text');
     }
   };
 
@@ -762,9 +799,10 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
       const response = await slideShowsAPI.deleteSlideText(textId);
       if (response.success) {
         onRefresh?.();
+        onToast?.('success', 'Text removed');
       }
     } catch (err) {
-      alert('Error removing text');
+      onToast?.('error', 'Error removing text');
     }
   };
 
