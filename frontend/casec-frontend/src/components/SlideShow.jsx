@@ -249,7 +249,7 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
 
       {/* Content - SlideObjects */}
       <div className="absolute inset-0">
-        {currentSlide?.slideObjects?.map((obj, objIndex) => (
+        {currentSlide?.objects?.map((obj, objIndex) => (
           <SlideObject
             key={obj.slideObjectId || objIndex}
             object={obj}
@@ -258,7 +258,7 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
         ))}
 
         {/* Legacy support: Title */}
-        {currentSlide?.titleText && !currentSlide?.slideObjects?.length && (
+        {currentSlide?.titleText && !currentSlide?.objects?.length && (
           <div className={`absolute inset-0 flex flex-col ${getLayoutClasses()}`}>
             <div className="max-w-4xl px-6">
               <h1
