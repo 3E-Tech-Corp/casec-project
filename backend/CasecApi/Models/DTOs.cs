@@ -1042,18 +1042,6 @@ public class SlideDto
     public string OverlayType { get; set; } = "dark";
     public string? OverlayColor { get; set; }
     public int OverlayOpacity { get; set; }
-    public string? TitleText { get; set; }
-    public string TitleAnimation { get; set; } = "fadeIn";
-    public int TitleDuration { get; set; }
-    public int TitleDelay { get; set; }
-    public string? TitleSize { get; set; }
-    public string? TitleColor { get; set; }
-    public string? SubtitleText { get; set; }
-    public string SubtitleAnimation { get; set; } = "fadeIn";
-    public int SubtitleDuration { get; set; }
-    public int SubtitleDelay { get; set; }
-    public string? SubtitleSize { get; set; }
-    public string? SubtitleColor { get; set; }
 
     // Legacy collections
     public List<SlideImageDto> Images { get; set; } = new();
@@ -1084,18 +1072,6 @@ public class CreateSlideRequest
     public string OverlayType { get; set; } = "dark";
     public string? OverlayColor { get; set; }
     public int OverlayOpacity { get; set; } = 50;
-    public string? TitleText { get; set; }
-    public string TitleAnimation { get; set; } = "fadeIn";
-    public int TitleDuration { get; set; } = 800;
-    public int TitleDelay { get; set; } = 500;
-    public string? TitleSize { get; set; } = "large";
-    public string? TitleColor { get; set; }
-    public string? SubtitleText { get; set; }
-    public string SubtitleAnimation { get; set; } = "fadeIn";
-    public int SubtitleDuration { get; set; } = 600;
-    public int SubtitleDelay { get; set; } = 1200;
-    public string? SubtitleSize { get; set; } = "medium";
-    public string? SubtitleColor { get; set; }
 }
 
 public class UpdateSlideRequest
@@ -1117,18 +1093,6 @@ public class UpdateSlideRequest
     public string OverlayType { get; set; } = "dark";
     public string? OverlayColor { get; set; }
     public int OverlayOpacity { get; set; }
-    public string? TitleText { get; set; }
-    public string TitleAnimation { get; set; } = "fadeIn";
-    public int TitleDuration { get; set; }
-    public int TitleDelay { get; set; }
-    public string? TitleSize { get; set; }
-    public string? TitleColor { get; set; }
-    public string? SubtitleText { get; set; }
-    public string SubtitleAnimation { get; set; } = "fadeIn";
-    public int SubtitleDuration { get; set; }
-    public int SubtitleDelay { get; set; }
-    public string? SubtitleSize { get; set; }
-    public string? SubtitleColor { get; set; }
 }
 
 // SlideImage DTOs

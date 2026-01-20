@@ -1278,37 +1278,48 @@ public class Slide
 
     public int OverlayOpacity { get; set; } = 50; // 0-100
 
-    // Title configuration
+    // ========== LEGACY: Title/Subtitle (use SlideObjects with ObjectType="text" instead) ==========
+    [Obsolete("Use SlideObjects with ObjectType='text' instead")]
     [MaxLength(500)]
     public string? TitleText { get; set; }
 
+    [Obsolete("Use SlideObjects with ObjectType='text' instead")]
     [MaxLength(50)]
-    public string TitleAnimation { get; set; } = "fadeIn"; // fadeIn, slideUp, slideDown, typewriter, zoomIn
+    public string TitleAnimation { get; set; } = "fadeIn";
 
-    public int TitleDuration { get; set; } = 800; // Animation duration in ms
+    [Obsolete("Use SlideObjects with ObjectType='text' instead")]
+    public int TitleDuration { get; set; } = 800;
 
-    public int TitleDelay { get; set; } = 500; // Delay before animation starts
+    [Obsolete("Use SlideObjects with ObjectType='text' instead")]
+    public int TitleDelay { get; set; } = 500;
 
+    [Obsolete("Use SlideObjects with ObjectType='text' instead")]
     [MaxLength(20)]
-    public string? TitleSize { get; set; } = "large"; // small, medium, large, xlarge
+    public string? TitleSize { get; set; } = "large";
 
+    [Obsolete("Use SlideObjects with ObjectType='text' instead")]
     [MaxLength(50)]
-    public string? TitleColor { get; set; } // Custom color (optional)
+    public string? TitleColor { get; set; }
 
-    // Subtitle configuration
+    [Obsolete("Use SlideObjects with ObjectType='text' instead")]
     [MaxLength(500)]
     public string? SubtitleText { get; set; }
 
+    [Obsolete("Use SlideObjects with ObjectType='text' instead")]
     [MaxLength(50)]
     public string SubtitleAnimation { get; set; } = "fadeIn";
 
+    [Obsolete("Use SlideObjects with ObjectType='text' instead")]
     public int SubtitleDuration { get; set; } = 600;
 
+    [Obsolete("Use SlideObjects with ObjectType='text' instead")]
     public int SubtitleDelay { get; set; } = 1200;
 
+    [Obsolete("Use SlideObjects with ObjectType='text' instead")]
     [MaxLength(20)]
     public string? SubtitleSize { get; set; } = "medium";
 
+    [Obsolete("Use SlideObjects with ObjectType='text' instead")]
     [MaxLength(50)]
     public string? SubtitleColor { get; set; }
 

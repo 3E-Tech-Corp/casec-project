@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { slideShowsAPI, getAssetUrl } from '../../services/api';
 import SlideShowPreview from '../../components/SlideShow';
+import SlideObjectEditor from '../../components/admin/SlideObjectEditor';
 
 // Animation options
 const ANIMATIONS = ['fadeIn', 'slideUp', 'slideDown', 'zoomIn', 'typewriter'];
@@ -18,8 +19,6 @@ const TEXT_SIZES = ['small', 'medium', 'large', 'xlarge'];
 const ORIENTATIONS = ['auto', 'portrait', 'landscape'];
 const HORIZONTAL_POSITIONS = ['left', 'center', 'right'];
 const VERTICAL_POSITIONS = ['top', 'center', 'bottom'];
-const TITLE_SIZES = ['small', 'medium', 'large', 'xlarge'];
-const SUBTITLE_SIZES = ['small', 'medium', 'large'];
 
 export default function AdminSlideShows() {
   const [slideShows, setSlideShows] = useState([]);
@@ -221,14 +220,7 @@ export default function AdminSlideShows() {
         useRandomVideo: true,
         layout: 'center',
         overlayType: 'dark',
-        overlayOpacity: 50,
-        titleText: 'New Slide',
-        titleAnimation: 'fadeIn',
-        titleDuration: 800,
-        titleDelay: 500,
-        subtitleAnimation: 'fadeIn',
-        subtitleDuration: 600,
-        subtitleDelay: 1200
+        overlayOpacity: 50
       });
 
       if (response.success) {
@@ -676,18 +668,6 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
       overlayType: localData.overlayType,
       overlayColor: localData.overlayColor,
       overlayOpacity: localData.overlayOpacity,
-      titleText: localData.titleText,
-      titleAnimation: localData.titleAnimation,
-      titleDuration: localData.titleDuration,
-      titleDelay: localData.titleDelay,
-      titleSize: localData.titleSize,
-      titleColor: localData.titleColor,
-      subtitleText: localData.subtitleText,
-      subtitleAnimation: localData.subtitleAnimation,
-      subtitleDuration: localData.subtitleDuration,
-      subtitleDelay: localData.subtitleDelay,
-      subtitleSize: localData.subtitleSize,
-      subtitleColor: localData.subtitleColor,
     };
     console.log('SlideEditor handleSave called with:', updateData);
     onUpdate(updateData);
@@ -817,7 +797,7 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
           <GripVertical className="w-4 h-4 text-gray-400" />
           <span className="font-medium">Slide {index + 1}</span>
           <span className="text-sm text-gray-500">
-            {localData.titleText || 'Untitled'}
+            {slide.objects?.length || 0} objects
           </span>
         </div>
         <div className="flex items-center space-x-2">
@@ -918,161 +898,17 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
             )}
           </div>
 
-          {/* Title */}
-          <div className="border-t pt-4">
-            <h4 className="text-sm font-medium mb-2">Title</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="col-span-2">
-                <label className="block text-xs text-gray-500 mb-1">Text</label>
-                <input
-                  type="text"
-                  className="input w-full text-sm"
-                  placeholder="Title text"
-                  value={localData.titleText || ''}
-                  onChange={(e) => setLocalData({ ...localData, titleText: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Animation</label>
-                <select
-                  className="input w-full text-sm"
-                  value={localData.titleAnimation}
-                  onChange={(e) => setLocalData({ ...localData, titleAnimation: e.target.value })}
-                >
-                  {ANIMATIONS.map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Size</label>
-                <select
-                  className="input w-full text-sm"
-                  value={localData.titleSize || 'large'}
-                  onChange={(e) => setLocalData({ ...localData, titleSize: e.target.value })}
-                >
-                  {TITLE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
-              <div className="flex space-x-2">
-                <div className="flex-1">
-                  <label className="block text-xs text-gray-500 mb-1">Duration</label>
-                  <input
-                    type="number"
-                    className="input w-full text-sm"
-                    value={localData.titleDuration}
-                    onChange={(e) => setLocalData({ ...localData, titleDuration: parseInt(e.target.value) || 800 })}
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-xs text-gray-500 mb-1">Delay</label>
-                  <input
-                    type="number"
-                    className="input w-full text-sm"
-                    value={localData.titleDelay}
-                    onChange={(e) => setLocalData({ ...localData, titleDelay: parseInt(e.target.value) || 500 })}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Color</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    className="w-8 h-8 rounded border cursor-pointer"
-                    value={localData.titleColor || '#ffffff'}
-                    onChange={(e) => setLocalData({ ...localData, titleColor: e.target.value })}
-                  />
-                  <input
-                    type="text"
-                    className="input flex-1 text-sm"
-                    placeholder="#ffffff"
-                    value={localData.titleColor || ''}
-                    onChange={(e) => setLocalData({ ...localData, titleColor: e.target.value })}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Slide Objects (Text, Image, Video) */}
+          <SlideObjectEditor
+            slideId={slide.slideId}
+            objects={slide.objects || []}
+            sharedVideos={sharedVideos}
+            sharedImages={sharedImages}
+            onRefresh={onRefresh}
+            onToast={onToast}
+          />
 
-          {/* Subtitle */}
-          <div className="border-t pt-4">
-            <h4 className="text-sm font-medium mb-2">Subtitle</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="col-span-2">
-                <label className="block text-xs text-gray-500 mb-1">Text</label>
-                <input
-                  type="text"
-                  className="input w-full text-sm"
-                  placeholder="Subtitle text"
-                  value={localData.subtitleText || ''}
-                  onChange={(e) => setLocalData({ ...localData, subtitleText: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Animation</label>
-                <select
-                  className="input w-full text-sm"
-                  value={localData.subtitleAnimation}
-                  onChange={(e) => setLocalData({ ...localData, subtitleAnimation: e.target.value })}
-                >
-                  {ANIMATIONS.map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Size</label>
-                <select
-                  className="input w-full text-sm"
-                  value={localData.subtitleSize || 'medium'}
-                  onChange={(e) => setLocalData({ ...localData, subtitleSize: e.target.value })}
-                >
-                  {SUBTITLE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
-              <div className="flex space-x-2">
-                <div className="flex-1">
-                  <label className="block text-xs text-gray-500 mb-1">Duration</label>
-                  <input
-                    type="number"
-                    className="input w-full text-sm"
-                    value={localData.subtitleDuration}
-                    onChange={(e) => setLocalData({ ...localData, subtitleDuration: parseInt(e.target.value) || 600 })}
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-xs text-gray-500 mb-1">Delay</label>
-                  <input
-                    type="number"
-                    className="input w-full text-sm"
-                    value={localData.subtitleDelay}
-                    onChange={(e) => setLocalData({ ...localData, subtitleDelay: parseInt(e.target.value) || 1200 })}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Color</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    className="w-8 h-8 rounded border cursor-pointer"
-                    value={localData.subtitleColor || '#ffffff'}
-                    onChange={(e) => setLocalData({ ...localData, subtitleColor: e.target.value })}
-                  />
-                  <input
-                    type="text"
-                    className="input flex-1 text-sm"
-                    placeholder="#ffffff"
-                    value={localData.subtitleColor || ''}
-                    onChange={(e) => setLocalData({ ...localData, subtitleColor: e.target.value })}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Images */}
+          {/* Images (Legacy) */}
           <div className="border-t pt-4">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-medium">Images ({slide.images?.length || 0})</h4>

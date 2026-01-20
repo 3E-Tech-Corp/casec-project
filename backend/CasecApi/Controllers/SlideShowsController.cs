@@ -500,19 +500,7 @@ public class SlideShowsController : ControllerBase
                 Layout = request.Layout,
                 OverlayType = request.OverlayType,
                 OverlayColor = request.OverlayColor,
-                OverlayOpacity = request.OverlayOpacity,
-                TitleText = request.TitleText,
-                TitleAnimation = request.TitleAnimation,
-                TitleDuration = request.TitleDuration,
-                TitleDelay = request.TitleDelay,
-                TitleSize = request.TitleSize,
-                TitleColor = request.TitleColor,
-                SubtitleText = request.SubtitleText,
-                SubtitleAnimation = request.SubtitleAnimation,
-                SubtitleDuration = request.SubtitleDuration,
-                SubtitleDelay = request.SubtitleDelay,
-                SubtitleSize = request.SubtitleSize,
-                SubtitleColor = request.SubtitleColor
+                OverlayOpacity = request.OverlayOpacity
             };
 
             _context.Slides.Add(slide);
@@ -572,18 +560,6 @@ public class SlideShowsController : ControllerBase
             slide.OverlayType = request.OverlayType;
             slide.OverlayColor = request.OverlayColor;
             slide.OverlayOpacity = request.OverlayOpacity;
-            slide.TitleText = request.TitleText;
-            slide.TitleAnimation = request.TitleAnimation;
-            slide.TitleDuration = request.TitleDuration;
-            slide.TitleDelay = request.TitleDelay;
-            slide.TitleSize = request.TitleSize;
-            slide.TitleColor = request.TitleColor;
-            slide.SubtitleText = request.SubtitleText;
-            slide.SubtitleAnimation = request.SubtitleAnimation;
-            slide.SubtitleDuration = request.SubtitleDuration;
-            slide.SubtitleDelay = request.SubtitleDelay;
-            slide.SubtitleSize = request.SubtitleSize;
-            slide.SubtitleColor = request.SubtitleColor;
             slide.UpdatedAt = DateTime.UtcNow;
 
             if (slide.SlideShow != null)
@@ -1955,18 +1931,6 @@ public class SlideShowsController : ControllerBase
             OverlayType = slide.OverlayType,
             OverlayColor = slide.OverlayColor,
             OverlayOpacity = slide.OverlayOpacity,
-            TitleText = slide.TitleText,
-            TitleAnimation = slide.TitleAnimation,
-            TitleDuration = slide.TitleDuration,
-            TitleDelay = slide.TitleDelay,
-            TitleSize = slide.TitleSize,
-            TitleColor = slide.TitleColor,
-            SubtitleText = slide.SubtitleText,
-            SubtitleAnimation = slide.SubtitleAnimation,
-            SubtitleDuration = slide.SubtitleDuration,
-            SubtitleDelay = slide.SubtitleDelay,
-            SubtitleSize = slide.SubtitleSize,
-            SubtitleColor = slide.SubtitleColor,
             // Legacy collections
             Images = slide.Images?.Select(MapToSlideImageDto).ToList() ?? new List<SlideImageDto>(),
             Texts = slide.Texts?.Select(MapToSlideTextDto).ToList() ?? new List<SlideTextDto>(),
