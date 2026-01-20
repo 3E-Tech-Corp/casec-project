@@ -365,18 +365,18 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
         )}
       </div>
 
-      {/* Progress Indicator */}
+      {/* Progress Indicator - larger on mobile for visibility */}
       {config.showProgress && config.slides.length > 1 && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center space-x-2 z-30">
+        <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex items-center space-x-1.5 md:space-x-2 z-30 bg-black/20 px-3 py-2 rounded-full">
           {config.slides.map((_, index) => (
             <div
               key={index}
-              className={`h-1 rounded-full transition-all duration-300 ${
+              className={`h-1.5 md:h-1 rounded-full transition-all duration-300 ${
                 index === currentSlideIndex
-                  ? 'w-8 bg-white'
+                  ? 'w-6 md:w-8 bg-white'
                   : index < currentSlideIndex
-                    ? 'w-2 bg-white/80'
-                    : 'w-2 bg-white/40'
+                    ? 'w-1.5 md:w-2 bg-white/80'
+                    : 'w-1.5 md:w-2 bg-white/40'
               }`}
             >
               {index === currentSlideIndex && (
@@ -390,19 +390,19 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
         </div>
       )}
 
-      {/* Skip Button */}
+      {/* Skip Button - larger touch target on mobile */}
       {config.allowSkip && (
         <button
           onClick={handleSkip}
-          className="absolute top-6 right-6 flex items-center space-x-2 text-white/80 hover:text-white transition-colors bg-black/20 hover:bg-black/40 px-4 py-2 rounded-full z-30"
+          className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center space-x-2 text-white/80 hover:text-white active:text-white transition-colors bg-black/30 hover:bg-black/50 active:bg-black/60 px-4 py-3 md:px-4 md:py-2 rounded-full z-30 min-w-[80px] justify-center touch-manipulation"
         >
-          <span className="text-sm">Skip</span>
-          <ChevronRight className="w-4 h-4" />
+          <span className="text-sm md:text-sm">Skip</span>
+          <ChevronRight className="w-5 h-5 md:w-4 md:h-4" />
         </button>
       )}
 
-      {/* Slide Counter */}
-      <div className="absolute bottom-6 right-6 text-white/60 text-sm z-30">
+      {/* Slide Counter - adjusted for mobile */}
+      <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 text-white/60 text-xs md:text-sm z-30 bg-black/20 px-2 py-1 rounded">
         {currentSlideIndex + 1} / {config.slides.length}
       </div>
     </div>
@@ -416,34 +416,45 @@ function SlideObject({ object, slideIndex }) {
   const props = object.properties ? (typeof object.properties === 'string' ? JSON.parse(object.properties) : object.properties) : {};
 
   // Calculate position style for the WRAPPER (handles positioning with transforms)
+  // Uses clamp() to scale offsets on mobile (50% of original on small screens)
   const getWrapperStyle = () => {
     const style = {
       position: 'absolute',
     };
 
+    const offsetX = object.offsetX || 0;
+    const offsetY = object.offsetY || 0;
+    // Scale offsets: use clamp to reduce on mobile (min 50% of value, max 100%)
+    const responsiveOffsetX = offsetX !== 0 ? `clamp(${offsetX * 0.5}px, ${offsetX}px, ${offsetX}px)` : '0px';
+    const responsiveOffsetY = offsetY !== 0 ? `clamp(${offsetY * 0.5}px, ${offsetY}px, ${offsetY}px)` : '0px';
+
     // Horizontal alignment
     switch (object.horizontalAlign) {
       case 'left':
-        style.left = `${object.offsetX || 0}px`;
+        style.left = responsiveOffsetX;
+        style.paddingLeft = '1rem'; // Safe area on mobile
         break;
       case 'right':
-        style.right = `${-(object.offsetX || 0)}px`;
+        style.right = offsetX !== 0 ? `clamp(${-offsetX * 0.5}px, ${-offsetX}px, ${-offsetX}px)` : '0px';
+        style.paddingRight = '1rem'; // Safe area on mobile
         break;
       case 'center':
       default:
         style.left = '50%';
         style.transform = 'translateX(-50%)';
-        style.marginLeft = `${object.offsetX || 0}px`;
+        style.marginLeft = responsiveOffsetX;
         break;
     }
 
     // Vertical alignment
     switch (object.verticalAlign) {
       case 'top':
-        style.top = `${object.offsetY || 0}px`;
+        style.top = responsiveOffsetY;
+        style.paddingTop = '1rem'; // Safe area on mobile
         break;
       case 'bottom':
-        style.bottom = `${-(object.offsetY || 0)}px`;
+        style.bottom = offsetY !== 0 ? `clamp(${-offsetY * 0.5}px, ${-offsetY}px, ${-offsetY}px)` : '0px';
+        style.paddingBottom = '2rem'; // Extra space for progress bar
         break;
       case 'middle':
       default:
@@ -453,7 +464,7 @@ function SlideObject({ object, slideIndex }) {
         } else {
           style.transform = 'translateY(-50%)';
         }
-        style.marginTop = `${object.offsetY || 0}px`;
+        style.marginTop = responsiveOffsetY;
         break;
     }
 
@@ -522,9 +533,26 @@ function SlideObject({ object, slideIndex }) {
 
   // Render based on object type - wrapper handles position, inner element handles animation
   if (object.objectType === 'text') {
-    // Map fontSize value to Tailwind class (e.g., '4xl' -> 'text-4xl')
+    // Map fontSize value to responsive Tailwind classes (mobile first, then desktop)
+    const getResponsiveFontSize = (size) => {
+      const sizeMap = {
+        'xs': 'text-xs md:text-sm',
+        'sm': 'text-sm md:text-base',
+        'base': 'text-base md:text-lg',
+        'lg': 'text-lg md:text-xl',
+        'xl': 'text-xl md:text-2xl',
+        '2xl': 'text-xl md:text-2xl lg:text-3xl',
+        '3xl': 'text-2xl md:text-3xl lg:text-4xl',
+        '4xl': 'text-2xl md:text-4xl lg:text-5xl',
+        '5xl': 'text-3xl md:text-5xl lg:text-6xl',
+        '6xl': 'text-4xl md:text-6xl lg:text-7xl',
+        '7xl': 'text-5xl md:text-7xl lg:text-8xl',
+        '8xl': 'text-6xl md:text-8xl lg:text-9xl',
+      };
+      return sizeMap[size] || sizeMap['4xl'];
+    };
     const sizeValue = props.fontSize || '4xl';
-    const fontSize = sizeValue.startsWith('text-') ? sizeValue : `text-${sizeValue}`;
+    const fontSize = getResponsiveFontSize(sizeValue);
     // Map fontWeight value to Tailwind class (e.g., 'bold' -> 'font-bold')
     const weightValue = props.fontWeight || 'bold';
     const fontWeight = weightValue.startsWith('font-') ? weightValue : `font-${weightValue}`;
@@ -534,12 +562,12 @@ function SlideObject({ object, slideIndex }) {
       <div style={wrapperStyle}>
         <div
           key={`${object.slideObjectId}-${slideIndex}`}
-          className={`${animProps.className} ${fontSize} ${fontWeight}`}
+          className={`${animProps.className} ${fontSize} ${fontWeight} px-4 md:px-0`}
           style={{
             ...animProps.style,
             color,
             textAlign: props.textAlign || 'center',
-            maxWidth: props.maxWidth ? `${props.maxWidth}px` : '80%',
+            maxWidth: props.maxWidth ? `min(${props.maxWidth}px, 90vw)` : '90vw',
           }}
         >
           {props.content || props.text}
@@ -552,12 +580,12 @@ function SlideObject({ object, slideIndex }) {
     const imageUrl = props.imageUrl || props.url;
     if (!imageUrl) return null;
 
-    // Map size property to dimensions
+    // Map size property to responsive dimensions (mobile-friendly)
     const getImageDimensions = () => {
       switch (props.size) {
-        case 'small': return { width: '200px', height: 'auto' };
-        case 'medium': return { width: '400px', height: 'auto' };
-        case 'large': return { width: '600px', height: 'auto' };
+        case 'small': return { width: 'min(200px, 40vw)', height: 'auto' };
+        case 'medium': return { width: 'min(400px, 70vw)', height: 'auto' };
+        case 'large': return { width: 'min(600px, 90vw)', height: 'auto' };
         case 'full': return { width: '100vw', height: '100vh' };
         default: return { width: props.width || 'auto', height: props.height || 'auto' };
       }
@@ -596,12 +624,12 @@ function SlideObject({ object, slideIndex }) {
     const videoUrl = props.videoUrl || props.url;
     if (!videoUrl) return null;
 
-    // Map size property to dimensions
+    // Map size property to responsive dimensions (mobile-friendly)
     const getVideoDimensions = () => {
       switch (props.size) {
-        case 'small': return { width: '320px', height: 'auto' };
-        case 'medium': return { width: '640px', height: 'auto' };
-        case 'large': return { width: '960px', height: 'auto' };
+        case 'small': return { width: 'min(320px, 80vw)', height: 'auto' };
+        case 'medium': return { width: 'min(640px, 90vw)', height: 'auto' };
+        case 'large': return { width: 'min(960px, 95vw)', height: 'auto' };
         default: return { width: props.width || 'auto', height: props.height || 'auto' };
       }
     };
