@@ -565,7 +565,11 @@ function SlideObject({ object, slideIndex }) {
         break;
       case 'bottom':
         style.bottom = offsetY !== 0 ? `clamp(${-offsetY * 0.5}px, ${-offsetY}px, ${-offsetY}px)` : '0px';
-        style.paddingBottom = '2rem'; // Extra space for progress bar
+        // For images at bottom with no y-offset, no padding (flush to bottom)
+        // For others or with y-offset, add padding for progress bar clearance
+        if (object.objectType !== 'image' || offsetY !== 0) {
+          style.paddingBottom = '2rem';
+        }
         break;
       case 'middle':
       default:
