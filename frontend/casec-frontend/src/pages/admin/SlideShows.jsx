@@ -258,6 +258,100 @@ export default function AdminSlideShows() {
     }
   };
 
+  const handleCopySlideShow = async () => {
+    if (!selectedShow) return;
+
+    const newCode = prompt('Enter a code for the copy:', `${selectedShow.code}-copy`);
+    if (!newCode) return;
+
+    setSaving(true);
+    try {
+      // 1. Create new slideshow with same settings
+      const createRes = await slideShowsAPI.create({
+        code: newCode,
+        name: `${selectedShow.name} (Copy)`,
+        description: selectedShow.description,
+        isActive: false, // Start as inactive
+        transitionType: selectedShow.transitionType,
+        transitionDuration: selectedShow.transitionDuration,
+        showProgress: selectedShow.showProgress,
+        allowSkip: selectedShow.allowSkip,
+        loop: selectedShow.loop,
+        autoPlay: selectedShow.autoPlay,
+      });
+
+      if (!createRes.success) {
+        showToast('error', createRes.message || 'Failed to create slideshow copy');
+        return;
+      }
+
+      const newShowId = createRes.data.slideShowId;
+
+      // 2. Copy each slide
+      for (const slide of (selectedShow.slides || [])) {
+        const slideRes = await slideShowsAPI.createSlide({
+          slideShowId: newShowId,
+          displayOrder: slide.displayOrder,
+          duration: slide.duration,
+          backgroundType: slide.backgroundType,
+          backgroundColor: slide.backgroundColor,
+          backgroundImageUrl: slide.backgroundImageUrl,
+          useRandomHeroVideos: slide.useRandomHeroVideos,
+          videoUrl: slide.videoUrl,
+          useRandomVideo: slide.useRandomVideo,
+          layout: slide.layout,
+          overlayType: slide.overlayType,
+          overlayColor: slide.overlayColor,
+          overlayOpacity: slide.overlayOpacity,
+        });
+
+        if (!slideRes.success) continue;
+
+        const newSlideId = slideRes.data.slideId;
+
+        // 3. Copy background videos for this slide
+        for (const bgVideo of (slide.backgroundVideos || [])) {
+          await slideShowsAPI.createSlideBackgroundVideo({
+            slideId: newSlideId,
+            videoId: bgVideo.videoId || null,
+            videoUrl: bgVideo.videoUrl || bgVideo.video?.url || null,
+            duration: bgVideo.duration,
+            sortOrder: bgVideo.sortOrder,
+          });
+        }
+
+        // 4. Copy slide objects
+        for (const obj of (slide.objects || [])) {
+          await slideShowsAPI.createSlideObject({
+            slideId: newSlideId,
+            objectType: obj.objectType,
+            properties: typeof obj.properties === 'string' ? obj.properties : JSON.stringify(obj.properties),
+            horizontalAlign: obj.horizontalAlign,
+            verticalAlign: obj.verticalAlign,
+            offsetX: obj.offsetX,
+            offsetY: obj.offsetY,
+            animationIn: obj.animationIn,
+            animationInDuration: obj.animationInDuration,
+            animationInDelay: obj.animationInDelay,
+            animationOut: obj.animationOut,
+            animationOutDuration: obj.animationOutDuration,
+            animationOutDelay: obj.animationOutDelay,
+            stayOnScreen: obj.stayOnScreen,
+            sortOrder: obj.sortOrder,
+          });
+        }
+      }
+
+      showToast('success', `SlideShow copied as "${newCode}"`);
+      loadSlideShows();
+    } catch (err) {
+      console.error('Copy slideshow error:', err);
+      showToast('error', 'Error copying slideshow: ' + (err.message || 'Unknown error'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleAddSlide = async () => {
     if (!selectedShow) return;
 
@@ -454,6 +548,14 @@ export default function AdminSlideShows() {
                     ) : (
                       <><Share2 className="w-4 h-4 mr-1" /> Share</>
                     )}
+                  </button>
+                  <button
+                    onClick={handleCopySlideShow}
+                    className="btn btn-secondary btn-sm"
+                    disabled={saving}
+                    title="Copy entire slideshow"
+                  >
+                    <Copy className="w-4 h-4 mr-1" /> {saving ? 'Copying...' : 'Copy'}
                   </button>
                   <button
                     onClick={() => handleEditShow(selectedShow)}
