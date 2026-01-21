@@ -49,10 +49,8 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [slideProgress, setSlideProgress] = useState(0);
 
   const timerRef = useRef(null);
-  const progressRef = useRef(null);
   const videoRef = useRef(null);
   const bgVideoTimerRef = useRef(null);
   const [videoReady, setVideoReady] = useState(false);
@@ -239,16 +237,6 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
 
     const slideDuration = currentSlide.duration || 5000;
 
-    // Progress bar animation
-    setSlideProgress(0);
-    const startTime = Date.now();
-
-    progressRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min((elapsed / slideDuration) * 100, 100);
-      setSlideProgress(progress);
-    }, 50);
-
     // Slide timer
     timerRef.current = setTimeout(() => {
       if (currentSlideIndex < config.slides.length - 1) {
@@ -266,14 +254,12 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
 
     return () => {
       clearTimeout(timerRef.current);
-      clearInterval(progressRef.current);
     };
   }, [isPlaying, currentSlideIndex, currentSlide, config, onComplete]);
 
   // Handle skip
   const handleSkip = () => {
     clearTimeout(timerRef.current);
-    clearInterval(progressRef.current);
     setIsPlaying(false);
     onSkip?.();
     onComplete?.();
@@ -476,31 +462,6 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
         )}
       </div>
 
-      {/* Progress Indicator - larger on mobile for visibility */}
-      {config.showProgress && config.slides.length > 1 && (
-        <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex items-center space-x-1.5 md:space-x-2 z-30 bg-black/20 px-3 py-2 rounded-full">
-          {config.slides.map((_, index) => (
-            <div
-              key={index}
-              className={`h-1.5 md:h-1 rounded-full transition-all duration-300 ${
-                index === currentSlideIndex
-                  ? 'w-6 md:w-8 bg-white'
-                  : index < currentSlideIndex
-                    ? 'w-1.5 md:w-2 bg-white/80'
-                    : 'w-1.5 md:w-2 bg-white/40'
-              }`}
-            >
-              {index === currentSlideIndex && (
-                <div
-                  className="h-full bg-white/50 rounded-full"
-                  style={{ width: `${slideProgress}%` }}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* Skip Button - larger touch target on mobile */}
       {config.allowSkip && (
         <button
@@ -512,10 +473,6 @@ export default function SlideShow({ code, id, onComplete, onSkip }) {
         </button>
       )}
 
-      {/* Slide Counter - adjusted for mobile */}
-      <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 text-white/60 text-xs md:text-sm z-30 bg-black/20 px-2 py-1 rounded">
-        {currentSlideIndex + 1} / {config.slides.length}
-      </div>
     </div>
   );
 }
