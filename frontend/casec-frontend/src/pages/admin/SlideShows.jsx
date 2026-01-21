@@ -171,13 +171,21 @@ export default function AdminSlideShows() {
   };
 
   const loadSlideShowDetails = async (id) => {
+    // Reset preview state when changing slideshows
+    setShowPreview(false);
     try {
       const response = await slideShowsAPI.getAdmin(id);
       if (response.success) {
         setSelectedShow(response.data);
+      } else {
+        console.error('Failed to load slideshow:', response.message);
+        showToast('error', response.message || 'Failed to load slideshow');
+        setSelectedShow(null);
       }
     } catch (err) {
       console.error('Failed to load slideshow details:', err);
+      showToast('error', 'Error loading slideshow');
+      setSelectedShow(null);
     }
   };
 
@@ -343,7 +351,9 @@ export default function AdminSlideShows() {
       }
 
       showToast('success', `SlideShow copied as "${newCode}"`);
-      loadSlideShows();
+      await loadSlideShows();
+      // Auto-select the new slideshow
+      loadSlideShowDetails(newShowId);
     } catch (err) {
       console.error('Copy slideshow error:', err);
       showToast('error', 'Error copying slideshow: ' + (err.message || 'Unknown error'));
