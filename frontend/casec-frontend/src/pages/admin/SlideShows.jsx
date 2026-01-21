@@ -695,6 +695,7 @@ export default function AdminSlideShows() {
 // Slide Editor Component
 function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDelete, onRefresh, onToast, isExpanded, onToggle }) {
   const [localData, setLocalData] = useState(slide);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     setLocalData(slide);
@@ -758,6 +759,13 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
           </span>
         </div>
         <div className="flex items-center space-x-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowPreview(true); }}
+            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
+            title="Preview this slide"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
           <span className="text-xs text-gray-500">{localData.duration / 1000}s</span>
           {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </div>
@@ -846,8 +854,237 @@ function SlideEditor({ slide, index, sharedVideos, sharedImages, onUpdate, onDel
           </div>
         </div>
       )}
+
+      {/* Slide Preview Modal */}
+      {showPreview && (
+        <SlidePreviewModal
+          slide={slide}
+          sharedVideos={sharedVideos}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
     </div>
   );
+}
+
+// Slide Preview Modal Component - Shows a single slide preview
+function SlidePreviewModal({ slide, sharedVideos, onClose }) {
+  // Get background video URL
+  const getBackgroundVideoUrl = () => {
+    const bgType = slide.backgroundType || 'heroVideos';
+    if (bgType !== 'heroVideos') return null;
+
+    const bgVideos = slide.backgroundVideos || [];
+    if (bgVideos.length > 0) {
+      const bgVideo = bgVideos[0];
+      return bgVideo?.video?.url || bgVideo?.videoUrl || null;
+    }
+
+    // Fallback to legacy fields
+    if (slide.videoUrl) return slide.videoUrl;
+    if (slide.useRandomVideo && sharedVideos?.length > 0) {
+      return sharedVideos[0].url;
+    }
+    return null;
+  };
+
+  // Get background style for color/image
+  const getBackgroundStyle = () => {
+    const bgType = slide.backgroundType || 'heroVideos';
+    switch (bgType) {
+      case 'color':
+        return { backgroundColor: slide.backgroundColor || '#000000' };
+      case 'image':
+        return slide.backgroundImageUrl
+          ? { backgroundImage: `url(${getAssetUrl(slide.backgroundImageUrl)})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+          : { backgroundColor: '#000000' };
+      case 'none':
+        return { backgroundColor: 'transparent' };
+      default:
+        return { backgroundColor: '#000000' };
+    }
+  };
+
+  // Get overlay style
+  const getOverlayStyle = () => {
+    switch (slide.overlayType) {
+      case 'dark': return { backgroundColor: 'rgba(0,0,0,0.5)' };
+      case 'light': return { backgroundColor: 'rgba(255,255,255,0.3)' };
+      case 'gradient': return { background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.7))' };
+      default: return {};
+    }
+  };
+
+  const backgroundVideoUrl = getBackgroundVideoUrl();
+  const backgroundStyle = getBackgroundStyle();
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+      {/* Preview Container - 16:9 aspect ratio */}
+      <div className="relative w-full max-w-5xl aspect-video bg-black rounded-lg overflow-hidden shadow-2xl">
+        {/* Static Background */}
+        {!backgroundVideoUrl && (
+          <div className="absolute inset-0" style={backgroundStyle} />
+        )}
+
+        {/* Video Background */}
+        {backgroundVideoUrl && (
+          isYouTubeUrl(backgroundVideoUrl) ? (
+            <iframe
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              src={`https://www.youtube.com/embed/${getYouTubeVideoId(backgroundVideoUrl)}?autoplay=1&mute=1&loop=1&playlist=${getYouTubeVideoId(backgroundVideoUrl)}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
+              allow="autoplay; encrypted-media"
+              style={{ border: 'none', transform: 'scale(1.5)', transformOrigin: 'center center' }}
+              title="Background Video"
+            />
+          ) : (
+            <video
+              className="absolute inset-0 w-full h-full object-cover"
+              src={getAssetUrl(backgroundVideoUrl)}
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
+          )
+        )}
+
+        {/* Overlay */}
+        <div className="absolute inset-0" style={getOverlayStyle()} />
+
+        {/* Slide Objects */}
+        <div className="absolute inset-0">
+          {(slide.objects || []).map((obj) => (
+            <SlideObjectPreview key={obj.slideObjectId} object={obj} />
+          ))}
+        </div>
+
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full z-10"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Slide Info */}
+        <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1.5 rounded text-sm">
+          Slide Preview • {slide.duration / 1000}s
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Slide Object Preview Component - Simplified preview for admin
+function SlideObjectPreview({ object }) {
+  const props = object.properties ? (typeof object.properties === 'string' ? JSON.parse(object.properties) : object.properties) : {};
+
+  // Calculate position style
+  const getPositionStyle = () => {
+    const style = { position: 'absolute' };
+    const offsetX = object.offsetX || 0;
+    const offsetY = object.offsetY || 0;
+
+    switch (object.horizontalAlign) {
+      case 'left':
+        style.left = `${offsetX}px`;
+        break;
+      case 'right':
+        style.right = `${-offsetX}px`;
+        break;
+      default:
+        style.left = '50%';
+        style.transform = 'translateX(-50%)';
+        style.marginLeft = `${offsetX}px`;
+    }
+
+    switch (object.verticalAlign) {
+      case 'top':
+        style.top = `${offsetY}px`;
+        break;
+      case 'bottom':
+        style.bottom = `${-offsetY}px`;
+        break;
+      default:
+        style.top = '50%';
+        style.transform = style.transform ? 'translate(-50%, -50%)' : 'translateY(-50%)';
+        style.marginTop = `${offsetY}px`;
+    }
+
+    return style;
+  };
+
+  const positionStyle = getPositionStyle();
+
+  if (object.objectType === 'text') {
+    const sizeMap = {
+      'xs': '0.75rem', 'sm': '0.875rem', 'base': '1rem', 'lg': '1.125rem',
+      'xl': '1.25rem', '2xl': '1.5rem', '3xl': '1.875rem', '4xl': '2.25rem',
+      '5xl': '3rem', '6xl': '3.75rem', '7xl': '4.5rem', '8xl': '6rem'
+    };
+    return (
+      <div style={positionStyle}>
+        <div
+          style={{
+            fontSize: sizeMap[props.fontSize] || '2.25rem',
+            fontWeight: props.fontWeight || 'bold',
+            color: props.color || 'white',
+            textAlign: props.textAlign || 'center',
+            maxWidth: props.maxWidth ? `${props.maxWidth}px` : '80%',
+          }}
+        >
+          {props.content || props.text || 'Text'}
+        </div>
+      </div>
+    );
+  }
+
+  if (object.objectType === 'image') {
+    const imageUrl = props.imageUrl || props.url;
+    if (!imageUrl) return null;
+    const sizeMap = { small: '150px', medium: '300px', large: '450px', full: '100%' };
+    return (
+      <div style={positionStyle}>
+        <img
+          src={getAssetUrl(imageUrl)}
+          alt=""
+          style={{ width: sizeMap[props.size] || '300px', height: 'auto', objectFit: 'cover', borderRadius: '0.5rem' }}
+        />
+      </div>
+    );
+  }
+
+  if (object.objectType === 'video') {
+    const videoUrl = props.videoUrl || props.url;
+    if (!videoUrl) return null;
+    const sizeMap = { small: '240px', medium: '480px', large: '720px' };
+    const width = sizeMap[props.size] || '480px';
+
+    return (
+      <div style={positionStyle}>
+        {isYouTubeUrl(videoUrl) ? (
+          <iframe
+            src={`https://www.youtube.com/embed/${getYouTubeVideoId(videoUrl)}?autoplay=1&mute=1&loop=1&playlist=${getYouTubeVideoId(videoUrl)}&controls=0&playsinline=1`}
+            allow="autoplay; encrypted-media"
+            style={{ width, height: 'auto', aspectRatio: '16/9', border: 'none', borderRadius: '0.5rem' }}
+            title="Video"
+          />
+        ) : (
+          <video
+            src={getAssetUrl(videoUrl)}
+            style={{ width, height: 'auto', borderRadius: '0.5rem' }}
+            autoPlay
+            muted
+            loop
+            playsInline
+          />
+        )}
+      </div>
+    );
+  }
+
+  return null;
 }
 
 // Legacy Image Picker Modal Component (kept for reference)
