@@ -596,9 +596,12 @@ public class EventsController : ControllerBase
             httpClient.Timeout = TimeSpan.FromSeconds(30);
             httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
             httpClient.DefaultRequestHeaders.Add("Accept", "image/webp,image/apng,image/*,*/*;q=0.8");
-            httpClient.DefaultRequestHeaders.Add("Accept-Language", "en-US,en;q=0.9");
-            // Set Referer to the image's own domain to bypass referrer checks
-            httpClient.DefaultRequestHeaders.Add("Referer", $"{uri.Scheme}://{uri.Host}/");
+            httpClient.DefaultRequestHeaders.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
+
+            // Set Referer - WeChat CDN needs WeChat referer, others use their own domain
+            var isWeChatCdn = uri.Host.Contains("mmbiz") || uri.Host.Contains("qpic.cn") || uri.Host.Contains("qq.com");
+            var referer = isWeChatCdn ? "https://mp.weixin.qq.com/" : $"{uri.Scheme}://{uri.Host}/";
+            httpClient.DefaultRequestHeaders.Add("Referer", referer);
 
             HttpResponseMessage response;
             try
