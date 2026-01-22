@@ -471,6 +471,32 @@ export default function EventDetail() {
         </div>
       )}
 
+      {/* Embedded Source Content */}
+      {event.sourceUrl && (
+        <div className="card">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-primary" />
+            Original Article
+          </h2>
+          <div className="rounded-lg overflow-hidden border border-gray-200">
+            <iframe
+              src={event.sourceUrl}
+              title="Event Source Content"
+              className="w-full"
+              style={{ height: '80vh', minHeight: '600px' }}
+              sandbox="allow-scripts allow-same-origin allow-popups"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-2 text-center">
+            Content from external source. If not loading properly,{' '}
+            <a href={event.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              click here to view directly
+            </a>.
+          </p>
+        </div>
+      )}
+
       {/* Photo Modal */}
       {selectedPhoto && (
         <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4"
