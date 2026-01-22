@@ -9,7 +9,7 @@ import SurveyWidget from '../components/SurveyWidget';
 export default function Home() {
   const { theme } = useTheme();
   const [upcomingEvents, setUpcomingEvents] = useState([]);
-  const [pastFeaturedEvents, setPastFeaturedEvents] = useState([]);
+  const [recentPastEvents, setRecentPastEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const upcomingScrollRef = useRef(null);
@@ -198,7 +198,7 @@ export default function Home() {
 
   // Auto-scroll for past events
   useEffect(() => {
-    if (pastFeaturedEvents.length === 0 || pastPaused) return;
+    if (recentPastEvents.length === 0 || pastPaused) return;
 
     const container = pastScrollRef.current;
     if (!container) return;
@@ -216,7 +216,7 @@ export default function Home() {
     }, 5000);
 
     return () => clearInterval(scrollInterval);
-  }, [pastFeaturedEvents.length, pastPaused, smoothScrollTo]);
+  }, [recentPastEvents.length, pastPaused, smoothScrollTo]);
 
   const fetchEvents = async () => {
     try {
@@ -225,13 +225,14 @@ export default function Home() {
       const upcoming = (upcomingResponse.data || []).slice(0, 15);
       setUpcomingEvents(upcoming);
 
-      // Fetch all events to filter past featured ones
+      // Fetch all events to get recent past events (sorted by most recent first)
       const allResponse = await eventsAPI.getAll({ upcoming: false });
       const now = new Date();
-      const pastFeatured = (allResponse.data || [])
-        .filter(e => e.isFeatured && new Date(e.eventDate) < now)
+      const pastEvents = (allResponse.data || [])
+        .filter(e => new Date(e.eventDate) < now)
+        .sort((a, b) => new Date(b.eventDate) - new Date(a.eventDate)) // Most recent first
         .slice(0, 15);
-      setPastFeaturedEvents(pastFeatured);
+      setRecentPastEvents(pastEvents);
     } catch (error) {
       console.error('Error fetching events:', error);
     } finally {
@@ -585,12 +586,12 @@ export default function Home() {
           )}
         </div>
 
-        {/* Past Featured Events Carousel */}
+        {/* Recent Past Events Carousel */}
         <div className="w-full">
           <div className="max-w-7xl mx-auto px-6 mb-4">
             <h3 className="text-xl md:text-2xl font-display font-bold text-white flex items-center gap-2">
               <Clock className="w-6 h-6" />
-              Past Featured Events
+              Recent Events
             </h3>
           </div>
 
@@ -600,7 +601,7 @@ export default function Home() {
                 <div key={i} className="flex-shrink-0 w-[420px] h-40 bg-white/20 rounded-xl animate-pulse" />
               ))}
             </div>
-          ) : pastFeaturedEvents.length > 0 ? (
+          ) : recentPastEvents.length > 0 ? (
             <div className="relative group">
               {/* Left Arrow */}
               <button
@@ -618,7 +619,7 @@ export default function Home() {
                 className="flex gap-4 px-6 overflow-x-auto scrollbar-hide pb-4"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
-                {pastFeaturedEvents.map((event) => (
+                {recentPastEvents.map((event) => (
                   <PastEventCard key={event.eventId} event={event} />
                 ))}
               </div>
@@ -639,7 +640,7 @@ export default function Home() {
             <div className="max-w-7xl mx-auto px-6">
               <div className="bg-white/10 rounded-xl p-8 text-center">
                 <Clock className="w-12 h-12 text-white/40 mx-auto mb-3" />
-                <p className="text-white/70">No past featured events</p>
+                <p className="text-white/70">No recent events yet</p>
               </div>
             </div>
           )}
