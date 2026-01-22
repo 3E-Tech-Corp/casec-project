@@ -287,7 +287,7 @@ export default function Home() {
       <div className="w-40 h-full relative bg-gradient-to-br from-primary/20 to-accent/20 flex-shrink-0">
         {event.thumbnailUrl ? (
           <img
-            src={event.thumbnailUrl.startsWith('/api') ? getAssetUrl(event.thumbnailUrl) : event.thumbnailUrl}
+            src={getAssetUrl(event.thumbnailUrl)}
             alt={event.title}
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
@@ -361,7 +361,7 @@ export default function Home() {
       <div className="w-40 h-full relative bg-gradient-to-br from-gray-200 to-gray-300 flex-shrink-0">
         {event.thumbnailUrl ? (
           <img
-            src={event.thumbnailUrl.startsWith('/api') ? getAssetUrl(event.thumbnailUrl) : event.thumbnailUrl}
+            src={getAssetUrl(event.thumbnailUrl)}
             alt={event.title}
             className="w-full h-full object-cover grayscale-[30%]"
             referrerPolicy="no-referrer"
