@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   Users, CreditCard, Building2, Calendar, Tag, Palette,
   BarChart3, FileText, ClipboardList, Image, TrendingUp,
-  UserCheck, DollarSign, Activity
+  UserCheck, DollarSign, Activity, ExternalLink, Home
 } from 'lucide-react';
 import { usersAPI, membershipPaymentsAPI } from '../../services/api';
 
@@ -70,9 +70,21 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="text-gray-600 mt-1">Overview of your community management</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="text-gray-600 mt-1">Overview of your community management</p>
+        </div>
+        <a
+          href="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+        >
+          <Home className="w-4 h-4" />
+          View Public Home
+          <ExternalLink className="w-3 h-3" />
+        </a>
       </div>
 
       {/* Stats Grid */}
