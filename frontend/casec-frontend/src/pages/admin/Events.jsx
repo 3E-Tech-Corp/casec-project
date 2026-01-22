@@ -767,7 +767,6 @@ export default function AdminEvents() {
                                   alt={`Option ${index + 1}`}
                                   className="w-full h-full object-cover"
                                   referrerPolicy="no-referrer"
-                                  crossOrigin="anonymous"
                                   onError={(e) => {
                                     if (e.target?.parentElement) {
                                       e.target.parentElement.style.display = 'none';
@@ -844,7 +843,6 @@ export default function AdminEvents() {
                           alt="Event thumbnail"
                           className="w-32 h-24 object-cover rounded-lg border"
                           referrerPolicy="no-referrer"
-                          crossOrigin="anonymous"
                           onError={(e) => {
                             if (e.target) {
                               e.target.src = '';

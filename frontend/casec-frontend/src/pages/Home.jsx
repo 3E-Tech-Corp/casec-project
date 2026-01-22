@@ -248,9 +248,8 @@ export default function Home() {
             alt={event.title}
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
-            crossOrigin="anonymous"
             onError={(e) => {
-              e.target.style.display = 'none';
+              if (e.target) e.target.style.display = 'none';
             }}
           />
         ) : (
@@ -323,9 +322,8 @@ export default function Home() {
             alt={event.title}
             className="w-full h-full object-cover grayscale-[30%]"
             referrerPolicy="no-referrer"
-            crossOrigin="anonymous"
             onError={(e) => {
-              e.target.style.display = 'none';
+              if (e.target) e.target.style.display = 'none';
             }}
           />
         ) : (
