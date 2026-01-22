@@ -18,19 +18,21 @@ console.log('[API] Configuration:', {
 });
 
 // Helper function to get full asset URL (for avatars, images, etc.)
+// Uses VITE_API_URL (stored in API_BASE_URL) to construct full URLs
+// Rule: If path starts with /api, strip it, then prepend VITE_API_URL
 export const getAssetUrl = (path) => {
   if (!path) return null;
   // If path is already a full URL, return as-is
   if (path.startsWith("http://") || path.startsWith("https://")) {
     return path;
   }
-  // If path starts with /api, replace with API_BASE_URL
-  // keep backwards compatibility
+  // If path starts with /api, strip the /api prefix and prepend VITE_API_URL
+  // e.g., "/api/uploads/image.jpg" -> "{VITE_API_URL}/uploads/image.jpg"
   if (path.startsWith("/api")) {
     return `${API_BASE_URL}${path.substring(4)}`;
   }
-
-  // If path starts with /, prepend API_BASE_URL
+  // If path starts with /, prepend VITE_API_URL
+  // e.g., "/uploads/image.jpg" -> "{VITE_API_URL}/uploads/image.jpg"
   if (path.startsWith("/")) {
     return `${API_BASE_URL}${path}`;
   }
