@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Calendar, Award, TrendingUp, Search, UserCheck, Settings } from 'lucide-react';
-import { usersAPI } from '../services/api';
+import { Users, Calendar, Award, TrendingUp, Search, UserCheck, Settings, MapPin, ChevronRight, ImageIcon } from 'lucide-react';
+import { usersAPI, eventsAPI, getAssetUrl } from '../services/api';
 import { useAuthStore } from '../store/useStore';
 import { useTheme } from '../components/ThemeProvider';
 
@@ -10,10 +10,12 @@ export default function Dashboard() {
   const { theme } = useTheme();
   const appName = theme?.organizationName || 'Community';
   const [dashboardData, setDashboardData] = useState(null);
+  const [recentEvents, setRecentEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadDashboard();
+    loadRecentEvents();
   }, []);
 
   const loadDashboard = async () => {
@@ -27,6 +29,27 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadRecentEvents = async () => {
+    try {
+      const response = await eventsAPI.getAll({ upcoming: true });
+      if (response.success) {
+        // Show only first 4 upcoming events
+        setRecentEvents((response.data || []).slice(0, 4));
+      }
+    } catch (err) {
+      console.error('Failed to load events:', err);
+    }
+  };
+
+  const formatEventDate = (dateString) => {
+    const date = new Date(dateString);
+    return {
+      day: date.getDate(),
+      month: date.toLocaleDateString('default', { month: 'short' }),
+      time: date.toLocaleTimeString('default', { hour: '2-digit', minute: '2-digit' })
+    };
   };
 
   if (loading) {
@@ -155,6 +178,80 @@ export default function Dashboard() {
             </p>
             <Link to="/admin" className="btn bg-amber-600 text-white hover:bg-amber-700 inline-block text-sm">
               Open Admin
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* Upcoming Events */}
+      <div className="card">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <Calendar className="w-6 h-6 text-accent" />
+            <h2 className="text-2xl font-display font-bold text-gray-900">Upcoming Events</h2>
+          </div>
+          <Link to="/events" className="text-primary hover:text-primary-light font-medium flex items-center gap-1">
+            View All <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        {recentEvents.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {recentEvents.map((event) => {
+              const dateInfo = formatEventDate(event.eventDate);
+              return (
+                <Link
+                  key={event.eventId}
+                  to={`/events/${event.eventId}`}
+                  className="flex gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
+                >
+                  {/* Thumbnail */}
+                  <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
+                    {event.thumbnailUrl ? (
+                      <img
+                        src={getAssetUrl(event.thumbnailUrl)}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ImageIcon className="w-8 h-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Event Info */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 group-hover:text-primary truncate">
+                      {event.title}
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                      <span className="font-medium text-accent">{dateInfo.month} {dateInfo.day}</span>
+                      <span className="text-gray-400">at</span>
+                      <span>{dateInfo.time}</span>
+                    </div>
+                    {event.location && (
+                      <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
+                        <MapPin className="w-3 h-3" />
+                        <span className="truncate">{event.location}</span>
+                      </div>
+                    )}
+                    {event.isUserRegistered && (
+                      <span className="inline-block mt-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">
+                        Registered
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p>No upcoming events at the moment.</p>
+            <Link to="/events" className="text-primary hover:underline text-sm mt-2 inline-block">
+              Browse all events
             </Link>
           </div>
         )}
