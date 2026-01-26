@@ -193,6 +193,11 @@ export default function RaffleDrawing() {
   const [previousEligibleIds, setPreviousEligibleIds] = useState(new Set());
   const [recentlyMovedIds, setRecentlyMovedIds] = useState(new Set()); // For "pop in" animation
 
+  // Debug state
+  const [debugLog, setDebugLog] = useState([]);
+  const [showDebug, setShowDebug] = useState(true);
+  const [pendingEliminations, setPendingEliminations] = useState(null); // {names, reason, digitIndex, digitValue}
+
   const pollInterval = useRef(null);
 
   useEffect(() => {
@@ -225,7 +230,38 @@ export default function RaffleDrawing() {
       });
 
       if (newlyEliminated.length > 0) {
-        // Start animation sequence
+        // Get names of eliminated participants
+        const eliminatedNames = drawingData.participants
+          .filter((p) => newlyEliminated.includes(p.participantId))
+          .map((p) => `${p.name} (${p.ticketStart}-${p.ticketEnd})`);
+
+        const digitIndex = (drawingData.revealedDigits?.length || 1) - 1;
+        const revealedDigit = drawingData.revealedDigits?.[digitIndex] || "?";
+        const pattern = drawingData.revealedDigits || "";
+
+        // Show pending eliminations summary before animation
+        setPendingEliminations({
+          names: eliminatedNames,
+          digitIndex: digitIndex + 1,
+          digitValue: revealedDigit,
+          pattern: pattern,
+          count: newlyEliminated.length,
+        });
+
+        // Add to debug log
+        setDebugLog((prev) => [
+          ...prev,
+          {
+            time: new Date().toLocaleTimeString(),
+            digit: digitIndex + 1,
+            value: revealedDigit,
+            pattern: pattern,
+            eliminated: eliminatedNames,
+            remainingCount: currentEligibleIds.size,
+          },
+        ]);
+
+        // Start animation sequence after showing summary
         runEliminationAnimation(newlyEliminated);
       }
 
@@ -234,6 +270,9 @@ export default function RaffleDrawing() {
   }, [drawingData?.revealedDigits]);
 
   const runEliminationAnimation = async (participantIds) => {
+    // Wait a moment to show the pending eliminations summary
+    await new Promise((r) => setTimeout(r, 500));
+
     // Stage 1: Shake + gray (1 second)
     setAnimatingParticipants((prev) => {
       const next = { ...prev };
@@ -258,6 +297,9 @@ export default function RaffleDrawing() {
       participantIds.forEach((id) => delete next[id]);
       return next;
     });
+
+    // Clear pending eliminations
+    setPendingEliminations(null);
 
     // Mark as recently moved for pop-in animation in eliminated section
     setRecentlyMovedIds(new Set(participantIds));
@@ -422,6 +464,112 @@ export default function RaffleDrawing() {
           animation: pop-in 0.4s ease-out forwards;
         }
       `}</style>
+
+      {/* Debug Panel - Floating */}
+      {showDebug && isAdmin && (
+        <div className="fixed bottom-4 left-4 z-50 bg-gray-900/95 border border-yellow-500/50 rounded-lg shadow-2xl max-w-md max-h-[60vh] overflow-hidden flex flex-col">
+          <div className="bg-yellow-500 text-black px-3 py-2 font-bold text-sm flex justify-between items-center">
+            <span>DEBUG PANEL</span>
+            <button onClick={() => setShowDebug(false)} className="hover:bg-yellow-600 px-2 rounded">✕</button>
+          </div>
+
+          <div className="p-3 space-y-3 overflow-y-auto text-xs">
+            {/* Winning Number Display */}
+            <div className="bg-purple-900/50 rounded p-2">
+              <div className="text-purple-300 font-bold mb-1">TARGET NUMBER:</div>
+              <div className="font-mono text-2xl text-yellow-400 tracking-widest">
+                {drawingData?.revealedDigits
+                  ? drawingData.revealedDigits.padEnd(totalDigits, '?')
+                  : '?'.repeat(totalDigits)}
+              </div>
+              {drawingData?.winningNumber && (
+                <div className="text-green-400 mt-1">
+                  Final: {drawingData.winningNumber.toString().padStart(totalDigits, '0')}
+                </div>
+              )}
+            </div>
+
+            {/* Pending Eliminations Alert */}
+            {pendingEliminations && (
+              <div className="bg-red-900/50 border border-red-500 rounded p-2 animate-pulse">
+                <div className="text-red-300 font-bold mb-1">
+                  ELIMINATING (Digit #{pendingEliminations.digitIndex} = {pendingEliminations.digitValue}):
+                </div>
+                <div className="text-white">
+                  Pattern: <span className="font-mono text-yellow-400">{pendingEliminations.pattern.padEnd(totalDigits, '_')}</span>
+                </div>
+                <div className="text-red-200 mt-1">
+                  {pendingEliminations.count} participant(s):
+                </div>
+                <ul className="text-red-100 ml-2 mt-1">
+                  {pendingEliminations.names.map((name, i) => (
+                    <li key={i}>• {name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Elimination Log */}
+            {debugLog.length > 0 && (
+              <div className="bg-gray-800 rounded p-2">
+                <div className="text-gray-300 font-bold mb-1 flex justify-between">
+                  <span>ELIMINATION LOG:</span>
+                  <button
+                    onClick={() => setDebugLog([])}
+                    className="text-gray-500 hover:text-white text-xs"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {debugLog.map((log, i) => (
+                    <div key={i} className="border-l-2 border-yellow-500 pl-2 py-1">
+                      <div className="text-gray-400">{log.time}</div>
+                      <div className="text-white">
+                        Digit #{log.digit}: <span className="text-yellow-400 font-mono">{log.value}</span>
+                        {' '}→ Pattern: <span className="font-mono text-green-400">{log.pattern}</span>
+                      </div>
+                      {log.eliminated.length > 0 ? (
+                        <div className="text-red-400">
+                          Eliminated: {log.eliminated.join(', ')}
+                        </div>
+                      ) : (
+                        <div className="text-gray-500">No eliminations</div>
+                      )}
+                      <div className="text-blue-400">
+                        Remaining: {log.remainingCount}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Participants Summary */}
+            <div className="bg-gray-800 rounded p-2">
+              <div className="text-gray-300 font-bold mb-1">PARTICIPANTS:</div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="text-green-400">
+                  Eligible: {eligibleParticipants.filter(p => p.isStillEligible).length}
+                </div>
+                <div className="text-red-400">
+                  Eliminated: {eliminatedParticipants.length}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Debug Toggle Button (when panel is hidden) */}
+      {!showDebug && isAdmin && (
+        <button
+          onClick={() => setShowDebug(true)}
+          className="fixed bottom-4 left-4 z-50 bg-yellow-500 text-black px-3 py-2 rounded-lg font-bold text-sm hover:bg-yellow-400"
+        >
+          Show Debug
+        </button>
+      )}
 
       {/* Error Toast */}
       {error && drawingData && (

@@ -141,8 +141,9 @@ public class RafflesController : ControllerBase
                 });
             }
 
-            // Only show winning number if all digits have been revealed
+            // Only show winning number if all digits have been revealed OR if user is admin (for debugging)
             var allDigitsRevealed = raffle.RevealedDigits?.Length >= raffle.TicketDigits;
+            var isAdmin = User.IsInRole("Admin");
 
             var dto = new RaffleDrawingDto
             {
@@ -151,7 +152,7 @@ public class RafflesController : ControllerBase
                 Description = raffle.Description,
                 ImageUrl = raffle.ImageUrl,
                 Status = raffle.Status,
-                WinningNumber = allDigitsRevealed ? raffle.WinningNumber : null, // Hide until fully revealed
+                WinningNumber = (allDigitsRevealed || isAdmin) ? raffle.WinningNumber : null, // Show to admins for debugging
                 RevealedDigits = raffle.RevealedDigits,
                 TicketDigits = raffle.TicketDigits,
                 TotalTicketsSold = raffle.TotalTicketsSold,
