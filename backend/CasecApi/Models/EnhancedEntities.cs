@@ -1392,44 +1392,6 @@ public class Slide
     [Obsolete("Use SlideObjects with ObjectType='text' instead")]
     [MaxLength(50)]
     public string? SubtitleColor { get; set; }
-    [MaxLength(2000)]
-    public string? Description { get; set; }
-
-    [MaxLength(500)]
-    public string? ImageUrl { get; set; }
-
-    // Status: Draft, Active, Drawing, Completed, Cancelled
-    [Required]
-    [MaxLength(50)]
-    public string Status { get; set; } = "Draft";
-
-    // The winning number (set when drawing is complete)
-    public int? WinningNumber { get; set; }
-
-    // Current digits revealed during drawing (e.g., "123" means first 3 digits revealed)
-    [MaxLength(20)]
-    public string? RevealedDigits { get; set; }
-
-    // Total number of digits in ticket numbers
-    public int TicketDigits { get; set; } = 6;
-
-    // Next available ticket number
-    public int NextTicketNumber { get; set; } = 1;
-
-    // Total tickets sold
-    public int TotalTicketsSold { get; set; } = 0;
-
-    // Total revenue
-    [Column(TypeName = "decimal(10, 2)")]
-    public decimal TotalRevenue { get; set; } = 0;
-
-    public DateTime? StartDate { get; set; }
-
-    public DateTime? EndDate { get; set; }
-
-    public DateTime? DrawingDate { get; set; }
-
-    public int? CreatedBy { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
