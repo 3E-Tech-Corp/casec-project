@@ -225,6 +225,9 @@ export default function RaffleDrawing() {
   const pendingEliminationIds = useRef([]);
   const [flipAnimationComplete, setFlipAnimationComplete] = useState(false);
 
+  // Displayed counts (updated after animation completes)
+  const [displayedCounts, setDisplayedCounts] = useState({ people: 0, tickets: 0 });
+
   const pollInterval = useRef(null);
 
   useEffect(() => {
@@ -297,6 +300,17 @@ export default function RaffleDrawing() {
     }
   }, [drawingData?.revealedDigits]);
 
+  // Initialize displayed counts when data first loads or when no animation is pending
+  useEffect(() => {
+    if (drawingData?.participants && pendingEliminationIds.current.length === 0 && Object.keys(animatingParticipants).length === 0) {
+      const eligible = drawingData.participants.filter(p => p.isStillEligible);
+      setDisplayedCounts({
+        people: eligible.length,
+        tickets: eligible.reduce((sum, p) => sum + (p.totalTickets || 0), 0)
+      });
+    }
+  }, [drawingData?.participants, animatingParticipants]);
+
   // Run elimination animation when flip animation completes
   useEffect(() => {
     if (flipAnimationComplete && pendingEliminationIds.current.length > 0) {
@@ -343,6 +357,15 @@ export default function RaffleDrawing() {
     // Clear pending eliminations
     setPendingEliminations(null);
 
+    // Update displayed counts after animation completes
+    if (drawingData?.participants) {
+      const eligible = drawingData.participants.filter(p => p.isStillEligible);
+      setDisplayedCounts({
+        people: eligible.length,
+        tickets: eligible.reduce((sum, p) => sum + (p.totalTickets || 0), 0)
+      });
+    }
+
     // Mark as recently moved for pop-in animation in eliminated section
     setRecentlyMovedIds(new Set(participantIds));
 
@@ -372,13 +395,15 @@ export default function RaffleDrawing() {
       const response = await rafflesAPI.startDrawing(raffleId);
       if (response.success) {
         if (response.data?.participants) {
+          const eligible = response.data.participants.filter((p) => p.isStillEligible);
           setPreviousEligibleIds(
-            new Set(
-              response.data.participants
-                .filter((p) => p.isStillEligible)
-                .map((p) => p.participantId)
-            )
+            new Set(eligible.map((p) => p.participantId))
           );
+          // Initialize displayed counts when drawing starts
+          setDisplayedCounts({
+            people: eligible.length,
+            tickets: eligible.reduce((sum, p) => sum + (p.totalTickets || 0), 0)
+          });
         }
         setAnimatingParticipants({});
         setRecentlyMovedIds(new Set());
@@ -783,14 +808,10 @@ export default function RaffleDrawing() {
               </h3>
               <div className="flex gap-4 text-sm">
                 <span className="text-green-300">
-                  <span className="font-bold">{eligibleParticipants.filter(p => p.isStillEligible).length}</span> people
+                  <span className="font-bold">{displayedCounts.people}</span> people
                 </span>
                 <span className="text-yellow-400">
-                  <span className="font-bold">
-                    {eligibleParticipants
-                      .filter(p => p.isStillEligible)
-                      .reduce((sum, p) => sum + (p.totalTickets || 0), 0)}
-                  </span> tickets
+                  <span className="font-bold">{displayedCounts.tickets}</span> tickets
                 </span>
               </div>
             </div>
