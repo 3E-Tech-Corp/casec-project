@@ -1736,8 +1736,8 @@ public class RaffleParticipant
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    [ForeignKey("SlideId")]
-    public virtual Slide? Slide { get; set; }
+    [ForeignKey("RaffleId")]
+    public virtual Raffle? Raffle { get; set; }
 }
 
 // SlideBackgroundVideo Entity - Hero videos for a slide's background sequence
@@ -1772,6 +1772,4 @@ public class SlideBackgroundVideo
 
     [ForeignKey("VideoId")]
     public virtual SharedVideo? Video { get; set; }
-    [ForeignKey("RaffleId")]
-    public virtual Raffle? Raffle { get; set; }
 }
