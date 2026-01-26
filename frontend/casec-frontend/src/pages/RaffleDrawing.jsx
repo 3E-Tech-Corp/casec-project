@@ -19,24 +19,35 @@ function FlipPanel({ digit, isRevealing, onRevealComplete }) {
   const [currentDigit, setCurrentDigit] = useState(null);
   const [isFlipping, setIsFlipping] = useState(false);
   const [flipDigit, setFlipDigit] = useState(0);
+  const hasAnimated = useRef(false);
 
   useEffect(() => {
-    if (isRevealing && digit !== null && digit !== currentDigit) {
+    // Reset animation flag when digit changes to null (reset drawing)
+    if (digit === null) {
+      hasAnimated.current = false;
+      setCurrentDigit(null);
+      return;
+    }
+
+    // Animate if we're revealing AND haven't animated this digit yet
+    if (isRevealing && digit !== null && !hasAnimated.current && !isFlipping) {
+      hasAnimated.current = true;
       animateFlip(digit);
-    } else if (digit !== null && currentDigit === null) {
-      // Already revealed digit, just show it
+    } else if (digit !== null && currentDigit === null && !isRevealing) {
+      // Already revealed digit (page load), just show it without animation
       setCurrentDigit(digit);
+      hasAnimated.current = true;
     }
   }, [isRevealing, digit]);
 
   const animateFlip = async (targetDigit) => {
     setIsFlipping(true);
     const startDigit = currentDigit ?? 0;
-    const steps = 15 + Math.floor(Math.random() * 10); // Random number of flips for effect
-    const baseDelay = 50;
+    const steps = 20 + Math.floor(Math.random() * 10); // Random number of flips for effect
+    const baseDelay = 40;
 
     for (let i = 0; i <= steps; i++) {
-      await new Promise((resolve) => setTimeout(resolve, baseDelay + i * 5));
+      await new Promise((resolve) => setTimeout(resolve, baseDelay + i * 4));
       if (i < steps) {
         setFlipDigit((startDigit + i) % 10);
       } else {
@@ -236,11 +247,12 @@ export default function RaffleDrawing() {
     try {
       const response = await rafflesAPI.revealNext(raffleId);
       if (response.success) {
-        // Small delay to let flip animation start, then update data
+        // Update data immediately so the digit is available for the FlipPanel animation
+        setDrawingData(response.data);
+        // Clear revealingIndex after animation completes (about 2 seconds for flip animation)
         setTimeout(() => {
-          setDrawingData(response.data);
           setRevealingIndex(-1);
-        }, 1500);
+        }, 2500);
       } else {
         setError(response.message || "Failed to reveal digit");
         setRevealingIndex(-1);
