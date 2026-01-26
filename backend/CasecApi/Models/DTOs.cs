@@ -983,6 +983,8 @@ public class SlideShowDto
     public bool AllowSkip { get; set; }
     public bool Loop { get; set; }
     public bool AutoPlay { get; set; }
+    public int? CreatedBy { get; set; }
+    public string? CreatedByName { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public List<SlideDto> Slides { get; set; } = new();
@@ -1010,7 +1012,9 @@ public class RaffleDto
     public string? CreatedByName { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    public List<SlideDto> Slides { get; set; } = new();
+    public int ParticipantCount { get; set; }
+    public List<RafflePrizeDto> Prizes { get; set; } = new();
+    public List<RaffleTicketTierDto> TicketTiers { get; set; } = new();
 }
 
 public class SlideShowSummaryDto

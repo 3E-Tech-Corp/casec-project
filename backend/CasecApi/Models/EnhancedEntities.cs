@@ -1219,17 +1219,24 @@ public class SlideShow
 
     public int DefaultSlideInterval { get; set; } = 5000; // milliseconds
 
+    public bool ShowProgress { get; set; } = true; // Show progress dots/bar
+
     public bool AllowSkip { get; set; } = true;
 
     public bool Loop { get; set; } = false;
 
     public bool AutoPlay { get; set; } = true;
 
+    public int? CreatedBy { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
+    [ForeignKey("CreatedBy")]
+    public virtual User? CreatedByUser { get; set; }
+
     public virtual ICollection<Slide> Slides { get; set; } = new List<Slide>();
 }
 
@@ -1248,19 +1255,36 @@ public class Raffle
     [MaxLength(500)]
     public string? Description { get; set; }
 
-    public bool IsActive { get; set; } = true;
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
 
-    // Transition settings
+    // Status: Draft, Active, Drawing, Completed, Cancelled
+    [Required]
+    [MaxLength(50)]
+    public string Status { get; set; } = "Draft";
+
+    // Drawing configuration
+    public int TicketDigits { get; set; } = 6; // Number of digits in ticket numbers
+
+    public int NextTicketNumber { get; set; } = 1; // Next ticket number to assign
+
+    public int TotalTicketsSold { get; set; } = 0;
+
+    [Column(TypeName = "decimal(10, 2)")]
+    public decimal TotalRevenue { get; set; } = 0;
+
+    // Drawing state
+    public int? WinningNumber { get; set; }
+
     [MaxLength(20)]
-    public string TransitionType { get; set; } = "fade"; // fade, slide, none
+    public string? RevealedDigits { get; set; } // Digits revealed so far during drawing
 
-    public int TransitionDuration { get; set; } = 500; // ms
+    // Dates
+    public DateTime? StartDate { get; set; }
 
-    // Playback settings
-    public bool ShowProgress { get; set; } = true; // Show progress dots/bar
-    public bool AllowSkip { get; set; } = true; // Allow skipping intro
-    public bool Loop { get; set; } = false; // Loop after completion
-    public bool AutoPlay { get; set; } = true; // Auto-start on load
+    public DateTime? EndDate { get; set; }
+
+    public DateTime? DrawingDate { get; set; }
 
     public int? CreatedBy { get; set; }
 
@@ -1272,7 +1296,11 @@ public class Raffle
     [ForeignKey("CreatedBy")]
     public virtual User? CreatedByUser { get; set; }
 
-    public virtual ICollection<Slide> Slides { get; set; } = new List<Slide>();
+    public virtual ICollection<RafflePrize> Prizes { get; set; } = new List<RafflePrize>();
+
+    public virtual ICollection<RaffleTicketTier> TicketTiers { get; set; } = new List<RaffleTicketTier>();
+
+    public virtual ICollection<RaffleParticipant> Participants { get; set; } = new List<RaffleParticipant>();
 }
 
 // Slide Entity - Individual slide within a slideshow
@@ -1461,12 +1489,12 @@ public class SlideImage
     public string? Shadow { get; set; } // e.g., "shadow-lg", "shadow-2xl"
 
     public int? Opacity { get; set; } // 0-100
-    [ForeignKey("CreatedBy")]
-    public virtual User? CreatedByUser { get; set; }
 
-    public virtual ICollection<RafflePrize> Prizes { get; set; } = new List<RafflePrize>();
-    public virtual ICollection<RaffleTicketTier> TicketTiers { get; set; } = new List<RaffleTicketTier>();
-    public virtual ICollection<RaffleParticipant> Participants { get; set; } = new List<RaffleParticipant>();
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("SlideId")]
+    public virtual Slide? Slide { get; set; }
 }
 
 // RafflePrize Entity - Prizes available in a raffle
@@ -1499,8 +1527,8 @@ public class RafflePrize
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    [ForeignKey("SlideId")]
-    public virtual Slide? Slide { get; set; }
+    [ForeignKey("RaffleId")]
+    public virtual Raffle? Raffle { get; set; }
 }
 
 // SlideText Entity - Text elements displayed within a slide
@@ -1599,6 +1627,9 @@ public class SharedImage
 
     public bool IsActive { get; set; } = true;
 
+    [MaxLength(50)]
+    public string Status { get; set; } = "Active"; // Active, Pending, Deleted
+
     public int DisplayOrder { get; set; } = 0;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -1661,8 +1692,14 @@ public class SlideObject
     // Image: { "imageUrl": "", "size": "medium", "objectFit": "cover", "borderRadius": "rounded-lg", "shadow": "", "opacity": 100 }
     // Video: { "videoUrl": "", "size": "medium", "autoPlay": true, "muted": true, "loop": true, "showControls": false, "borderRadius": "rounded-lg" }
     public string? Properties { get; set; }
-    [ForeignKey("RaffleId")]
-    public virtual Raffle? Raffle { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("SlideId")]
+    public virtual Slide? Slide { get; set; }
 }
 
 // RaffleTicketTier Entity - Pricing tiers for ticket purchases
