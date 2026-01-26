@@ -221,6 +221,10 @@ export default function RaffleDrawing() {
   const [showDebug, setShowDebug] = useState(true);
   const [pendingEliminations, setPendingEliminations] = useState(null); // {names, reason, digitIndex, digitValue}
 
+  // Store pending elimination IDs to run after flip animation completes
+  const pendingEliminationIds = useRef([]);
+  const [flipAnimationComplete, setFlipAnimationComplete] = useState(false);
+
   const pollInterval = useRef(null);
 
   useEffect(() => {
@@ -262,7 +266,7 @@ export default function RaffleDrawing() {
         const revealedDigit = drawingData.revealedDigits?.[digitIndex] || "?";
         const pattern = drawingData.revealedDigits || "";
 
-        // Show pending eliminations summary before animation
+        // Show pending eliminations summary in debug panel
         setPendingEliminations({
           names: eliminatedNames,
           digitIndex: digitIndex + 1,
@@ -284,17 +288,32 @@ export default function RaffleDrawing() {
           },
         ]);
 
-        // Start animation sequence after showing summary
-        runEliminationAnimation(newlyEliminated);
+        // Store elimination IDs - will be triggered after flip animation completes
+        pendingEliminationIds.current = newlyEliminated;
+        setFlipAnimationComplete(false);
       }
 
       setPreviousEligibleIds(currentEligibleIds);
     }
   }, [drawingData?.revealedDigits]);
 
+  // Run elimination animation when flip animation completes
+  useEffect(() => {
+    if (flipAnimationComplete && pendingEliminationIds.current.length > 0) {
+      const idsToAnimate = [...pendingEliminationIds.current];
+      pendingEliminationIds.current = [];
+      runEliminationAnimation(idsToAnimate);
+    }
+  }, [flipAnimationComplete]);
+
+  // Callback when flip panel animation completes
+  const handleFlipComplete = () => {
+    setFlipAnimationComplete(true);
+  };
+
   const runEliminationAnimation = async (participantIds) => {
-    // Wait a moment to show the pending eliminations summary
-    await new Promise((r) => setTimeout(r, 500));
+    // Brief pause before starting elimination animation
+    await new Promise((r) => setTimeout(r, 300));
 
     // Stage 1: Shake + gray (1 second)
     setAnimatingParticipants((prev) => {
@@ -662,6 +681,7 @@ export default function RaffleDrawing() {
               key={index}
               digit={digit}
               isRevealing={revealingIndex === index}
+              onRevealComplete={revealingIndex === index ? handleFlipComplete : undefined}
             />
           ))}
         </div>
