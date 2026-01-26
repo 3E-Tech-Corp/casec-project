@@ -58,14 +58,52 @@ SELECT 'TICKET TIERS:' AS Info;
 SELECT TierId, Name, Price, TicketCount, IsFeatured, DisplayOrder
 FROM RaffleTicketTiers WHERE RaffleId = @RaffleId ORDER BY DisplayOrder;
 
+-- Add Sample Participants (already verified with confirmed payments)
+INSERT INTO RaffleParticipants (RaffleId, Name, PhoneNumber, AvatarUrl, IsVerified, VerifiedAt, TicketStart, TicketEnd, TotalTickets, TotalPaid, PaymentStatus, PaymentMethod, PaymentDate, IsWinner, SessionToken, CreatedAt, UpdatedAt)
+VALUES
+    (@RaffleId, 'John Smith', '5551234567', NULL, 1, GETUTCDATE(), 1, 10, 10, 20.00, 'Confirmed', 'Cash', GETUTCDATE(), 0, NEWID(), GETUTCDATE(), GETUTCDATE()),
+    (@RaffleId, 'Sarah Johnson', '5552345678', NULL, 1, GETUTCDATE(), 11, 60, 50, 50.00, 'Confirmed', 'Credit Card', GETUTCDATE(), 0, NEWID(), GETUTCDATE(), GETUTCDATE()),
+    (@RaffleId, 'Mike Williams', '5553456789', NULL, 1, GETUTCDATE(), 61, 63, 3, 10.00, 'Confirmed', 'Cash', GETUTCDATE(), 0, NEWID(), GETUTCDATE(), GETUTCDATE()),
+    (@RaffleId, 'Emily Davis', '5554567890', NULL, 1, GETUTCDATE(), 64, 73, 10, 20.00, 'Confirmed', 'Venmo', GETUTCDATE(), 0, NEWID(), GETUTCDATE(), GETUTCDATE()),
+    (@RaffleId, 'David Brown', '5555678901', NULL, 1, GETUTCDATE(), 74, 74, 1, 5.00, 'Confirmed', 'Cash', GETUTCDATE(), 0, NEWID(), GETUTCDATE(), GETUTCDATE()),
+    (@RaffleId, 'Jessica Miller', '5556789012', NULL, 1, GETUTCDATE(), 75, 124, 50, 50.00, 'Confirmed', 'Credit Card', GETUTCDATE(), 0, NEWID(), GETUTCDATE(), GETUTCDATE()),
+    (@RaffleId, 'Chris Wilson', '5557890123', NULL, 1, GETUTCDATE(), 125, 134, 10, 20.00, 'Confirmed', 'Cash', GETUTCDATE(), 0, NEWID(), GETUTCDATE(), GETUTCDATE()),
+    (@RaffleId, 'Amanda Taylor', '5558901234', NULL, 1, GETUTCDATE(), 135, 137, 3, 10.00, 'Confirmed', 'Zelle', GETUTCDATE(), 0, NEWID(), GETUTCDATE(), GETUTCDATE()),
+    (@RaffleId, 'Ryan Martinez', '5559012345', NULL, 1, GETUTCDATE(), 138, 187, 50, 50.00, 'Confirmed', 'Cash', GETUTCDATE(), 0, NEWID(), GETUTCDATE(), GETUTCDATE()),
+    (@RaffleId, 'Nicole Anderson', '5550123456', NULL, 1, GETUTCDATE(), 188, 188, 1, 5.00, 'Confirmed', 'Credit Card', GETUTCDATE(), 0, NEWID(), GETUTCDATE(), GETUTCDATE());
+
+-- Update raffle with ticket counts
+UPDATE Raffles
+SET NextTicketNumber = 189,
+    TotalTicketsSold = 188,
+    TotalRevenue = 240.00
+WHERE RaffleId = @RaffleId;
+
+PRINT 'Created 10 sample participants with 188 total tickets';
+
+SELECT 'PARTICIPANTS:' AS Info;
+SELECT ParticipantId, Name, PhoneNumber, TicketStart, TicketEnd, TotalTickets, TotalPaid, PaymentStatus
+FROM RaffleParticipants WHERE RaffleId = @RaffleId ORDER BY TicketStart;
+
+PRINT '';
+PRINT '=== PARTICIPANT TICKET RANGES ===';
+PRINT 'John Smith:      000001 - 000010 (10 tickets)';
+PRINT 'Sarah Johnson:   000011 - 000060 (50 tickets)';
+PRINT 'Mike Williams:   000061 - 000063 (3 tickets)';
+PRINT 'Emily Davis:     000064 - 000073 (10 tickets)';
+PRINT 'David Brown:     000074 - 000074 (1 ticket)';
+PRINT 'Jessica Miller:  000075 - 000124 (50 tickets)';
+PRINT 'Chris Wilson:    000125 - 000134 (10 tickets)';
+PRINT 'Amanda Taylor:   000135 - 000137 (3 tickets)';
+PRINT 'Ryan Martinez:   000138 - 000187 (50 tickets)';
+PRINT 'Nicole Anderson: 000188 - 000188 (1 ticket)';
 PRINT '';
 PRINT '=== TEST INSTRUCTIONS ===';
 PRINT '1. Go to /admin/raffles to see the raffle in the admin panel';
-PRINT '2. Go to /raffle/' + CAST(@RaffleId AS VARCHAR(10)) + ' to register as a participant';
-PRINT '3. Enter your name and phone number to register';
-PRINT '4. Enter the OTP shown on screen (dev mode shows it)';
-PRINT '5. Purchase tickets from any tier';
-PRINT '6. Go back to admin to confirm payment';
-PRINT '7. Start the drawing and reveal digits one by one!';
+PRINT '2. Go to /raffle/' + CAST(@RaffleId AS VARCHAR(10)) + ' to register as a NEW participant';
+PRINT '3. Or go to /raffle/' + CAST(@RaffleId AS VARCHAR(10)) + '/drawing to watch the drawing';
+PRINT '4. In admin, click "Start Drawing" to begin';
+PRINT '5. Reveal digits one by one - watch participants filter out!';
+PRINT '6. Example: Reveal 0,0,0,0,7,4 to make David Brown the winner (ticket 000074)';
 PRINT '';
 PRINT 'Raffle ID for testing: ' + CAST(@RaffleId AS VARCHAR(10));
