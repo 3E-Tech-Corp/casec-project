@@ -768,6 +768,7 @@ export default function RaffleDrawing() {
               />
             </div>
             <p className="text-2xl font-bold text-yellow-900">{winner.name}</p>
+            <p className="text-yellow-700 text-lg">{winner.phoneNumber}</p>
             <p className="text-yellow-800">
               Ticket #{drawingData.winningNumber?.toString().padStart(totalDigits, "0")}
             </p>
