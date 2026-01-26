@@ -120,6 +120,7 @@ function App() {
           <Route path="polls" element={<AdminPolls />} />
           <Route path="surveys" element={<AdminSurveys />} />
           <Route path="slideshows" element={<AdminSlideShows />} />
+          <Route path="raffles" element={<AdminRaffles />} />
           {/* Admin Routes */}
           <Route path="admin/users" element={
             <AdminRoute><AdminUsers /></AdminRoute>
@@ -153,9 +154,6 @@ function App() {
           } />
           <Route path="admin/surveys" element={
             <AdminRoute><AdminSurveys /></AdminRoute>
-          } />
-          <Route path="admin/raffles" element={
-            <AdminRoute><AdminRaffles /></AdminRoute>
           } />
         </Route>
         </Routes>
