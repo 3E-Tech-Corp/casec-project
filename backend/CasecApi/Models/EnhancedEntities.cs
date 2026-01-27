@@ -1202,6 +1202,44 @@ public class SlideShow
     [Required]
     [MaxLength(50)]
     public string Code { get; set; } = string.Empty; // Unique identifier, e.g., "home-intro"
+
+    [Required]
+    [MaxLength(200)]
+    public string Name { get; set; } = string.Empty;
+
+    [MaxLength(500)]
+    public string? Description { get; set; }
+
+    public bool IsActive { get; set; } = true;
+
+    [MaxLength(50)]
+    public string TransitionType { get; set; } = "fade"; // fade, slide, zoom, etc.
+
+    public int TransitionDuration { get; set; } = 500; // milliseconds
+
+    public int DefaultSlideInterval { get; set; } = 5000; // milliseconds
+
+    public bool ShowProgress { get; set; } = true; // Show progress dots/bar
+
+    public bool AllowSkip { get; set; } = true;
+
+    public bool Loop { get; set; } = false;
+
+    public bool AutoPlay { get; set; } = true;
+
+    public int? CreatedBy { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("CreatedBy")]
+    public virtual User? CreatedByUser { get; set; }
+
+    public virtual ICollection<Slide> Slides { get; set; } = new List<Slide>();
+}
+
 // ============ RAFFLE ENTITIES ============
 
 // Raffle Entity - Main raffle configuration
@@ -1217,19 +1255,36 @@ public class Raffle
     [MaxLength(500)]
     public string? Description { get; set; }
 
-    public bool IsActive { get; set; } = true;
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
 
-    // Transition settings
+    // Status: Draft, Active, Drawing, Completed, Cancelled
+    [Required]
+    [MaxLength(50)]
+    public string Status { get; set; } = "Draft";
+
+    // Drawing configuration
+    public int TicketDigits { get; set; } = 6; // Number of digits in ticket numbers
+
+    public int NextTicketNumber { get; set; } = 1; // Next ticket number to assign
+
+    public int TotalTicketsSold { get; set; } = 0;
+
+    [Column(TypeName = "decimal(10, 2)")]
+    public decimal TotalRevenue { get; set; } = 0;
+
+    // Drawing state
+    public int? WinningNumber { get; set; }
+
     [MaxLength(20)]
-    public string TransitionType { get; set; } = "fade"; // fade, slide, none
+    public string? RevealedDigits { get; set; } // Digits revealed so far during drawing
 
-    public int TransitionDuration { get; set; } = 500; // ms
+    // Dates
+    public DateTime? StartDate { get; set; }
 
-    // Playback settings
-    public bool ShowProgress { get; set; } = true; // Show progress dots/bar
-    public bool AllowSkip { get; set; } = true; // Allow skipping intro
-    public bool Loop { get; set; } = false; // Loop after completion
-    public bool AutoPlay { get; set; } = true; // Auto-start on load
+    public DateTime? EndDate { get; set; }
+
+    public DateTime? DrawingDate { get; set; }
 
     public int? CreatedBy { get; set; }
 
@@ -1241,7 +1296,11 @@ public class Raffle
     [ForeignKey("CreatedBy")]
     public virtual User? CreatedByUser { get; set; }
 
-    public virtual ICollection<Slide> Slides { get; set; } = new List<Slide>();
+    public virtual ICollection<RafflePrize> Prizes { get; set; } = new List<RafflePrize>();
+
+    public virtual ICollection<RaffleTicketTier> TicketTiers { get; set; } = new List<RaffleTicketTier>();
+
+    public virtual ICollection<RaffleParticipant> Participants { get; set; } = new List<RaffleParticipant>();
 }
 
 // Slide Entity - Individual slide within a slideshow
@@ -1333,44 +1392,6 @@ public class Slide
     [Obsolete("Use SlideObjects with ObjectType='text' instead")]
     [MaxLength(50)]
     public string? SubtitleColor { get; set; }
-    [MaxLength(2000)]
-    public string? Description { get; set; }
-
-    [MaxLength(500)]
-    public string? ImageUrl { get; set; }
-
-    // Status: Draft, Active, Drawing, Completed, Cancelled
-    [Required]
-    [MaxLength(50)]
-    public string Status { get; set; } = "Draft";
-
-    // The winning number (set when drawing is complete)
-    public int? WinningNumber { get; set; }
-
-    // Current digits revealed during drawing (e.g., "123" means first 3 digits revealed)
-    [MaxLength(20)]
-    public string? RevealedDigits { get; set; }
-
-    // Total number of digits in ticket numbers
-    public int TicketDigits { get; set; } = 6;
-
-    // Next available ticket number
-    public int NextTicketNumber { get; set; } = 1;
-
-    // Total tickets sold
-    public int TotalTicketsSold { get; set; } = 0;
-
-    // Total revenue
-    [Column(TypeName = "decimal(10, 2)")]
-    public decimal TotalRevenue { get; set; } = 0;
-
-    public DateTime? StartDate { get; set; }
-
-    public DateTime? EndDate { get; set; }
-
-    public DateTime? DrawingDate { get; set; }
-
-    public int? CreatedBy { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -1430,12 +1451,12 @@ public class SlideImage
     public string? Shadow { get; set; } // e.g., "shadow-lg", "shadow-2xl"
 
     public int? Opacity { get; set; } // 0-100
-    [ForeignKey("CreatedBy")]
-    public virtual User? CreatedByUser { get; set; }
 
-    public virtual ICollection<RafflePrize> Prizes { get; set; } = new List<RafflePrize>();
-    public virtual ICollection<RaffleTicketTier> TicketTiers { get; set; } = new List<RaffleTicketTier>();
-    public virtual ICollection<RaffleParticipant> Participants { get; set; } = new List<RaffleParticipant>();
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("SlideId")]
+    public virtual Slide? Slide { get; set; }
 }
 
 // RafflePrize Entity - Prizes available in a raffle
@@ -1468,8 +1489,8 @@ public class RafflePrize
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    [ForeignKey("SlideId")]
-    public virtual Slide? Slide { get; set; }
+    [ForeignKey("RaffleId")]
+    public virtual Raffle? Raffle { get; set; }
 }
 
 // SlideText Entity - Text elements displayed within a slide
@@ -1568,6 +1589,9 @@ public class SharedImage
 
     public bool IsActive { get; set; } = true;
 
+    [MaxLength(50)]
+    public string Status { get; set; } = "Active"; // Active, Pending, Deleted
+
     public int DisplayOrder { get; set; } = 0;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -1630,8 +1654,14 @@ public class SlideObject
     // Image: { "imageUrl": "", "size": "medium", "objectFit": "cover", "borderRadius": "rounded-lg", "shadow": "", "opacity": 100 }
     // Video: { "videoUrl": "", "size": "medium", "autoPlay": true, "muted": true, "loop": true, "showControls": false, "borderRadius": "rounded-lg" }
     public string? Properties { get; set; }
-    [ForeignKey("RaffleId")]
-    public virtual Raffle? Raffle { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("SlideId")]
+    public virtual Slide? Slide { get; set; }
 }
 
 // RaffleTicketTier Entity - Pricing tiers for ticket purchases
@@ -1736,8 +1766,8 @@ public class RaffleParticipant
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    [ForeignKey("SlideId")]
-    public virtual Slide? Slide { get; set; }
+    [ForeignKey("RaffleId")]
+    public virtual Raffle? Raffle { get; set; }
 }
 
 // SlideBackgroundVideo Entity - Hero videos for a slide's background sequence
@@ -1772,6 +1802,280 @@ public class SlideBackgroundVideo
 
     [ForeignKey("VideoId")]
     public virtual SharedVideo? Video { get; set; }
-    [ForeignKey("RaffleId")]
-    public virtual Raffle? Raffle { get; set; }
+}
+
+// ============ EVENT PROGRAM ENTITIES ============
+
+// EventProgram Entity - Main event (e.g., "2026 佛罗里达华人春晚")
+public class EventProgram
+{
+    [Key]
+    public int ProgramId { get; set; }
+
+    [Required]
+    [MaxLength(200)]
+    public string Title { get; set; } = string.Empty; // e.g., "2026 佛罗里达华人春晚节目单"
+
+    [MaxLength(200)]
+    public string? Subtitle { get; set; } // e.g., ""一马当先·光耀世界""
+
+    [MaxLength(2000)]
+    public string? Description { get; set; }
+
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; } // Cover image for the program
+
+    // Event details
+    public DateTime? EventDate { get; set; }
+
+    [MaxLength(200)]
+    public string? Venue { get; set; }
+
+    [MaxLength(500)]
+    public string? VenueAddress { get; set; }
+
+    // Link to slideshows to display on the page
+    // Stored as JSON array of slideshow IDs: [1, 2, 3]
+    public string? SlideShowIds { get; set; }
+
+    // Status: Draft, Published, Archived
+    [Required]
+    [MaxLength(50)]
+    public string Status { get; set; } = "Draft";
+
+    public bool IsFeatured { get; set; } = false;
+
+    // URL slug for the program page (e.g., "2026-spring-gala")
+    [MaxLength(100)]
+    public string? Slug { get; set; }
+
+    public int? CreatedBy { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("CreatedBy")]
+    public virtual User? CreatedByUser { get; set; }
+
+    public virtual ICollection<ProgramSection> Sections { get; set; } = new List<ProgramSection>();
+}
+
+// ProgramSection Entity - Sections like "开场", "第一乐章", etc.
+public class ProgramSection
+{
+    [Key]
+    public int SectionId { get; set; }
+
+    [Required]
+    public int ProgramId { get; set; }
+
+    [Required]
+    [MaxLength(200)]
+    public string Title { get; set; } = string.Empty; // e.g., "第一乐章", "开场"
+
+    [MaxLength(500)]
+    public string? Subtitle { get; set; }
+
+    [MaxLength(2000)]
+    public string? Description { get; set; }
+
+    public int DisplayOrder { get; set; } = 0;
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("ProgramId")]
+    public virtual EventProgram? Program { get; set; }
+
+    public virtual ICollection<ProgramItem> Items { get; set; } = new List<ProgramItem>();
+}
+
+// ProgramItem Entity - Individual performances/items
+public class ProgramItem
+{
+    [Key]
+    public int ItemId { get; set; }
+
+    [Required]
+    public int SectionId { get; set; }
+
+    // Item number within the section (e.g., 1, 2, 3)
+    public int ItemNumber { get; set; } = 1;
+
+    [Required]
+    [MaxLength(300)]
+    public string Title { get; set; } = string.Empty; // e.g., "《天鹅湖》", "《举杯吧朋友》"
+
+    // Performance type (e.g., "芭蕾舞", "独唱", "现代舞/Hiphop", "古典舞")
+    [MaxLength(100)]
+    public string? PerformanceType { get; set; }
+
+    // Performer name(s) - can be a single name or multiple
+    [MaxLength(500)]
+    public string? PerformerNames { get; set; } // e.g., "杨心灵 Lynn Young"
+
+    [MaxLength(2000)]
+    public string? Description { get; set; }
+
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
+
+    // Link to detailed content page for this item (if available)
+    public int? ContentPageId { get; set; }
+
+    public int DisplayOrder { get; set; } = 0;
+
+    // Duration in minutes (optional)
+    public int? DurationMinutes { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("SectionId")]
+    public virtual ProgramSection? Section { get; set; }
+
+    [ForeignKey("ContentPageId")]
+    public virtual ProgramContent? ContentPage { get; set; }
+
+    public virtual ICollection<ProgramItemPerformer> Performers { get; set; } = new List<ProgramItemPerformer>();
+}
+
+// ProgramItemPerformer Entity - Links items to performers (many-to-many)
+public class ProgramItemPerformer
+{
+    [Key]
+    public int Id { get; set; }
+
+    [Required]
+    public int ItemId { get; set; }
+
+    [Required]
+    public int PerformerId { get; set; }
+
+    public int DisplayOrder { get; set; } = 0;
+
+    // Role in this item (e.g., "Lead", "Supporting", "Accompanist")
+    [MaxLength(100)]
+    public string? Role { get; set; }
+
+    // Navigation properties
+    [ForeignKey("ItemId")]
+    public virtual ProgramItem? Item { get; set; }
+
+    [ForeignKey("PerformerId")]
+    public virtual Performer? Performer { get; set; }
+}
+
+// Performer Entity - Detailed info about performers
+public class Performer
+{
+    [Key]
+    public int PerformerId { get; set; }
+
+    [Required]
+    [MaxLength(200)]
+    public string Name { get; set; } = string.Empty;
+
+    [MaxLength(200)]
+    public string? ChineseName { get; set; }
+
+    [MaxLength(200)]
+    public string? EnglishName { get; set; }
+
+    [MaxLength(4000)]
+    public string? Bio { get; set; }
+
+    [MaxLength(500)]
+    public string? PhotoUrl { get; set; }
+
+    // Social media links
+    [MaxLength(500)]
+    public string? Website { get; set; }
+
+    [MaxLength(200)]
+    public string? Instagram { get; set; }
+
+    [MaxLength(200)]
+    public string? YouTube { get; set; }
+
+    // Link to detailed content page (if available)
+    public int? ContentPageId { get; set; }
+
+    public bool IsActive { get; set; } = true;
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("ContentPageId")]
+    public virtual ProgramContent? ContentPage { get; set; }
+
+    public virtual ICollection<ProgramItemPerformer> ProgramItems { get; set; } = new List<ProgramItemPerformer>();
+}
+
+// ProgramContent Entity - Rich content pages for programs, items, or performers
+public class ProgramContent
+{
+    [Key]
+    public int ContentId { get; set; }
+
+    [Required]
+    [MaxLength(200)]
+    public string Title { get; set; } = string.Empty;
+
+    [MaxLength(100)]
+    public string? Slug { get; set; } // URL-friendly identifier
+
+    // Content type: "Program", "Performance", "Performer", "General"
+    [Required]
+    [MaxLength(50)]
+    public string ContentType { get; set; } = "General";
+
+    // Rich HTML content
+    public string? Content { get; set; }
+
+    // Featured image
+    [MaxLength(500)]
+    public string? FeaturedImageUrl { get; set; }
+
+    // Gallery images (stored as JSON array of URLs)
+    public string? GalleryImages { get; set; }
+
+    // Videos (stored as JSON array of URLs/embeds)
+    public string? Videos { get; set; }
+
+    // Related slideshow (optional)
+    public int? SlideShowId { get; set; }
+
+    // Status: Draft, Published, Archived
+    [Required]
+    [MaxLength(50)]
+    public string Status { get; set; } = "Draft";
+
+    // SEO metadata
+    [MaxLength(200)]
+    public string? MetaTitle { get; set; }
+
+    [MaxLength(500)]
+    public string? MetaDescription { get; set; }
+
+    public int? CreatedBy { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("CreatedBy")]
+    public virtual User? CreatedByUser { get; set; }
+
+    [ForeignKey("SlideShowId")]
+    public virtual SlideShow? SlideShow { get; set; }
 }

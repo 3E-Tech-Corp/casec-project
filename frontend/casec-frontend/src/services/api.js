@@ -366,6 +366,8 @@ export const slideShowsAPI = {
     api.post("/slideshows/admin/images/upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
+};
+
 // Raffle APIs
 export const rafflesAPI = {
   // Public endpoints
@@ -391,6 +393,7 @@ export const rafflesAPI = {
 
   // Drawing management
   startDrawing: (id) => api.post(`/raffles/${id}/start-drawing`),
+  revealNext: (id) => api.post(`/raffles/${id}/reveal-next`),
   revealDigit: (id, digit) =>
     api.post(`/raffles/${id}/reveal-digit`, { digit }),
   resetDrawing: (id) => api.post(`/raffles/${id}/reset-drawing`),
@@ -433,6 +436,37 @@ export const raffleParticipantAPI = {
       },
     });
   },
+};
+
+// Event Programs APIs
+export const eventProgramsAPI = {
+  // Programs
+  getAll: (includeAll = false) =>
+    api.get(`/eventprograms${includeAll ? "?includeAll=true" : ""}`),
+  getById: (idOrSlug) => api.get(`/eventprograms/${idOrSlug}`),
+  create: (data) => api.post("/eventprograms", data),
+  update: (id, data) => api.put(`/eventprograms/${id}`, data),
+  delete: (id) => api.delete(`/eventprograms/${id}`),
+
+  // Sections
+  createSection: (programId, data) =>
+    api.post(`/eventprograms/${programId}/sections`, data),
+  updateSection: (sectionId, data) =>
+    api.put(`/eventprograms/sections/${sectionId}`, data),
+  deleteSection: (sectionId) =>
+    api.delete(`/eventprograms/sections/${sectionId}`),
+
+  // Items
+  createItem: (sectionId, data) =>
+    api.post(`/eventprograms/sections/${sectionId}/items`, data),
+  updateItem: (itemId, data) => api.put(`/eventprograms/items/${itemId}`, data),
+  deleteItem: (itemId) => api.delete(`/eventprograms/items/${itemId}`),
+
+  // Performers
+  getPerformers: () => api.get("/eventprograms/performers"),
+  createPerformer: (data) => api.post("/eventprograms/performers", data),
+  updatePerformer: (performerId, data) =>
+    api.put(`/eventprograms/performers/${performerId}`, data),
 };
 
 export default api;

@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   Users, CreditCard, Building2, Calendar, Tag, Palette,
   BarChart3, FileText, ClipboardList, Image, ChevronLeft,
-  Settings, Home, LayoutDashboard
+  Settings, Home, LayoutDashboard, Ticket, Music
 } from 'lucide-react';
 import { useAuthStore } from '../store/useStore';
 import LogoOrText from './LogoOrText';
@@ -22,9 +22,11 @@ export default function AdminLayout() {
     { path: '/admin/clubs', label: 'Manage Clubs', icon: Building2 },
     { path: '/admin/events', label: 'Manage Events', icon: Calendar },
     { path: '/admin/event-types', label: 'Event Types', icon: Tag },
+    { path: '/admin/programs', label: 'Event Programs', icon: Music },
     { type: 'divider', label: 'Engagement' },
     { path: '/admin/polls', label: 'Polls', icon: BarChart3 },
     { path: '/admin/surveys', label: 'Surveys', icon: ClipboardList },
+    { path: '/admin/raffles', label: 'Raffles', icon: Ticket },
     { type: 'divider', label: 'Appearance' },
     { path: '/admin/slideshows', label: 'SlideShows', icon: Image },
     { path: '/admin/theme', label: 'Theme Settings', icon: Palette },

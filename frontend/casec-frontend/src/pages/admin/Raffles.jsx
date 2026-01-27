@@ -90,8 +90,13 @@ export default function AdminRaffles() {
     try {
       setSubmitting(true);
       const response = await rafflesAPI.create({
-        ...raffleForm,
+        name: raffleForm.name,
+        description: raffleForm.description || null,
+        imageUrl: raffleForm.imageUrl || null,
         ticketDigits: parseInt(raffleForm.ticketDigits) || 6,
+        startDate: raffleForm.startDate || null,
+        endDate: raffleForm.endDate || null,
+        drawingDate: raffleForm.drawingDate || null,
       });
       if (response.success) {
         setShowRaffleModal(false);
@@ -113,8 +118,13 @@ export default function AdminRaffles() {
     try {
       setSubmitting(true);
       const response = await rafflesAPI.update(selectedRaffle.raffleId, {
-        ...raffleForm,
+        name: raffleForm.name,
+        description: raffleForm.description || null,
+        imageUrl: raffleForm.imageUrl || null,
         ticketDigits: parseInt(raffleForm.ticketDigits) || 6,
+        startDate: raffleForm.startDate || null,
+        endDate: raffleForm.endDate || null,
+        drawingDate: raffleForm.drawingDate || null,
       });
       if (response.success) {
         setShowRaffleModal(false);
