@@ -223,9 +223,12 @@ export default function EventProgram() {
           </div>
 
           {getText(program.descriptionZh, program.descriptionEn, program.description) && (
-            <p className="text-white/70 mt-4 max-w-2xl mx-auto">
-              {getText(program.descriptionZh, program.descriptionEn, program.description)}
-            </p>
+            <div
+              className="text-white/70 mt-4 max-w-2xl mx-auto prose prose-sm prose-invert"
+              dangerouslySetInnerHTML={{
+                __html: getText(program.descriptionZh, program.descriptionEn, program.description)
+              }}
+            />
           )}
         </div>
 
@@ -397,9 +400,12 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText })
             </p>
           )}
 
-          {/* Description */}
+          {/* Description - supports HTML */}
           {itemDescription && (
-            <p className="text-white/70 text-sm mt-1">{itemDescription}</p>
+            <div
+              className="text-white/70 text-sm mt-1 prose prose-sm prose-invert max-w-none"
+              dangerouslySetInnerHTML={{ __html: itemDescription }}
+            />
           )}
         </div>
       )}
