@@ -1296,6 +1296,7 @@ function ItemEditor({ item, performers = [], onSave, onCancel }) {
 
   const [data, setData] = useState({
     itemNumber: item.itemNumber,
+    displayOrder: item.displayOrder ?? 0,
     title: item.title || "",
     titleZh: item.titleZh || "",
     titleEn: item.titleEn || "",
@@ -1340,7 +1341,7 @@ function ItemEditor({ item, performers = [], onSave, onCancel }) {
 
   return (
     <div className="flex-1 space-y-3 p-3 bg-white rounded-lg border">
-      {/* Row 1: Item Number + Title (Bilingual) */}
+      {/* Row 1: Item Number + Display Order + Title (Bilingual) */}
       <div className="grid grid-cols-12 gap-2">
         <div className="col-span-1">
           <label className="text-xs font-medium text-gray-600">#</label>
@@ -1352,7 +1353,19 @@ function ItemEditor({ item, performers = [], onSave, onCancel }) {
             placeholder="#"
           />
         </div>
-        <div className="col-span-4">
+        <div className="col-span-1">
+          <label className="text-xs font-medium text-gray-600">Order</label>
+          <input
+            type="number"
+            value={data.displayOrder}
+            onChange={(e) => setData({ ...data, displayOrder: parseInt(e.target.value) || 0 })}
+            className="w-full border rounded px-2 py-1 text-sm"
+            placeholder="0"
+            min="0"
+            title="Display order - lower numbers appear first"
+          />
+        </div>
+        <div className="col-span-3">
           <label className="text-xs font-medium text-gray-600">Title 中文</label>
           <input
             type="text"
