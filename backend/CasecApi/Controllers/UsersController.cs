@@ -310,7 +310,7 @@ public class UsersController : ControllerBase
                         .Join(_context.Roles, ur => ur.RoleId, r => r.RoleId, (ur, r) => r.Name)
                         .ToList()
                 })
-                .OrderBy(u => u.LastName)
+                .OrderByDescending(u => u.UserId)
                 .ToListAsync();
 
             return Ok(new ApiResponse<List<UserDto>>
@@ -388,6 +388,20 @@ public class UsersController : ControllerBase
             // Update member since date
             if (request.MemberSince.HasValue)
                 user.MemberSince = request.MemberSince.Value;
+
+            // Update password if provided
+            if (!string.IsNullOrWhiteSpace(request.NewPassword))
+            {
+                if (request.NewPassword.Length < 6)
+                {
+                    return BadRequest(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "Password must be at least 6 characters"
+                    });
+                }
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            }
 
             user.UpdatedAt = DateTime.UtcNow;
 

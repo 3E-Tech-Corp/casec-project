@@ -101,6 +101,7 @@ export default function ManageUsers() {
       boardTitle: user.boardTitle || '',
       boardDisplayOrder: user.boardDisplayOrder || 0,
       memberSince: user.memberSince ? user.memberSince.split('T')[0] : '',
+      newPassword: '',
     });
     fetchUserRoles(user.userId);
   };
@@ -560,6 +561,21 @@ export default function ManageUsers() {
                     onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                     className="input"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={formData.newPassword || ''}
+                    onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                    className="input"
+                    placeholder="Leave blank to keep current password"
+                    minLength={6}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Minimum 6 characters. Only fill if you want to change the password.</p>
                 </div>
 
                 <div className="flex items-center space-x-4">

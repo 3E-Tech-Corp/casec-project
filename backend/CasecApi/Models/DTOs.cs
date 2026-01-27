@@ -679,6 +679,7 @@ public class AdminEditUserRequest
     public string? TwitterHandle { get; set; }
     public bool? IsActive { get; set; }
     public DateTime? MemberSince { get; set; }
+    public string? NewPassword { get; set; }
 }
 
 // Board Member DTO
