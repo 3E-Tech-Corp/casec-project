@@ -10,19 +10,30 @@ const LAYOUT_STYLES = {
   fullwidth: "flex flex-col",
 };
 
+// Aspect ratio CSS classes
+const ASPECT_RATIO_CLASSES = {
+  original: "", // No fixed aspect ratio - use natural dimensions
+  "16:9": "aspect-video",
+  "4:3": "aspect-[4/3]",
+  "1:1": "aspect-square",
+  "3:2": "aspect-[3/2]",
+};
+
 export default function CardRenderer({ card, lang = "zh" }) {
   const title = lang === "zh" ? card.titleZh : card.titleEn;
   const bodyText = lang === "zh" ? card.bodyTextZh : card.bodyTextEn;
   const hasMedia = !!card.mediaUrl;
   const hasText = title || bodyText;
   const isVideo = card.mediaType === "video";
+  const aspectRatio = card.aspectRatio || "original";
+  const aspectClass = ASPECT_RATIO_CLASSES[aspectRatio] || "";
 
   // Overlay layout
   if (card.layoutType === "overlay") {
     return (
       <div className="relative rounded-xl overflow-hidden">
         {hasMedia && (
-          <div className="w-full aspect-video">
+          <div className={`w-full ${aspectClass || "aspect-video"}`}>
             {isVideo ? (
               <video
                 src={getAssetUrl(card.mediaUrl)}
@@ -64,11 +75,11 @@ export default function CardRenderer({ card, lang = "zh" }) {
     return (
       <div className="space-y-4">
         {hasMedia && (
-          <div className="w-full rounded-xl overflow-hidden">
+          <div className={`w-full rounded-xl overflow-hidden ${aspectClass}`}>
             {isVideo ? (
               <video
                 src={getAssetUrl(card.mediaUrl)}
-                className="w-full aspect-video object-cover"
+                className={`w-full ${aspectClass ? "h-full object-cover" : ""}`}
                 autoPlay
                 muted
                 loop
@@ -79,7 +90,7 @@ export default function CardRenderer({ card, lang = "zh" }) {
               <img
                 src={getAssetUrl(card.mediaUrl)}
                 alt={title || ""}
-                className="w-full object-contain max-h-96"
+                className={`w-full ${aspectClass ? "h-full object-cover" : "object-contain"}`}
               />
             )}
           </div>
@@ -115,12 +126,12 @@ export default function CardRenderer({ card, lang = "zh" }) {
         <div
           className={`${
             isHorizontal ? "w-1/2 flex-shrink-0" : "w-full"
-          } rounded-xl overflow-hidden`}
+          } rounded-xl overflow-hidden ${aspectClass}`}
         >
           {isVideo ? (
             <video
               src={getAssetUrl(card.mediaUrl)}
-              className="w-full aspect-video object-cover"
+              className={`w-full ${aspectClass ? "h-full object-cover" : ""}`}
               autoPlay
               muted
               loop
@@ -131,7 +142,7 @@ export default function CardRenderer({ card, lang = "zh" }) {
             <img
               src={getAssetUrl(card.mediaUrl)}
               alt={title || ""}
-              className="w-full object-cover"
+              className={`w-full ${aspectClass ? "h-full object-cover" : ""}`}
             />
           )}
         </div>

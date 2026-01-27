@@ -209,6 +209,7 @@ public class ContentCardsController : ControllerBase
                 MediaUrl = request.MediaUrl,
                 MediaType = request.MediaType,
                 LayoutType = request.LayoutType,
+                AspectRatio = request.AspectRatio ?? "original",
                 DisplayOrder = request.DisplayOrder,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -291,6 +292,7 @@ public class ContentCardsController : ControllerBase
             }
 
             if (request.DisplayOrder.HasValue) card.DisplayOrder = request.DisplayOrder.Value;
+            if (request.AspectRatio != null) card.AspectRatio = request.AspectRatio;
 
             card.UpdatedAt = DateTime.UtcNow;
 
@@ -457,6 +459,7 @@ public class ContentCardsController : ControllerBase
             MediaUrl = card.MediaUrl,
             MediaType = card.MediaType,
             LayoutType = card.LayoutType,
+            AspectRatio = card.AspectRatio ?? "original",
             DisplayOrder = card.DisplayOrder,
             CreatedAt = card.CreatedAt,
             UpdatedAt = card.UpdatedAt

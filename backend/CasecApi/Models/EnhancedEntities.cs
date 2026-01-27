@@ -2129,6 +2129,10 @@ public class ContentCard
     [MaxLength(20)]
     public string LayoutType { get; set; } = "left";
 
+    // Aspect ratio for media: "original", "16:9", "4:3", "1:1", "3:2"
+    [MaxLength(20)]
+    public string? AspectRatio { get; set; } = "original";
+
     public int DisplayOrder { get; set; } = 0;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -2035,6 +2035,7 @@ public class ContentCardDto
     public string? MediaUrl { get; set; }
     public string MediaType { get; set; } = "image";
     public string LayoutType { get; set; } = "left";
+    public string? AspectRatio { get; set; } = "original";
     public int DisplayOrder { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
@@ -2051,6 +2052,7 @@ public class CreateContentCardRequest
     public string? MediaUrl { get; set; }
     public string MediaType { get; set; } = "image";
     public string LayoutType { get; set; } = "left";
+    public string? AspectRatio { get; set; } = "original";
     public int DisplayOrder { get; set; }
 }
 
@@ -2063,6 +2065,7 @@ public class UpdateContentCardRequest
     public string? MediaUrl { get; set; }
     public string? MediaType { get; set; }
     public string? LayoutType { get; set; }
+    public string? AspectRatio { get; set; }
     public int? DisplayOrder { get; set; }
 }
 

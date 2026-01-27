@@ -1194,6 +1194,7 @@ public class EventProgramsController : ControllerBase
             MediaUrl = card.MediaUrl,
             MediaType = card.MediaType,
             LayoutType = card.LayoutType,
+            AspectRatio = card.AspectRatio ?? "original",
             DisplayOrder = card.DisplayOrder,
             CreatedAt = card.CreatedAt,
             UpdatedAt = card.UpdatedAt

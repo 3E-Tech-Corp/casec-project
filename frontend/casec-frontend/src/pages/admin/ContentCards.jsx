@@ -70,6 +70,14 @@ const LAYOUT_TYPES = [
   { value: "fullwidth", label: "Full Width" },
 ];
 
+const ASPECT_RATIO_TYPES = [
+  { value: "original", label: "Original" },
+  { value: "16:9", label: "16:9 (Widescreen)" },
+  { value: "4:3", label: "4:3 (Standard)" },
+  { value: "1:1", label: "1:1 (Square)" },
+  { value: "3:2", label: "3:2 (Photo)" },
+];
+
 export default function AdminContentCards() {
   const [cards, setCards] = useState([]);
   const [performers, setPerformers] = useState([]);
@@ -93,6 +101,7 @@ export default function AdminContentCards() {
     mediaUrl: "",
     mediaType: "image",
     layoutType: "left",
+    aspectRatio: "original",
     displayOrder: 0,
   });
 
@@ -132,6 +141,7 @@ export default function AdminContentCards() {
       mediaUrl: "",
       mediaType: "image",
       layoutType: "left",
+      aspectRatio: "original",
       displayOrder: 0,
     });
     setShowForm(true);
@@ -182,6 +192,7 @@ export default function AdminContentCards() {
       mediaUrl: card.mediaUrl || "",
       mediaType: card.mediaType || "image",
       layoutType: card.layoutType || "left",
+      aspectRatio: card.aspectRatio || "original",
       displayOrder: card.displayOrder || 0,
     });
     setShowForm(true);
@@ -599,8 +610,8 @@ export default function AdminContentCards() {
                 </div>
               </div>
 
-              {/* Layout & Order */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Layout, Aspect Ratio & Order */}
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Layout
@@ -615,6 +626,24 @@ export default function AdminContentCards() {
                     {LAYOUT_TYPES.map((layout) => (
                       <option key={layout.value} value={layout.value}>
                         {layout.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Aspect Ratio
+                  </label>
+                  <select
+                    value={formData.aspectRatio}
+                    onChange={(e) =>
+                      setFormData({ ...formData, aspectRatio: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    {ASPECT_RATIO_TYPES.map((ratio) => (
+                      <option key={ratio.value} value={ratio.value}>
+                        {ratio.label}
                       </option>
                     ))}
                   </select>
