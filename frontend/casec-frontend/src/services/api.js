@@ -462,11 +462,22 @@ export const eventProgramsAPI = {
   updateItem: (itemId, data) => api.put(`/eventprograms/items/${itemId}`, data),
   deleteItem: (itemId) => api.delete(`/eventprograms/items/${itemId}`),
 
-  // Performers
+  // Performers (legacy - use performersAPI instead)
   getPerformers: () => api.get("/eventprograms/performers"),
   createPerformer: (data) => api.post("/eventprograms/performers", data),
   updatePerformer: (performerId, data) =>
     api.put(`/eventprograms/performers/${performerId}`, data),
+};
+
+// Performers API
+export const performersAPI = {
+  getAll: () => api.get("/performers"),
+  getAllAdmin: () => api.get("/performers/admin/all"),
+  getById: (id) => api.get(`/performers/${id}`),
+  search: (query) => api.get(`/performers/search?q=${encodeURIComponent(query)}`),
+  create: (data) => api.post("/performers", data),
+  update: (id, data) => api.put(`/performers/${id}`, data),
+  delete: (id) => api.delete(`/performers/${id}`),
 };
 
 // Content Cards APIs

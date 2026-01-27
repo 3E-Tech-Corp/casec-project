@@ -19,7 +19,7 @@ import {
   Copy,
   Check,
 } from "lucide-react";
-import { eventProgramsAPI, slideShowsAPI, getAssetUrl } from "../../services/api";
+import { eventProgramsAPI, slideShowsAPI, performersAPI, getAssetUrl } from "../../services/api";
 
 // Inline URL Copy Component for card view
 function ProgramUrlCopy({ slug }) {
@@ -791,6 +791,22 @@ function ProgramEditor({ program, onReload }) {
   const [editingItem, setEditingItem] = useState(null);
   const [newSectionTitle, setNewSectionTitle] = useState("");
   const [saving, setSaving] = useState(false);
+  const [performers, setPerformers] = useState([]);
+
+  // Load performers list on mount
+  useEffect(() => {
+    const loadPerformers = async () => {
+      try {
+        const response = await performersAPI.getAllAdmin();
+        if (response.success) {
+          setPerformers(response.data);
+        }
+      } catch (err) {
+        console.error("Error loading performers:", err);
+      }
+    };
+    loadPerformers();
+  }, []);
 
   const handleAddSection = async () => {
     if (!newSectionTitle.trim()) return;
@@ -919,6 +935,7 @@ function ProgramEditor({ program, onReload }) {
                 {editingItem?.itemId === item.itemId ? (
                   <ItemEditor
                     item={item}
+                    performers={performers}
                     onSave={async (data) => {
                       try {
                         await eventProgramsAPI.updateItem(item.itemId, data);
@@ -1072,7 +1089,7 @@ function SectionEditor({ section, onSave, onCancel }) {
 }
 
 // Item Editor Component
-function ItemEditor({ item, onSave, onCancel }) {
+function ItemEditor({ item, performers = [], onSave, onCancel }) {
   const [data, setData] = useState({
     itemNumber: item.itemNumber,
     title: item.title || "",
@@ -1087,6 +1104,30 @@ function ItemEditor({ item, onSave, onCancel }) {
     descriptionZh: item.descriptionZh || "",
     descriptionEn: item.descriptionEn || "",
   });
+
+  // Handle performer selection from dropdown
+  const handlePerformerSelect = (performerId, fieldName) => {
+    if (!performerId) {
+      // Clear the field if "None" is selected
+      setData({ ...data, [fieldName]: "" });
+      return;
+    }
+    const performer = performers.find(p => p.performerId === parseInt(performerId));
+    if (performer) {
+      // Use the display name (name field) which typically contains the preferred display format
+      const displayName = performer.name || performer.chineseName || performer.englishName || "";
+      setData({ ...data, [fieldName]: displayName });
+    }
+  };
+
+  // Find matching performer ID from name (for dropdown default selection)
+  const findPerformerIdByName = (name) => {
+    if (!name) return "";
+    const performer = performers.find(p =>
+      p.name === name || p.chineseName === name || p.englishName === name
+    );
+    return performer ? performer.performerId : "";
+  };
 
   return (
     <div className="flex-1 space-y-3 p-3 bg-white rounded-lg border">
@@ -1124,12 +1165,24 @@ function ItemEditor({ item, onSave, onCancel }) {
         </div>
         <div className="col-span-3">
           <label className="text-xs font-medium text-gray-600">Performer 1</label>
+          <select
+            value={findPerformerIdByName(data.performerNames)}
+            onChange={(e) => handlePerformerSelect(e.target.value, "performerNames")}
+            className="w-full border rounded px-2 py-1 text-sm mb-1"
+          >
+            <option value="">-- Select --</option>
+            {performers.map(p => (
+              <option key={p.performerId} value={p.performerId}>
+                {p.name || p.chineseName}{p.englishName && p.name !== p.englishName ? ` (${p.englishName})` : ""}
+              </option>
+            ))}
+          </select>
           <input
             type="text"
             value={data.performerNames}
             onChange={(e) => setData({ ...data, performerNames: e.target.value })}
             className="w-full border rounded px-2 py-1 text-sm"
-            placeholder="Name"
+            placeholder="Or type name"
           />
         </div>
       </div>
@@ -1139,12 +1192,24 @@ function ItemEditor({ item, onSave, onCancel }) {
         <div className="col-span-9"></div>
         <div className="col-span-3">
           <label className="text-xs font-medium text-gray-600">Performer 2</label>
+          <select
+            value={findPerformerIdByName(data.performerNames2)}
+            onChange={(e) => handlePerformerSelect(e.target.value, "performerNames2")}
+            className="w-full border rounded px-2 py-1 text-sm mb-1"
+          >
+            <option value="">-- None --</option>
+            {performers.map(p => (
+              <option key={p.performerId} value={p.performerId}>
+                {p.name || p.chineseName}{p.englishName && p.name !== p.englishName ? ` (${p.englishName})` : ""}
+              </option>
+            ))}
+          </select>
           <input
             type="text"
             value={data.performerNames2}
             onChange={(e) => setData({ ...data, performerNames2: e.target.value })}
             className="w-full border rounded px-2 py-1 text-sm"
-            placeholder="Name (optional)"
+            placeholder="Or type name"
           />
         </div>
       </div>

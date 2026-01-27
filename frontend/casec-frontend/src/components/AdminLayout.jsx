@@ -23,6 +23,7 @@ export default function AdminLayout() {
     { path: '/admin/events', label: 'Manage Events', icon: Calendar },
     { path: '/admin/event-types', label: 'Event Types', icon: Tag },
     { path: '/admin/programs', label: 'Event Programs', icon: Music },
+    { path: '/admin/performers', label: 'Performers', icon: Users },
     { path: '/admin/content-cards', label: 'Content Cards', icon: LayoutGrid },
     { type: 'divider', label: 'Engagement' },
     { path: '/admin/polls', label: 'Polls', icon: BarChart3 },
