@@ -1801,6 +1801,7 @@ public class ProgramSectionDto
     public string? DescriptionZh { get; set; }
     public string? DescriptionEn { get; set; }
     public int DisplayOrder { get; set; }
+    public bool IsActive { get; set; } = true;
     public List<ProgramItemDto> Items { get; set; } = new();
 }
 
@@ -1817,6 +1818,7 @@ public class CreateProgramSectionRequest
     public string? DescriptionZh { get; set; }
     public string? DescriptionEn { get; set; }
     public int DisplayOrder { get; set; }
+    public bool IsActive { get; set; } = true;
 }
 
 public class UpdateProgramSectionRequest
@@ -1831,6 +1833,7 @@ public class UpdateProgramSectionRequest
     public string? DescriptionZh { get; set; }
     public string? DescriptionEn { get; set; }
     public int? DisplayOrder { get; set; }
+    public bool? IsActive { get; set; }
 }
 
 // ProgramItem DTOs
@@ -1854,6 +1857,7 @@ public class ProgramItemDto
     public int? ContentPageId { get; set; }
     public int DisplayOrder { get; set; }
     public int? DurationMinutes { get; set; }
+    public bool IsActive { get; set; } = true;
     public List<PerformerDto>? Performers { get; set; }
     public List<ContentCardDto>? Cards { get; set; }
 }
@@ -1877,6 +1881,7 @@ public class CreateProgramItemRequest
     public int? ContentPageId { get; set; }
     public int DisplayOrder { get; set; }
     public int? DurationMinutes { get; set; }
+    public bool IsActive { get; set; } = true;
     public List<int>? PerformerIds { get; set; }
 }
 
@@ -1898,6 +1903,7 @@ public class UpdateProgramItemRequest
     public int? ContentPageId { get; set; }
     public int? DisplayOrder { get; set; }
     public int? DurationMinutes { get; set; }
+    public bool? IsActive { get; set; }
     public List<int>? PerformerIds { get; set; }
 }
 

@@ -423,6 +423,7 @@ public class EventProgramsController : ControllerBase
                 DescriptionZh = request.DescriptionZh,
                 DescriptionEn = request.DescriptionEn,
                 DisplayOrder = request.DisplayOrder,
+                IsActive = request.IsActive,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -484,6 +485,7 @@ public class EventProgramsController : ControllerBase
             if (request.DescriptionZh != null) section.DescriptionZh = request.DescriptionZh;
             if (request.DescriptionEn != null) section.DescriptionEn = request.DescriptionEn;
             if (request.DisplayOrder.HasValue) section.DisplayOrder = request.DisplayOrder.Value;
+            if (request.IsActive.HasValue) section.IsActive = request.IsActive.Value;
 
             section.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
@@ -651,6 +653,7 @@ public class EventProgramsController : ControllerBase
                 ContentPageId = request.ContentPageId,
                 DisplayOrder = request.DisplayOrder,
                 DurationMinutes = request.DurationMinutes,
+                IsActive = request.IsActive,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -734,6 +737,7 @@ public class EventProgramsController : ControllerBase
             if (request.ContentPageId.HasValue) item.ContentPageId = request.ContentPageId;
             if (request.DisplayOrder.HasValue) item.DisplayOrder = request.DisplayOrder.Value;
             if (request.DurationMinutes.HasValue) item.DurationMinutes = request.DurationMinutes;
+            if (request.IsActive.HasValue) item.IsActive = request.IsActive.Value;
 
             // Update performers if specified
             if (request.PerformerIds != null)
@@ -1108,6 +1112,7 @@ public class EventProgramsController : ControllerBase
             DescriptionZh = section.DescriptionZh,
             DescriptionEn = section.DescriptionEn,
             DisplayOrder = section.DisplayOrder,
+            IsActive = section.IsActive,
             Items = section.Items?
                 .OrderBy(i => i.DisplayOrder)
                 .Select(i => MapItemToDto(i, itemCards, performerCards))
@@ -1144,6 +1149,7 @@ public class EventProgramsController : ControllerBase
             ContentPageId = item.ContentPageId,
             DisplayOrder = item.DisplayOrder,
             DurationMinutes = item.DurationMinutes,
+            IsActive = item.IsActive,
             Performers = item.Performers?
                 .OrderBy(ip => ip.DisplayOrder)
                 .Where(ip => ip.Performer != null)
