@@ -34,6 +34,9 @@ import AdminSlideShows from './pages/admin/SlideShows';
 import SlideShowPreview from './pages/SlideShowPreview';
 import AdminRaffles from './pages/admin/Raffles';
 import AdminEventPrograms from './pages/admin/EventPrograms';
+import AdminContentCards from './pages/admin/ContentCards';
+import AdminPerformers from './pages/admin/Performers';
+import AdminRoles from './pages/admin/Roles';
 import Membership from './pages/Membership';
 import Raffle from './pages/Raffle';
 import RaffleDrawing from './pages/RaffleDrawing';
@@ -50,12 +53,13 @@ function PublicOnlyRoute({ children }) {
 }
 
 function AdminRoute({ children }) {
-  const { isAuthenticated, user } = useAuthStore((state) => ({
+  const { isAuthenticated, hasAdminAccess } = useAuthStore((state) => ({
     isAuthenticated: state.isAuthenticated,
-    user: state.user,
+    hasAdminAccess: state.hasAdminAccess,
   }));
 
-  return isAuthenticated && user?.isAdmin ? children : <Navigate to="/dashboard" />;
+  // Allow access if user is system admin OR has any admin roles
+  return isAuthenticated && hasAdminAccess() ? children : <Navigate to="/dashboard" />;
 }
 
 // Route that allows both system admins and club admins
@@ -125,6 +129,9 @@ function App() {
           <Route path="slideshows" element={<AdminSlideShows />} />
           <Route path="raffles" element={<AdminRaffles />} />
           <Route path="programs" element={<AdminEventPrograms />} />
+          <Route path="performers" element={<AdminPerformers />} />
+          <Route path="content-cards" element={<AdminContentCards />} />
+          <Route path="roles" element={<AdminRoles />} />
           {/* Admin Routes */}
           <Route path="admin/users" element={
             <AdminRoute><AdminUsers /></AdminRoute>

@@ -19,7 +19,7 @@ import {
   Copy,
   Check,
 } from "lucide-react";
-import { eventProgramsAPI, slideShowsAPI, getAssetUrl } from "../../services/api";
+import { eventProgramsAPI, slideShowsAPI, performersAPI, getAssetUrl } from "../../services/api";
 
 // Inline URL Copy Component for card view
 function ProgramUrlCopy({ slug }) {
@@ -124,8 +124,14 @@ export default function AdminEventPrograms() {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
+    titleZh: "",
+    titleEn: "",
     subtitle: "",
+    subtitleZh: "",
+    subtitleEn: "",
     description: "",
+    descriptionZh: "",
+    descriptionEn: "",
     imageUrl: "",
     eventDate: "",
     venue: "",
@@ -177,8 +183,14 @@ export default function AdminEventPrograms() {
     setEditingProgram(null);
     setFormData({
       title: "",
+      titleZh: "",
+      titleEn: "",
       subtitle: "",
+      subtitleZh: "",
+      subtitleEn: "",
       description: "",
+      descriptionZh: "",
+      descriptionEn: "",
       imageUrl: "",
       eventDate: "",
       venue: "",
@@ -197,8 +209,14 @@ export default function AdminEventPrograms() {
         setEditingProgram(p);
         setFormData({
           title: p.title || "",
+          titleZh: p.titleZh || "",
+          titleEn: p.titleEn || "",
           subtitle: p.subtitle || "",
+          subtitleZh: p.subtitleZh || "",
+          subtitleEn: p.subtitleEn || "",
           description: p.description || "",
+          descriptionZh: p.descriptionZh || "",
+          descriptionEn: p.descriptionEn || "",
           imageUrl: p.imageUrl || "",
           eventDate: p.eventDate ? p.eventDate.split("T")[0] : "",
           venue: p.venue || "",
@@ -351,48 +369,106 @@ export default function AdminEventPrograms() {
             </div>
 
             <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+              {/* Title Section */}
+              <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   Title *
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  className="w-full border rounded-lg px-3 py-2"
-                  placeholder="e.g., 2026 佛罗里达华人春晚节目单"
-                />
+                  <span className="text-xs text-gray-400">(Bilingual)</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Chinese 中文</label>
+                    <input
+                      type="text"
+                      value={formData.titleZh}
+                      onChange={(e) =>
+                        setFormData({ ...formData, titleZh: e.target.value, title: e.target.value || formData.title })
+                      }
+                      className="w-full border rounded-lg px-3 py-2"
+                      placeholder="中文标题"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">English</label>
+                    <input
+                      type="text"
+                      value={formData.titleEn}
+                      onChange={(e) =>
+                        setFormData({ ...formData, titleEn: e.target.value })
+                      }
+                      className="w-full border rounded-lg px-3 py-2"
+                      placeholder="English title"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+              {/* Subtitle Section */}
+              <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   Subtitle
-                </label>
-                <input
-                  type="text"
-                  value={formData.subtitle}
-                  onChange={(e) =>
-                    setFormData({ ...formData, subtitle: e.target.value })
-                  }
-                  className="w-full border rounded-lg px-3 py-2"
-                  placeholder="e.g., 一马当先·光耀世界"
-                />
+                  <span className="text-xs text-gray-400">(Bilingual)</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Chinese 中文</label>
+                    <input
+                      type="text"
+                      value={formData.subtitleZh}
+                      onChange={(e) =>
+                        setFormData({ ...formData, subtitleZh: e.target.value, subtitle: e.target.value || formData.subtitle })
+                      }
+                      className="w-full border rounded-lg px-3 py-2"
+                      placeholder="中文副标题"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">English</label>
+                    <input
+                      type="text"
+                      value={formData.subtitleEn}
+                      onChange={(e) =>
+                        setFormData({ ...formData, subtitleEn: e.target.value })
+                      }
+                      className="w-full border rounded-lg px-3 py-2"
+                      placeholder="English subtitle"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+              {/* Description Section */}
+              <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   Description
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  className="w-full border rounded-lg px-3 py-2"
-                  rows={3}
-                />
+                  <span className="text-xs text-gray-400">(Bilingual)</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Chinese 中文</label>
+                    <textarea
+                      value={formData.descriptionZh}
+                      onChange={(e) =>
+                        setFormData({ ...formData, descriptionZh: e.target.value, description: e.target.value || formData.description })
+                      }
+                      className="w-full border rounded-lg px-3 py-2"
+                      rows={3}
+                      placeholder="中文描述..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">English</label>
+                    <textarea
+                      value={formData.descriptionEn}
+                      onChange={(e) =>
+                        setFormData({ ...formData, descriptionEn: e.target.value })
+                      }
+                      className="w-full border rounded-lg px-3 py-2"
+                      rows={3}
+                      placeholder="English description..."
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -715,6 +791,22 @@ function ProgramEditor({ program, onReload }) {
   const [editingItem, setEditingItem] = useState(null);
   const [newSectionTitle, setNewSectionTitle] = useState("");
   const [saving, setSaving] = useState(false);
+  const [performers, setPerformers] = useState([]);
+
+  // Load performers list on mount
+  useEffect(() => {
+    const loadPerformers = async () => {
+      try {
+        const response = await performersAPI.getAllAdmin();
+        if (response.success) {
+          setPerformers(response.data);
+        }
+      } catch (err) {
+        console.error("Error loading performers:", err);
+      }
+    };
+    loadPerformers();
+  }, []);
 
   const handleAddSection = async () => {
     if (!newSectionTitle.trim()) return;
@@ -843,6 +935,7 @@ function ProgramEditor({ program, onReload }) {
                 {editingItem?.itemId === item.itemId ? (
                   <ItemEditor
                     item={item}
+                    performers={performers}
                     onSave={async (data) => {
                       try {
                         await eventProgramsAPI.updateItem(item.itemId, data);
@@ -920,93 +1013,299 @@ function ProgramEditor({ program, onReload }) {
 // Section Editor Component
 function SectionEditor({ section, onSave, onCancel }) {
   const [data, setData] = useState({
-    title: section.title,
+    title: section.title || "",
+    titleZh: section.titleZh || "",
+    titleEn: section.titleEn || "",
     subtitle: section.subtitle || "",
+    subtitleZh: section.subtitleZh || "",
+    subtitleEn: section.subtitleEn || "",
     description: section.description || "",
+    descriptionZh: section.descriptionZh || "",
+    descriptionEn: section.descriptionEn || "",
   });
 
   return (
-    <div className="flex-1 flex items-center gap-2">
-      <input
-        type="text"
-        value={data.title}
-        onChange={(e) => setData({ ...data, title: e.target.value })}
-        className="flex-1 border rounded px-2 py-1 text-sm"
-        placeholder="Section title"
-      />
-      <input
-        type="text"
-        value={data.subtitle}
-        onChange={(e) => setData({ ...data, subtitle: e.target.value })}
-        className="flex-1 border rounded px-2 py-1 text-sm"
-        placeholder="Subtitle (optional)"
-      />
-      <button
-        onClick={() => onSave(data)}
-        className="p-1 text-emerald-600 hover:text-emerald-700"
-      >
-        <Save className="w-4 h-4" />
-      </button>
-      <button onClick={onCancel} className="p-1 text-gray-400 hover:text-gray-600">
-        <X className="w-4 h-4" />
-      </button>
+    <div className="flex-1 space-y-3 p-3 bg-white rounded-lg border">
+      {/* Title - Bilingual */}
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-gray-600">Title (Bilingual)</label>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="text"
+            value={data.titleZh}
+            onChange={(e) => setData({ ...data, titleZh: e.target.value, title: e.target.value || data.title })}
+            className="border rounded px-2 py-1 text-sm"
+            placeholder="中文标题"
+          />
+          <input
+            type="text"
+            value={data.titleEn}
+            onChange={(e) => setData({ ...data, titleEn: e.target.value })}
+            className="border rounded px-2 py-1 text-sm"
+            placeholder="English Title"
+          />
+        </div>
+      </div>
+
+      {/* Subtitle - Bilingual */}
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-gray-600">Subtitle (Bilingual, optional)</label>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="text"
+            value={data.subtitleZh}
+            onChange={(e) => setData({ ...data, subtitleZh: e.target.value, subtitle: e.target.value || data.subtitle })}
+            className="border rounded px-2 py-1 text-sm"
+            placeholder="中文副标题"
+          />
+          <input
+            type="text"
+            value={data.subtitleEn}
+            onChange={(e) => setData({ ...data, subtitleEn: e.target.value })}
+            className="border rounded px-2 py-1 text-sm"
+            placeholder="English Subtitle"
+          />
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex justify-end gap-2 pt-2">
+        <button
+          onClick={onCancel}
+          className="text-sm text-gray-500 px-3 py-1 hover:text-gray-700"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => onSave(data)}
+          className="flex items-center gap-1 text-sm bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700"
+        >
+          <Save className="w-3 h-3" />
+          Save
+        </button>
+      </div>
     </div>
   );
 }
 
 // Item Editor Component
-function ItemEditor({ item, onSave, onCancel }) {
+function ItemEditor({ item, performers = [], onSave, onCancel }) {
+  // Find initial performer IDs from existing linked performers or by name match
+  const getInitialPerformerIds = () => {
+    const ids = [];
+    // Check if item has linked performers
+    if (item.performers?.length > 0) {
+      item.performers.forEach(p => {
+        if (p.performerId) ids.push(p.performerId);
+      });
+    }
+    // If no linked performers, try to match by name
+    if (ids.length === 0 && item.performerNames) {
+      const p1 = performers.find(p =>
+        p.name === item.performerNames || p.chineseName === item.performerNames || p.englishName === item.performerNames
+      );
+      if (p1) ids.push(p1.performerId);
+    }
+    if (ids.length < 2 && item.performerNames2) {
+      const p2 = performers.find(p =>
+        p.name === item.performerNames2 || p.chineseName === item.performerNames2 || p.englishName === item.performerNames2
+      );
+      if (p2) ids.push(p2.performerId);
+    }
+    return ids;
+  };
+
   const [data, setData] = useState({
     itemNumber: item.itemNumber,
-    title: item.title,
+    title: item.title || "",
+    titleZh: item.titleZh || "",
+    titleEn: item.titleEn || "",
     performanceType: item.performanceType || "",
+    performanceTypeZh: item.performanceTypeZh || "",
+    performanceTypeEn: item.performanceTypeEn || "",
     performerNames: item.performerNames || "",
+    performerNames2: item.performerNames2 || "",
     description: item.description || "",
+    descriptionZh: item.descriptionZh || "",
+    descriptionEn: item.descriptionEn || "",
+    performerIds: getInitialPerformerIds(),
   });
 
+  // Handle performer selection from dropdown
+  const handlePerformerSelect = (performerId, fieldName, index) => {
+    const id = performerId ? parseInt(performerId) : null;
+    const performer = id ? performers.find(p => p.performerId === id) : null;
+    const displayName = performer ? (performer.name || performer.chineseName || performer.englishName || "") : "";
+
+    // Update performer IDs array
+    const newIds = [...(data.performerIds || [])];
+    if (index === 0) {
+      newIds[0] = id;
+    } else {
+      newIds[1] = id;
+    }
+    // Filter out nulls and keep valid IDs
+    const filteredIds = newIds.filter(pid => pid != null);
+
+    setData({ ...data, [fieldName]: displayName, performerIds: filteredIds });
+  };
+
+  // Find matching performer ID from name (for dropdown default selection)
+  const findPerformerIdByName = (name) => {
+    if (!name) return "";
+    const performer = performers.find(p =>
+      p.name === name || p.chineseName === name || p.englishName === name
+    );
+    return performer ? performer.performerId : "";
+  };
+
   return (
-    <div className="flex-1 grid grid-cols-5 gap-2">
-      <input
-        type="number"
-        value={data.itemNumber}
-        onChange={(e) => setData({ ...data, itemNumber: parseInt(e.target.value) || 1 })}
-        className="border rounded px-2 py-1 text-sm w-16"
-        placeholder="#"
-      />
-      <input
-        type="text"
-        value={data.title}
-        onChange={(e) => setData({ ...data, title: e.target.value })}
-        className="border rounded px-2 py-1 text-sm col-span-2"
-        placeholder="Title (e.g., 《天鹅湖》)"
-      />
-      <input
-        type="text"
-        value={data.performanceType}
-        onChange={(e) => setData({ ...data, performanceType: e.target.value })}
-        className="border rounded px-2 py-1 text-sm"
-        placeholder="Type (e.g., 芭蕾舞)"
-      />
-      <input
-        type="text"
-        value={data.performerNames}
-        onChange={(e) => setData({ ...data, performerNames: e.target.value })}
-        className="border rounded px-2 py-1 text-sm"
-        placeholder="Performers"
-      />
-      <div className="col-span-5 flex justify-end gap-2">
+    <div className="flex-1 space-y-3 p-3 bg-white rounded-lg border">
+      {/* Row 1: Item Number + Title (Bilingual) */}
+      <div className="grid grid-cols-12 gap-2">
+        <div className="col-span-1">
+          <label className="text-xs font-medium text-gray-600">#</label>
+          <input
+            type="number"
+            value={data.itemNumber}
+            onChange={(e) => setData({ ...data, itemNumber: parseInt(e.target.value) || 1 })}
+            className="w-full border rounded px-2 py-1 text-sm"
+            placeholder="#"
+          />
+        </div>
+        <div className="col-span-4">
+          <label className="text-xs font-medium text-gray-600">Title 中文</label>
+          <input
+            type="text"
+            value={data.titleZh}
+            onChange={(e) => setData({ ...data, titleZh: e.target.value, title: e.target.value || data.title })}
+            className="w-full border rounded px-2 py-1 text-sm"
+            placeholder="中文标题"
+          />
+        </div>
+        <div className="col-span-4">
+          <label className="text-xs font-medium text-gray-600">Title English</label>
+          <input
+            type="text"
+            value={data.titleEn}
+            onChange={(e) => setData({ ...data, titleEn: e.target.value })}
+            className="w-full border rounded px-2 py-1 text-sm"
+            placeholder="English Title"
+          />
+        </div>
+        <div className="col-span-3">
+          <label className="text-xs font-medium text-gray-600">Performer 1</label>
+          <select
+            value={findPerformerIdByName(data.performerNames)}
+            onChange={(e) => handlePerformerSelect(e.target.value, "performerNames", 0)}
+            className="w-full border rounded px-2 py-1 text-sm mb-1"
+          >
+            <option value="">-- Select --</option>
+            {performers.map(p => (
+              <option key={p.performerId} value={p.performerId}>
+                {p.name || p.chineseName}{p.englishName && p.name !== p.englishName ? ` (${p.englishName})` : ""}
+              </option>
+            ))}
+          </select>
+          <input
+            type="text"
+            value={data.performerNames}
+            onChange={(e) => setData({ ...data, performerNames: e.target.value })}
+            className="w-full border rounded px-2 py-1 text-sm"
+            placeholder="Or type name"
+          />
+        </div>
+      </div>
+
+      {/* Row 1b: Performer 2 */}
+      <div className="grid grid-cols-12 gap-2">
+        <div className="col-span-9"></div>
+        <div className="col-span-3">
+          <label className="text-xs font-medium text-gray-600">Performer 2</label>
+          <select
+            value={findPerformerIdByName(data.performerNames2)}
+            onChange={(e) => handlePerformerSelect(e.target.value, "performerNames2", 1)}
+            className="w-full border rounded px-2 py-1 text-sm mb-1"
+          >
+            <option value="">-- None --</option>
+            {performers.map(p => (
+              <option key={p.performerId} value={p.performerId}>
+                {p.name || p.chineseName}{p.englishName && p.name !== p.englishName ? ` (${p.englishName})` : ""}
+              </option>
+            ))}
+          </select>
+          <input
+            type="text"
+            value={data.performerNames2}
+            onChange={(e) => setData({ ...data, performerNames2: e.target.value })}
+            className="w-full border rounded px-2 py-1 text-sm"
+            placeholder="Or type name"
+          />
+        </div>
+      </div>
+
+      {/* Row 2: Performance Type (Bilingual) */}
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="text-xs font-medium text-gray-600">Type 中文</label>
+          <input
+            type="text"
+            value={data.performanceTypeZh}
+            onChange={(e) => setData({ ...data, performanceTypeZh: e.target.value, performanceType: e.target.value || data.performanceType })}
+            className="w-full border rounded px-2 py-1 text-sm"
+            placeholder="中文类型 (e.g., 芭蕾舞)"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-gray-600">Type English</label>
+          <input
+            type="text"
+            value={data.performanceTypeEn}
+            onChange={(e) => setData({ ...data, performanceTypeEn: e.target.value })}
+            className="w-full border rounded px-2 py-1 text-sm"
+            placeholder="English Type (e.g., Ballet)"
+          />
+        </div>
+      </div>
+
+      {/* Row 3: Description (Bilingual) */}
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="text-xs font-medium text-gray-600">Description 中文</label>
+          <textarea
+            value={data.descriptionZh}
+            onChange={(e) => setData({ ...data, descriptionZh: e.target.value, description: e.target.value || data.description })}
+            className="w-full border rounded px-2 py-1 text-sm"
+            rows={2}
+            placeholder="中文描述..."
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-gray-600">Description English</label>
+          <textarea
+            value={data.descriptionEn}
+            onChange={(e) => setData({ ...data, descriptionEn: e.target.value })}
+            className="w-full border rounded px-2 py-1 text-sm"
+            rows={2}
+            placeholder="English description..."
+          />
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex justify-end gap-2 pt-2">
+        <button
+          onClick={onCancel}
+          className="text-sm text-gray-500 px-3 py-1 hover:text-gray-700"
+        >
+          Cancel
+        </button>
         <button
           onClick={() => onSave(data)}
-          className="flex items-center gap-1 text-sm bg-emerald-600 text-white px-2 py-1 rounded hover:bg-emerald-700"
+          className="flex items-center gap-1 text-sm bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700"
         >
           <Save className="w-3 h-3" />
           Save
-        </button>
-        <button
-          onClick={onCancel}
-          className="text-sm text-gray-500 px-2 py-1 hover:text-gray-700"
-        >
-          Cancel
         </button>
       </div>
     </div>

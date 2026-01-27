@@ -88,11 +88,13 @@ public class EventProgramsController : ControllerBase
 
             EventProgram? program;
 
+            // Note: Avoid filtered Includes (.OrderBy inside Include) for SQL Server 2014 compatibility
+            // Ordering is done in the mapping methods instead
             if (int.TryParse(idOrSlug, out int id))
             {
                 program = await _context.EventPrograms
-                    .Include(p => p.Sections.OrderBy(s => s.DisplayOrder))
-                        .ThenInclude(s => s.Items.OrderBy(i => i.DisplayOrder))
+                    .Include(p => p.Sections)
+                        .ThenInclude(s => s.Items)
                             .ThenInclude(i => i.Performers)
                                 .ThenInclude(ip => ip.Performer)
                     .FirstOrDefaultAsync(p => p.ProgramId == id);
@@ -100,8 +102,8 @@ public class EventProgramsController : ControllerBase
             else
             {
                 program = await _context.EventPrograms
-                    .Include(p => p.Sections.OrderBy(s => s.DisplayOrder))
-                        .ThenInclude(s => s.Items.OrderBy(i => i.DisplayOrder))
+                    .Include(p => p.Sections)
+                        .ThenInclude(s => s.Items)
                             .ThenInclude(i => i.Performers)
                                 .ThenInclude(ip => ip.Performer)
                     .FirstOrDefaultAsync(p => p.Slug == idOrSlug);
@@ -126,7 +128,49 @@ public class EventProgramsController : ControllerBase
                 });
             }
 
-            var dto = MapToDto(program);
+            // Collect all item IDs and performer IDs to load their cards
+            var itemIds = program.Sections?
+                .SelectMany(s => s.Items?.Select(i => i.ItemId) ?? Enumerable.Empty<int>())
+                .ToList() ?? new List<int>();
+
+            var performerIds = program.Sections?
+                .SelectMany(s => s.Items?.SelectMany(i => i.Performers?.Select(p => p.PerformerId) ?? Enumerable.Empty<int>()) ?? Enumerable.Empty<int>())
+                .Distinct()
+                .ToList() ?? new List<int>();
+
+            // Load content cards - use separate queries to avoid OPENJSON (not supported in SQL Server 2014)
+            var itemCards = new Dictionary<int, List<ContentCard>>();
+            var performerCards = new Dictionary<int, List<ContentCard>>();
+
+            if (itemIds.Any())
+            {
+                // Load item cards - filter in memory for SQL Server 2014 compatibility
+                var itemCardsList = await _context.ContentCards
+                    .Where(c => c.EntityType == "ProgramItem")
+                    .OrderBy(c => c.DisplayOrder)
+                    .ToListAsync();
+
+                itemCards = itemCardsList
+                    .Where(c => itemIds.Contains(c.EntityId))
+                    .GroupBy(c => c.EntityId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+            }
+
+            if (performerIds.Any())
+            {
+                // Load performer cards - filter in memory for SQL Server 2014 compatibility
+                var performerCardsList = await _context.ContentCards
+                    .Where(c => c.EntityType == "Performer")
+                    .OrderBy(c => c.DisplayOrder)
+                    .ToListAsync();
+
+                performerCards = performerCardsList
+                    .Where(c => performerIds.Contains(c.EntityId))
+                    .GroupBy(c => c.EntityId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+            }
+
+            var dto = MapToDto(program, itemCards, performerCards);
 
             return Ok(new ApiResponse<EventProgramDto>
             {
@@ -165,8 +209,14 @@ public class EventProgramsController : ControllerBase
             var program = new EventProgram
             {
                 Title = request.Title,
+                TitleZh = request.TitleZh,
+                TitleEn = request.TitleEn,
                 Subtitle = request.Subtitle,
+                SubtitleZh = request.SubtitleZh,
+                SubtitleEn = request.SubtitleEn,
                 Description = request.Description,
+                DescriptionZh = request.DescriptionZh,
+                DescriptionEn = request.DescriptionEn,
                 ImageUrl = request.ImageUrl,
                 EventDate = request.EventDate,
                 Venue = request.Venue,
@@ -224,8 +274,14 @@ public class EventProgramsController : ControllerBase
             }
 
             if (request.Title != null) program.Title = request.Title;
+            if (request.TitleZh != null) program.TitleZh = request.TitleZh;
+            if (request.TitleEn != null) program.TitleEn = request.TitleEn;
             if (request.Subtitle != null) program.Subtitle = request.Subtitle;
+            if (request.SubtitleZh != null) program.SubtitleZh = request.SubtitleZh;
+            if (request.SubtitleEn != null) program.SubtitleEn = request.SubtitleEn;
             if (request.Description != null) program.Description = request.Description;
+            if (request.DescriptionZh != null) program.DescriptionZh = request.DescriptionZh;
+            if (request.DescriptionEn != null) program.DescriptionEn = request.DescriptionEn;
             if (request.ImageUrl != null) program.ImageUrl = request.ImageUrl;
             if (request.EventDate.HasValue) program.EventDate = request.EventDate;
             if (request.Venue != null) program.Venue = request.Venue;
@@ -332,8 +388,14 @@ public class EventProgramsController : ControllerBase
             {
                 ProgramId = programId,
                 Title = request.Title,
+                TitleZh = request.TitleZh,
+                TitleEn = request.TitleEn,
                 Subtitle = request.Subtitle,
+                SubtitleZh = request.SubtitleZh,
+                SubtitleEn = request.SubtitleEn,
                 Description = request.Description,
+                DescriptionZh = request.DescriptionZh,
+                DescriptionEn = request.DescriptionEn,
                 DisplayOrder = request.DisplayOrder,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -381,8 +443,14 @@ public class EventProgramsController : ControllerBase
             }
 
             if (request.Title != null) section.Title = request.Title;
+            if (request.TitleZh != null) section.TitleZh = request.TitleZh;
+            if (request.TitleEn != null) section.TitleEn = request.TitleEn;
             if (request.Subtitle != null) section.Subtitle = request.Subtitle;
+            if (request.SubtitleZh != null) section.SubtitleZh = request.SubtitleZh;
+            if (request.SubtitleEn != null) section.SubtitleEn = request.SubtitleEn;
             if (request.Description != null) section.Description = request.Description;
+            if (request.DescriptionZh != null) section.DescriptionZh = request.DescriptionZh;
+            if (request.DescriptionEn != null) section.DescriptionEn = request.DescriptionEn;
             if (request.DisplayOrder.HasValue) section.DisplayOrder = request.DisplayOrder.Value;
 
             section.UpdatedAt = DateTime.UtcNow;
@@ -468,9 +536,16 @@ public class EventProgramsController : ControllerBase
                 SectionId = sectionId,
                 ItemNumber = request.ItemNumber,
                 Title = request.Title,
+                TitleZh = request.TitleZh,
+                TitleEn = request.TitleEn,
                 PerformanceType = request.PerformanceType,
+                PerformanceTypeZh = request.PerformanceTypeZh,
+                PerformanceTypeEn = request.PerformanceTypeEn,
                 PerformerNames = request.PerformerNames,
+                PerformerNames2 = request.PerformerNames2,
                 Description = request.Description,
+                DescriptionZh = request.DescriptionZh,
+                DescriptionEn = request.DescriptionEn,
                 ImageUrl = request.ImageUrl,
                 ContentPageId = request.ContentPageId,
                 DisplayOrder = request.DisplayOrder,
@@ -538,9 +613,16 @@ public class EventProgramsController : ControllerBase
 
             if (request.ItemNumber.HasValue) item.ItemNumber = request.ItemNumber.Value;
             if (request.Title != null) item.Title = request.Title;
+            if (request.TitleZh != null) item.TitleZh = request.TitleZh;
+            if (request.TitleEn != null) item.TitleEn = request.TitleEn;
             if (request.PerformanceType != null) item.PerformanceType = request.PerformanceType;
+            if (request.PerformanceTypeZh != null) item.PerformanceTypeZh = request.PerformanceTypeZh;
+            if (request.PerformanceTypeEn != null) item.PerformanceTypeEn = request.PerformanceTypeEn;
             if (request.PerformerNames != null) item.PerformerNames = request.PerformerNames;
+            if (request.PerformerNames2 != null) item.PerformerNames2 = request.PerformerNames2;
             if (request.Description != null) item.Description = request.Description;
+            if (request.DescriptionZh != null) item.DescriptionZh = request.DescriptionZh;
+            if (request.DescriptionEn != null) item.DescriptionEn = request.DescriptionEn;
             if (request.ImageUrl != null) item.ImageUrl = request.ImageUrl;
             if (request.ContentPageId.HasValue) item.ContentPageId = request.ContentPageId;
             if (request.DisplayOrder.HasValue) item.DisplayOrder = request.DisplayOrder.Value;
@@ -771,7 +853,10 @@ public class EventProgramsController : ControllerBase
 
     // ============ HELPER METHODS ============
 
-    private EventProgramDto MapToDto(EventProgram program)
+    private EventProgramDto MapToDto(
+        EventProgram program,
+        Dictionary<int, List<ContentCard>>? itemCards = null,
+        Dictionary<int, List<ContentCard>>? performerCards = null)
     {
         List<int>? slideShowIds = null;
         if (!string.IsNullOrEmpty(program.SlideShowIds))
@@ -787,8 +872,14 @@ public class EventProgramsController : ControllerBase
         {
             ProgramId = program.ProgramId,
             Title = program.Title,
+            TitleZh = program.TitleZh,
+            TitleEn = program.TitleEn,
             Subtitle = program.Subtitle,
+            SubtitleZh = program.SubtitleZh,
+            SubtitleEn = program.SubtitleEn,
             Description = program.Description,
+            DescriptionZh = program.DescriptionZh,
+            DescriptionEn = program.DescriptionEn,
             ImageUrl = program.ImageUrl,
             EventDate = program.EventDate,
             Venue = program.Venue,
@@ -801,39 +892,62 @@ public class EventProgramsController : ControllerBase
             UpdatedAt = program.UpdatedAt,
             Sections = program.Sections?
                 .OrderBy(s => s.DisplayOrder)
-                .Select(s => MapSectionToDto(s))
+                .Select(s => MapSectionToDto(s, itemCards, performerCards))
                 .ToList() ?? new List<ProgramSectionDto>()
         };
     }
 
-    private ProgramSectionDto MapSectionToDto(ProgramSection section)
+    private ProgramSectionDto MapSectionToDto(
+        ProgramSection section,
+        Dictionary<int, List<ContentCard>>? itemCards = null,
+        Dictionary<int, List<ContentCard>>? performerCards = null)
     {
         return new ProgramSectionDto
         {
             SectionId = section.SectionId,
             ProgramId = section.ProgramId,
             Title = section.Title,
+            TitleZh = section.TitleZh,
+            TitleEn = section.TitleEn,
             Subtitle = section.Subtitle,
+            SubtitleZh = section.SubtitleZh,
+            SubtitleEn = section.SubtitleEn,
             Description = section.Description,
+            DescriptionZh = section.DescriptionZh,
+            DescriptionEn = section.DescriptionEn,
             DisplayOrder = section.DisplayOrder,
             Items = section.Items?
                 .OrderBy(i => i.DisplayOrder)
-                .Select(i => MapItemToDto(i))
+                .Select(i => MapItemToDto(i, itemCards, performerCards))
                 .ToList() ?? new List<ProgramItemDto>()
         };
     }
 
-    private ProgramItemDto MapItemToDto(ProgramItem item)
+    private ProgramItemDto MapItemToDto(
+        ProgramItem item,
+        Dictionary<int, List<ContentCard>>? itemCards = null,
+        Dictionary<int, List<ContentCard>>? performerCards = null)
     {
+        var cards = itemCards != null && itemCards.TryGetValue(item.ItemId, out var ic)
+            ? ic.Select(MapCardToDto).ToList()
+            : null;
+
         return new ProgramItemDto
         {
             ItemId = item.ItemId,
             SectionId = item.SectionId,
             ItemNumber = item.ItemNumber,
             Title = item.Title,
+            TitleZh = item.TitleZh,
+            TitleEn = item.TitleEn,
             PerformanceType = item.PerformanceType,
+            PerformanceTypeZh = item.PerformanceTypeZh,
+            PerformanceTypeEn = item.PerformanceTypeEn,
             PerformerNames = item.PerformerNames,
+            PerformerNames2 = item.PerformerNames2,
             Description = item.Description,
+            DescriptionZh = item.DescriptionZh,
+            DescriptionEn = item.DescriptionEn,
             ImageUrl = item.ImageUrl,
             ContentPageId = item.ContentPageId,
             DisplayOrder = item.DisplayOrder,
@@ -841,13 +955,20 @@ public class EventProgramsController : ControllerBase
             Performers = item.Performers?
                 .OrderBy(ip => ip.DisplayOrder)
                 .Where(ip => ip.Performer != null)
-                .Select(ip => MapPerformerToDto(ip.Performer!))
-                .ToList()
+                .Select(ip => MapPerformerToDto(ip.Performer!, performerCards))
+                .ToList(),
+            Cards = cards
         };
     }
 
-    private PerformerDto MapPerformerToDto(Performer performer)
+    private PerformerDto MapPerformerToDto(
+        Performer performer,
+        Dictionary<int, List<ContentCard>>? performerCards = null)
     {
+        var cards = performerCards != null && performerCards.TryGetValue(performer.PerformerId, out var pc)
+            ? pc.Select(MapCardToDto).ToList()
+            : null;
+
         return new PerformerDto
         {
             PerformerId = performer.PerformerId,
@@ -860,7 +981,28 @@ public class EventProgramsController : ControllerBase
             Instagram = performer.Instagram,
             YouTube = performer.YouTube,
             ContentPageId = performer.ContentPageId,
-            IsActive = performer.IsActive
+            IsActive = performer.IsActive,
+            Cards = cards
+        };
+    }
+
+    private ContentCardDto MapCardToDto(ContentCard card)
+    {
+        return new ContentCardDto
+        {
+            CardId = card.CardId,
+            EntityType = card.EntityType,
+            EntityId = card.EntityId,
+            TitleZh = card.TitleZh,
+            TitleEn = card.TitleEn,
+            BodyTextZh = card.BodyTextZh,
+            BodyTextEn = card.BodyTextEn,
+            MediaUrl = card.MediaUrl,
+            MediaType = card.MediaType,
+            LayoutType = card.LayoutType,
+            DisplayOrder = card.DisplayOrder,
+            CreatedAt = card.CreatedAt,
+            UpdatedAt = card.UpdatedAt
         };
     }
 

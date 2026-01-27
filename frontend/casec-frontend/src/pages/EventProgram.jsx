@@ -7,9 +7,12 @@ import {
   Loader2,
   ExternalLink,
   Play,
+  Globe,
+  Info,
 } from "lucide-react";
 import { eventProgramsAPI, getAssetUrl } from "../services/api";
 import SlideShow from "../components/SlideShow";
+import CardModal from "../components/CardModal";
 
 // Language configuration
 const LANGUAGES = {
@@ -19,6 +22,10 @@ const LANGUAGES = {
     footer: "节目内容可能会有所调整，以实际演出为准",
     replayButton: "重播幻灯片",
     viewMore: "查看更多",
+    learnMoreProgram: "了解节目",
+    learnMorePerformer: "了解演员",
+    aboutProgram: "节目介绍",
+    aboutPerformer: "演员介绍",
   },
   en: {
     locale: "en-US",
@@ -26,22 +33,37 @@ const LANGUAGES = {
     footer: "Program content is subject to change",
     replayButton: "Replay Slideshow",
     viewMore: "View More",
+    learnMoreProgram: "Learn more",
+    learnMorePerformer: "Learn more",
+    aboutProgram: "About this performance",
+    aboutPerformer: "About the performer",
   },
 };
 
 export default function EventProgram() {
   const { slug } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [program, setProgram] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showSlideshow, setShowSlideshow] = useState(true);
   const [currentSlideshowIndex, setCurrentSlideshowIndex] = useState(0);
 
+  // Cards modal state
+  const [cardModalOpen, setCardModalOpen] = useState(false);
+  const [cardModalCards, setCardModalCards] = useState([]);
+  const [cardModalTitle, setCardModalTitle] = useState("");
+
   // Get language from query string, default to "zh"
   const langParam = searchParams.get("lang") || "zh";
   const lang = LANGUAGES[langParam] ? langParam : "zh";
   const t = LANGUAGES[lang];
+
+  // Toggle language between Chinese and English
+  const toggleLanguage = () => {
+    const newLang = lang === "zh" ? "en" : "zh";
+    setSearchParams({ lang: newLang });
+  };
 
   useEffect(() => {
     loadProgram();
@@ -82,6 +104,21 @@ export default function EventProgram() {
   // Handle skip - go directly to program content
   const handleSkip = () => {
     setShowSlideshow(false);
+  };
+
+  // Show cards in modal
+  const showCards = (cards, title) => {
+    setCardModalCards(cards);
+    setCardModalTitle(title);
+    setCardModalOpen(true);
+  };
+
+  // Helper to get bilingual text based on selected language
+  const getText = (zhField, enField, fallback) => {
+    if (lang === "zh") {
+      return zhField || fallback || enField || "";
+    }
+    return enField || fallback || zhField || "";
   };
 
   if (loading) {
@@ -127,31 +164,44 @@ export default function EventProgram() {
   // Show program content
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-900 via-red-800 to-amber-900">
-      {/* Replay slideshow button (if there were slideshows) */}
-      {slideShowIds.length > 0 && (
+      {/* Top action buttons */}
+      <div className="fixed top-4 right-4 z-40 flex items-center gap-2">
+        {/* Language Switcher */}
         <button
-          onClick={() => {
-            setCurrentSlideshowIndex(0);
-            setShowSlideshow(true);
-          }}
-          className="fixed top-4 right-4 z-40 flex items-center gap-2 bg-black/50 text-white px-4 py-2 rounded-full text-sm hover:bg-black/70 transition-colors"
+          onClick={toggleLanguage}
+          className="flex items-center gap-2 bg-black/50 text-white px-4 py-2 rounded-full text-sm hover:bg-black/70 transition-colors"
+          title={lang === "zh" ? "Switch to English" : "切换到中文"}
         >
-          <Play className="w-4 h-4" />
-          {t.replayButton}
+          <Globe className="w-4 h-4" />
+          <span className="font-medium">{lang === "zh" ? "EN" : "中文"}</span>
         </button>
-      )}
+
+        {/* Replay slideshow button (if there were slideshows) */}
+        {slideShowIds.length > 0 && (
+          <button
+            onClick={() => {
+              setCurrentSlideshowIndex(0);
+              setShowSlideshow(true);
+            }}
+            className="flex items-center gap-2 bg-black/50 text-white px-4 py-2 rounded-full text-sm hover:bg-black/70 transition-colors"
+          >
+            <Play className="w-4 h-4" />
+            {t.replayButton}
+          </button>
+        )}
+      </div>
 
       {/* Program Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
-          {program.subtitle && (
+          {getText(program.subtitleZh, program.subtitleEn, program.subtitle) && (
             <p className="text-yellow-400 text-xl mb-2 font-serif">
-              "{program.subtitle}"
+              "{getText(program.subtitleZh, program.subtitleEn, program.subtitle)}"
             </p>
           )}
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-4 font-serif">
-            {program.title}
+            {getText(program.titleZh, program.titleEn, program.title)}
           </h1>
 
           {/* Event Info */}
@@ -172,9 +222,9 @@ export default function EventProgram() {
             )}
           </div>
 
-          {program.description && (
+          {getText(program.descriptionZh, program.descriptionEn, program.description) && (
             <p className="text-white/70 mt-4 max-w-2xl mx-auto">
-              {program.description}
+              {getText(program.descriptionZh, program.descriptionEn, program.description)}
             </p>
           )}
         </div>
@@ -186,11 +236,11 @@ export default function EventProgram() {
               {/* Section Header */}
               <div className="mb-6">
                 <h2 className="text-xl font-bold text-yellow-400 font-serif">
-                  {section.title}
+                  {getText(section.titleZh, section.titleEn, section.title)}
                 </h2>
-                {section.subtitle && (
+                {getText(section.subtitleZh, section.subtitleEn, section.subtitle) && (
                   <p className="text-white/60 text-sm mt-1">
-                    {section.subtitle}
+                    {getText(section.subtitleZh, section.subtitleEn, section.subtitle)}
                   </p>
                 )}
               </div>
@@ -203,6 +253,8 @@ export default function EventProgram() {
                     item={item}
                     itemNumber={item.itemNumber || itemIdx + 1}
                     lang={lang}
+                    onShowCards={showCards}
+                    getText={getText}
                   />
                 ))}
               </div>
@@ -215,115 +267,139 @@ export default function EventProgram() {
           <p>{t.footer}</p>
         </div>
       </div>
+
+      {/* Cards Modal */}
+      <CardModal
+        isOpen={cardModalOpen}
+        onClose={() => setCardModalOpen(false)}
+        cards={cardModalCards}
+        title={cardModalTitle}
+        lang={lang}
+      />
     </div>
   );
 }
 
 // Program Item Row Component
-function ProgramItemRow({ item, itemNumber, lang = "zh" }) {
-  const [expanded, setExpanded] = useState(false);
+function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText }) {
   const t = LANGUAGES[lang] || LANGUAGES.zh;
 
-  const hasDetails =
-    item.description ||
-    item.performers?.length > 0 ||
-    item.imageUrl ||
-    item.contentPageId;
+  // Item title and fields using bilingual support
+  const itemTitle = getText(item.titleZh, item.titleEn, item.title);
+  const itemPerformanceType = getText(item.performanceTypeZh, item.performanceTypeEn, item.performanceType);
+  const itemDescription = getText(item.descriptionZh, item.descriptionEn, item.description);
+
+  const hasCards = item.cards?.length > 0;
+  const hasDescription = itemDescription || itemPerformanceType;
+
+  // Handle clicking on item cards (for later use)
+  const handleItemCardsClick = (e) => {
+    e.stopPropagation();
+    if (hasCards && onShowCards) {
+      onShowCards(item.cards, `${t.aboutProgram}: ${itemTitle}`);
+    }
+  };
+
+  // Handle clicking on performer cards (for later use)
+  const handlePerformerCardsClick = (e, performer) => {
+    e.stopPropagation();
+    const performerName =
+      lang === "zh"
+        ? performer.chineseName || performer.name
+        : performer.englishName || performer.name;
+    if (performer.cards?.length > 0 && onShowCards) {
+      onShowCards(performer.cards, `${t.aboutPerformer}: ${performerName}`);
+    }
+  };
+
+  // Check if performers have cards (from linked Performer entities)
+  // API returns performers as a flat list of PerformerDto objects
+  const performer1 = item.performers?.find(p =>
+    p.name === item.performerNames ||
+    p.chineseName === item.performerNames ||
+    p.englishName === item.performerNames
+  );
+  const performer2 = item.performers?.find(p =>
+    p.name === item.performerNames2 ||
+    p.chineseName === item.performerNames2 ||
+    p.englishName === item.performerNames2
+  );
+
+  const performer1HasCards = performer1?.cards?.length > 0;
+  const performer2HasCards = performer2?.cards?.length > 0;
 
   return (
     <div className="border-b border-white/10 last:border-0 pb-3 last:pb-0">
-      <div
-        className={`flex items-start gap-4 ${
-          hasDetails ? "cursor-pointer hover:bg-white/5 -mx-2 px-2 py-1 rounded" : ""
-        }`}
-        onClick={() => hasDetails && setExpanded(!expanded)}
-      >
+      {/* Main Row: Number, Title, Performers */}
+      <div className="flex items-start gap-4">
         {/* Item Number */}
         <span className="text-yellow-400/70 font-mono text-sm w-6 text-right flex-shrink-0 pt-0.5">
           {itemNumber}:
         </span>
 
-        {/* Title */}
+        {/* Title - clickable if has cards */}
         <div className="flex-1 min-w-0">
-          <span className="text-white font-medium">{item.title}</span>
+          {hasCards ? (
+            <button
+              onClick={handleItemCardsClick}
+              className="text-white font-medium hover:text-yellow-400 transition-colors inline-flex items-center gap-1.5 text-left"
+            >
+              {itemTitle}
+              <Info className="w-3.5 h-3.5 text-yellow-400/60" />
+            </button>
+          ) : (
+            <span className="text-white font-medium">{itemTitle}</span>
+          )}
         </div>
 
-        {/* Performance Type */}
-        {item.performanceType && (
-          <span className="text-white/60 text-sm flex-shrink-0 w-24 text-center">
-            {item.performanceType}
-          </span>
-        )}
-
-        {/* Performer Names */}
-        {item.performerNames && (
-          <span className="text-yellow-400/80 text-sm flex-shrink-0 w-32 text-right">
-            {item.performerNames}
-          </span>
-        )}
-
-        {/* Expand indicator */}
-        {hasDetails && (
-          <ChevronRight
-            className={`w-4 h-4 text-white/40 flex-shrink-0 transition-transform ${
-              expanded ? "rotate-90" : ""
-            }`}
-          />
-        )}
+        {/* Performer Names - clickable if they have cards */}
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {item.performerNames && (
+            performer1HasCards ? (
+              <button
+                onClick={(e) => handlePerformerCardsClick(e, performer1)}
+                className="text-yellow-400/80 text-sm hover:text-yellow-300 transition-colors inline-flex items-center gap-1"
+              >
+                {item.performerNames}
+                <Info className="w-3 h-3 text-yellow-400/50" />
+              </button>
+            ) : (
+              <span className="text-yellow-400/80 text-sm">
+                {item.performerNames}
+              </span>
+            )
+          )}
+          {item.performerNames2 && (
+            performer2HasCards ? (
+              <button
+                onClick={(e) => handlePerformerCardsClick(e, performer2)}
+                className="text-yellow-400/80 text-sm hover:text-yellow-300 transition-colors inline-flex items-center gap-1"
+              >
+                {item.performerNames2}
+                <Info className="w-3 h-3 text-yellow-400/50" />
+              </button>
+            ) : (
+              <span className="text-yellow-400/80 text-sm">
+                {item.performerNames2}
+              </span>
+            )
+          )}
+        </div>
       </div>
 
-      {/* Expanded Details */}
-      {expanded && hasDetails && (
-        <div className="ml-10 mt-3 p-4 bg-white/5 rounded-lg space-y-3">
-          {item.imageUrl && (
-            <img
-              src={getAssetUrl(item.imageUrl)}
-              alt={item.title}
-              className="w-full max-w-sm rounded-lg"
-            />
+      {/* Description Box - always visible if has content */}
+      {hasDescription && (
+        <div className="ml-10 mt-2 p-3 bg-white/5 rounded-lg">
+          {/* Performance Type as first line */}
+          {itemPerformanceType && (
+            <p className="text-white/60 text-sm">
+              {itemPerformanceType}
+            </p>
           )}
 
-          {item.description && (
-            <p className="text-white/70 text-sm">{item.description}</p>
-          )}
-
-          {item.performers?.length > 0 && (
-            <div className="flex flex-wrap gap-3">
-              {item.performers.map((performer) => (
-                <div
-                  key={performer.performerId}
-                  className="flex items-center gap-2 bg-white/5 rounded-full px-3 py-1"
-                >
-                  {performer.photoUrl && (
-                    <img
-                      src={getAssetUrl(performer.photoUrl)}
-                      alt={performer.name}
-                      className="w-6 h-6 rounded-full object-cover"
-                    />
-                  )}
-                  <span className="text-white/80 text-sm">{performer.name}</span>
-                  {performer.contentPageId && (
-                    <Link
-                      to={`/content/${performer.contentPageId}`}
-                      className="text-yellow-400 hover:text-yellow-300"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                    </Link>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {item.contentPageId && (
-            <Link
-              to={`/content/${item.contentPageId}`}
-              className="inline-flex items-center gap-1 text-yellow-400 hover:text-yellow-300 text-sm"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {t.viewMore} <ExternalLink className="w-3 h-3" />
-            </Link>
+          {/* Description */}
+          {itemDescription && (
+            <p className="text-white/70 text-sm mt-1">{itemDescription}</p>
           )}
         </div>
       )}

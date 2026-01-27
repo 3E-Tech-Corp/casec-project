@@ -74,6 +74,8 @@ public class UserDto
     public bool IsActive { get; set; }
     public DateTime MemberSince { get; set; }
     public List<int> ClubIds { get; set; } = new();
+    public List<string> Roles { get; set; } = new();
+    public List<string> AllowedAdminAreas { get; set; } = new();
     public List<FamilyMemberDto>? FamilyMembers { get; set; }
 }
 
@@ -677,6 +679,7 @@ public class AdminEditUserRequest
     public string? TwitterHandle { get; set; }
     public bool? IsActive { get; set; }
     public DateTime? MemberSince { get; set; }
+    public string? NewPassword { get; set; }
 }
 
 // Board Member DTO
@@ -1706,8 +1709,14 @@ public class EventProgramDto
 {
     public int ProgramId { get; set; }
     public string Title { get; set; } = string.Empty;
+    public string? TitleZh { get; set; }
+    public string? TitleEn { get; set; }
     public string? Subtitle { get; set; }
+    public string? SubtitleZh { get; set; }
+    public string? SubtitleEn { get; set; }
     public string? Description { get; set; }
+    public string? DescriptionZh { get; set; }
+    public string? DescriptionEn { get; set; }
     public string? ImageUrl { get; set; }
     public DateTime? EventDate { get; set; }
     public string? Venue { get; set; }
@@ -1740,8 +1749,14 @@ public class EventProgramListDto
 public class CreateEventProgramRequest
 {
     public string Title { get; set; } = string.Empty;
+    public string? TitleZh { get; set; }
+    public string? TitleEn { get; set; }
     public string? Subtitle { get; set; }
+    public string? SubtitleZh { get; set; }
+    public string? SubtitleEn { get; set; }
     public string? Description { get; set; }
+    public string? DescriptionZh { get; set; }
+    public string? DescriptionEn { get; set; }
     public string? ImageUrl { get; set; }
     public DateTime? EventDate { get; set; }
     public string? Venue { get; set; }
@@ -1753,8 +1768,14 @@ public class CreateEventProgramRequest
 public class UpdateEventProgramRequest
 {
     public string? Title { get; set; }
+    public string? TitleZh { get; set; }
+    public string? TitleEn { get; set; }
     public string? Subtitle { get; set; }
+    public string? SubtitleZh { get; set; }
+    public string? SubtitleEn { get; set; }
     public string? Description { get; set; }
+    public string? DescriptionZh { get; set; }
+    public string? DescriptionEn { get; set; }
     public string? ImageUrl { get; set; }
     public DateTime? EventDate { get; set; }
     public string? Venue { get; set; }
@@ -1771,8 +1792,14 @@ public class ProgramSectionDto
     public int SectionId { get; set; }
     public int ProgramId { get; set; }
     public string Title { get; set; } = string.Empty;
+    public string? TitleZh { get; set; }
+    public string? TitleEn { get; set; }
     public string? Subtitle { get; set; }
+    public string? SubtitleZh { get; set; }
+    public string? SubtitleEn { get; set; }
     public string? Description { get; set; }
+    public string? DescriptionZh { get; set; }
+    public string? DescriptionEn { get; set; }
     public int DisplayOrder { get; set; }
     public List<ProgramItemDto> Items { get; set; } = new();
 }
@@ -1781,16 +1808,28 @@ public class CreateProgramSectionRequest
 {
     public int ProgramId { get; set; }
     public string Title { get; set; } = string.Empty;
+    public string? TitleZh { get; set; }
+    public string? TitleEn { get; set; }
     public string? Subtitle { get; set; }
+    public string? SubtitleZh { get; set; }
+    public string? SubtitleEn { get; set; }
     public string? Description { get; set; }
+    public string? DescriptionZh { get; set; }
+    public string? DescriptionEn { get; set; }
     public int DisplayOrder { get; set; }
 }
 
 public class UpdateProgramSectionRequest
 {
     public string? Title { get; set; }
+    public string? TitleZh { get; set; }
+    public string? TitleEn { get; set; }
     public string? Subtitle { get; set; }
+    public string? SubtitleZh { get; set; }
+    public string? SubtitleEn { get; set; }
     public string? Description { get; set; }
+    public string? DescriptionZh { get; set; }
+    public string? DescriptionEn { get; set; }
     public int? DisplayOrder { get; set; }
 }
 
@@ -1801,14 +1840,22 @@ public class ProgramItemDto
     public int SectionId { get; set; }
     public int ItemNumber { get; set; }
     public string Title { get; set; } = string.Empty;
+    public string? TitleZh { get; set; }
+    public string? TitleEn { get; set; }
     public string? PerformanceType { get; set; }
+    public string? PerformanceTypeZh { get; set; }
+    public string? PerformanceTypeEn { get; set; }
     public string? PerformerNames { get; set; }
+    public string? PerformerNames2 { get; set; }
     public string? Description { get; set; }
+    public string? DescriptionZh { get; set; }
+    public string? DescriptionEn { get; set; }
     public string? ImageUrl { get; set; }
     public int? ContentPageId { get; set; }
     public int DisplayOrder { get; set; }
     public int? DurationMinutes { get; set; }
     public List<PerformerDto>? Performers { get; set; }
+    public List<ContentCardDto>? Cards { get; set; }
 }
 
 public class CreateProgramItemRequest
@@ -1816,9 +1863,16 @@ public class CreateProgramItemRequest
     public int SectionId { get; set; }
     public int ItemNumber { get; set; }
     public string Title { get; set; } = string.Empty;
+    public string? TitleZh { get; set; }
+    public string? TitleEn { get; set; }
     public string? PerformanceType { get; set; }
+    public string? PerformanceTypeZh { get; set; }
+    public string? PerformanceTypeEn { get; set; }
     public string? PerformerNames { get; set; }
+    public string? PerformerNames2 { get; set; }
     public string? Description { get; set; }
+    public string? DescriptionZh { get; set; }
+    public string? DescriptionEn { get; set; }
     public string? ImageUrl { get; set; }
     public int? ContentPageId { get; set; }
     public int DisplayOrder { get; set; }
@@ -1830,9 +1884,16 @@ public class UpdateProgramItemRequest
 {
     public int? ItemNumber { get; set; }
     public string? Title { get; set; }
+    public string? TitleZh { get; set; }
+    public string? TitleEn { get; set; }
     public string? PerformanceType { get; set; }
+    public string? PerformanceTypeZh { get; set; }
+    public string? PerformanceTypeEn { get; set; }
     public string? PerformerNames { get; set; }
+    public string? PerformerNames2 { get; set; }
     public string? Description { get; set; }
+    public string? DescriptionZh { get; set; }
+    public string? DescriptionEn { get; set; }
     public string? ImageUrl { get; set; }
     public int? ContentPageId { get; set; }
     public int? DisplayOrder { get; set; }
@@ -1854,6 +1915,7 @@ public class PerformerDto
     public string? YouTube { get; set; }
     public int? ContentPageId { get; set; }
     public bool IsActive { get; set; }
+    public List<ContentCardDto>? Cards { get; set; }
 }
 
 public class CreatePerformerRequest
@@ -1929,4 +1991,140 @@ public class UpdateProgramContentRequest
     public string? Status { get; set; }
     public string? MetaTitle { get; set; }
     public string? MetaDescription { get; set; }
+}
+
+// ContentCard DTOs - Cards with rich content for program items and performers
+public class ContentCardDto
+{
+    public int CardId { get; set; }
+    public string EntityType { get; set; } = "ProgramItem";
+    public int EntityId { get; set; }
+    public string? TitleZh { get; set; }
+    public string? TitleEn { get; set; }
+    public string? BodyTextZh { get; set; }
+    public string? BodyTextEn { get; set; }
+    public string? MediaUrl { get; set; }
+    public string MediaType { get; set; } = "image";
+    public string LayoutType { get; set; } = "left";
+    public int DisplayOrder { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+public class CreateContentCardRequest
+{
+    public string EntityType { get; set; } = "ProgramItem";
+    public int EntityId { get; set; }
+    public string? TitleZh { get; set; }
+    public string? TitleEn { get; set; }
+    public string? BodyTextZh { get; set; }
+    public string? BodyTextEn { get; set; }
+    public string? MediaUrl { get; set; }
+    public string MediaType { get; set; } = "image";
+    public string LayoutType { get; set; } = "left";
+    public int DisplayOrder { get; set; }
+}
+
+public class UpdateContentCardRequest
+{
+    public string? TitleZh { get; set; }
+    public string? TitleEn { get; set; }
+    public string? BodyTextZh { get; set; }
+    public string? BodyTextEn { get; set; }
+    public string? MediaUrl { get; set; }
+    public string? MediaType { get; set; }
+    public string? LayoutType { get; set; }
+    public int? DisplayOrder { get; set; }
+}
+
+// ============ ROLE-BASED ACCESS CONTROL DTOs ============
+
+public class RoleDto
+{
+    public int RoleId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsSystem { get; set; }
+    public bool IsActive { get; set; }
+    public int UserCount { get; set; }
+    public List<AreaPermissionDto>? AreaPermissions { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+public class AdminAreaDto
+{
+    public int AreaId { get; set; }
+    public string AreaKey { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? Category { get; set; }
+    public string? IconName { get; set; }
+    public string? Route { get; set; }
+    public int DisplayOrder { get; set; }
+}
+
+public class AreaPermissionDto
+{
+    public int AreaId { get; set; }
+    public string AreaKey { get; set; } = string.Empty;
+    public string AreaName { get; set; } = string.Empty;
+    public string? Category { get; set; }
+    public bool CanView { get; set; }
+    public bool CanEdit { get; set; }
+    public bool CanDelete { get; set; }
+}
+
+public class UserRoleDto
+{
+    public int UserRoleId { get; set; }
+    public int UserId { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public string UserEmail { get; set; } = string.Empty;
+    public int RoleId { get; set; }
+    public string RoleName { get; set; } = string.Empty;
+    public DateTime AssignedAt { get; set; }
+    public string? AssignedByName { get; set; }
+}
+
+public class CreateRoleRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public List<AreaPermissionRequest>? AreaPermissions { get; set; }
+}
+
+public class UpdateRoleRequest
+{
+    public string? Name { get; set; }
+    public string? Description { get; set; }
+    public bool? IsActive { get; set; }
+    public List<AreaPermissionRequest>? AreaPermissions { get; set; }
+}
+
+public class AreaPermissionRequest
+{
+    public int AreaId { get; set; }
+    public bool CanView { get; set; }
+    public bool CanEdit { get; set; }
+    public bool CanDelete { get; set; }
+}
+
+public class AssignRoleRequest
+{
+    public int UserId { get; set; }
+    public int RoleId { get; set; }
+}
+
+public class UserRoleInfoDto
+{
+    public int RoleId { get; set; }
+    public string Name { get; set; } = string.Empty;
+}
+
+public class UserPermissionsDto
+{
+    public int UserId { get; set; }
+    public List<UserRoleInfoDto> Roles { get; set; } = new();
+    public List<AreaPermissionDto> Permissions { get; set; } = new();
 }

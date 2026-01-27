@@ -78,6 +78,13 @@ public class CasecDbContext : DbContext
     public DbSet<ProgramItemPerformer> ProgramItemPerformers { get; set; }
     public DbSet<Performer> Performers { get; set; }
     public DbSet<ProgramContent> ProgramContents { get; set; }
+    public DbSet<ContentCard> ContentCards { get; set; }
+
+    // Role-based access control entities
+    public DbSet<Role> Roles { get; set; }
+    public DbSet<AdminArea> AdminAreas { get; set; }
+    public DbSet<RoleAreaPermission> RoleAreaPermissions { get; set; }
+    public DbSet<UserRole> UserRoles { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -715,6 +722,81 @@ public class CasecDbContext : DbContext
             entity.HasIndex(e => e.Slug);
             entity.HasIndex(e => e.ContentType);
             entity.HasIndex(e => e.Status);
+        });
+
+        // ContentCard entity configuration
+        modelBuilder.Entity<ContentCard>(entity =>
+        {
+            entity.HasKey(e => e.CardId);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.MediaType).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.LayoutType).IsRequired().HasMaxLength(20);
+
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.DisplayOrder });
+        });
+
+        // Role entity configuration
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.HasKey(e => e.RoleId);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+
+            entity.HasIndex(e => e.Name).IsUnique();
+        });
+
+        // AdminArea entity configuration
+        modelBuilder.Entity<AdminArea>(entity =>
+        {
+            entity.HasKey(e => e.AreaId);
+            entity.Property(e => e.AreaKey).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+
+            entity.HasIndex(e => e.AreaKey).IsUnique();
+        });
+
+        // RoleAreaPermission entity configuration
+        modelBuilder.Entity<RoleAreaPermission>(entity =>
+        {
+            entity.HasKey(e => e.PermissionId);
+
+            entity.HasOne(e => e.Role)
+                .WithMany(r => r.AreaPermissions)
+                .HasForeignKey(e => e.RoleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Area)
+                .WithMany(a => a.RolePermissions)
+                .HasForeignKey(e => e.AreaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.RoleId);
+            entity.HasIndex(e => new { e.RoleId, e.AreaId }).IsUnique();
+        });
+
+        // UserRole entity configuration
+        modelBuilder.Entity<UserRole>(entity =>
+        {
+            entity.HasKey(e => e.UserRoleId);
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Role)
+                .WithMany(r => r.UserRoles)
+                .HasForeignKey(e => e.RoleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.AssignedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.AssignedBy)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.RoleId);
+            entity.HasIndex(e => new { e.UserId, e.RoleId }).IsUnique();
         });
     }
 }
