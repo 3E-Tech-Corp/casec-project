@@ -88,11 +88,13 @@ public class EventProgramsController : ControllerBase
 
             EventProgram? program;
 
+            // Note: Avoid filtered Includes (.OrderBy inside Include) for SQL Server 2014 compatibility
+            // Ordering is done in the mapping methods instead
             if (int.TryParse(idOrSlug, out int id))
             {
                 program = await _context.EventPrograms
-                    .Include(p => p.Sections.OrderBy(s => s.DisplayOrder))
-                        .ThenInclude(s => s.Items.OrderBy(i => i.DisplayOrder))
+                    .Include(p => p.Sections)
+                        .ThenInclude(s => s.Items)
                             .ThenInclude(i => i.Performers)
                                 .ThenInclude(ip => ip.Performer)
                     .FirstOrDefaultAsync(p => p.ProgramId == id);
@@ -100,8 +102,8 @@ public class EventProgramsController : ControllerBase
             else
             {
                 program = await _context.EventPrograms
-                    .Include(p => p.Sections.OrderBy(s => s.DisplayOrder))
-                        .ThenInclude(s => s.Items.OrderBy(i => i.DisplayOrder))
+                    .Include(p => p.Sections)
+                        .ThenInclude(s => s.Items)
                             .ThenInclude(i => i.Performers)
                                 .ThenInclude(ip => ip.Performer)
                     .FirstOrDefaultAsync(p => p.Slug == idOrSlug);
