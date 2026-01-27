@@ -188,20 +188,19 @@ public class AuthController : ControllerBase
             var token = GenerateJwtToken(user);
 
             // Fetch user's role permissions (admin areas they can access)
-            var userRoleIds = await _context.UserRoles
+            // Using joins instead of Contains() to avoid OPENJSON which isn't supported in SQL Server 2014
+            var allowedAreas = await _context.UserRoles
                 .Where(ur => ur.UserId == user.UserId)
-                .Select(ur => ur.RoleId)
+                .Join(_context.RoleAreaPermissions.Where(rap => rap.CanView),
+                    ur => ur.RoleId,
+                    rap => rap.RoleId,
+                    (ur, rap) => rap)
+                .Join(_context.AdminAreas,
+                    rap => rap.AreaId,
+                    a => a.AreaId,
+                    (rap, a) => a.AreaKey)
+                .Distinct()
                 .ToListAsync();
-
-            var allowedAreas = new List<string>();
-            if (userRoleIds.Any())
-            {
-                allowedAreas = await _context.RoleAreaPermissions
-                    .Where(rap => userRoleIds.Contains(rap.RoleId) && rap.CanView)
-                    .Join(_context.AdminAreas, rap => rap.AreaId, a => a.AreaId, (rap, a) => a.AreaKey)
-                    .Distinct()
-                    .ToListAsync();
-            }
 
             var userDto = new UserDto
             {
