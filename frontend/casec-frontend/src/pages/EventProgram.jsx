@@ -306,16 +306,39 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText })
   // Handle clicking on performer cards (for later use)
   const handlePerformerCardsClick = (e, performer) => {
     e.stopPropagation();
+    if (!performer) return;
+
     const performerName =
       lang === "zh"
         ? performer.chineseName || performer.name
         : performer.englishName || performer.name;
-    if (performer.cards?.length > 0 && onShowCards) {
-      onShowCards(performer.cards, `${t.aboutPerformer}: ${performerName}`);
+
+    // Create a default info card from performer basic data
+    const defaultCard = {
+      cardId: `performer-default-${performer.performerId}`,
+      entityType: "Performer",
+      entityId: performer.performerId,
+      titleZh: performer.chineseName || performer.name,
+      titleEn: performer.englishName || performer.name,
+      bodyTextZh: performer.bio || "",
+      bodyTextEn: performer.bio || "",
+      mediaUrl: performer.photoUrl || "",
+      mediaType: "image",
+      layoutType: performer.photoUrl ? "left" : "fullwidth",
+      displayOrder: 0,
+      isDefault: true, // Mark as default card
+    };
+
+    // Combine default card with any existing content cards
+    const existingCards = performer.cards || [];
+    const allCards = [defaultCard, ...existingCards];
+
+    if (onShowCards) {
+      onShowCards(allCards, `${t.aboutPerformer}: ${performerName}`);
     }
   };
 
-  // Check if performers have cards (from linked Performer entities)
+  // Check if performers have data (from linked Performer entities)
   // API returns performers as a flat list of PerformerDto objects
   const performer1 = item.performers?.find(p =>
     p.name === item.performerNames ||
@@ -328,8 +351,9 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText })
     p.englishName === item.performerNames2
   );
 
-  const performer1HasCards = performer1?.cards?.length > 0;
-  const performer2HasCards = performer2?.cards?.length > 0;
+  // Performers are clickable if they have data (not just cards)
+  const performer1Clickable = !!performer1;
+  const performer2Clickable = !!performer2;
 
   return (
     <div className="border-b border-white/10 last:border-0 pb-3 last:pb-0">
@@ -355,10 +379,10 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText })
           )}
         </div>
 
-        {/* Performer Names - clickable if they have cards */}
+        {/* Performer Names - clickable if they have performer data */}
         <div className="flex items-center gap-3 flex-shrink-0">
           {item.performerNames && (
-            performer1HasCards ? (
+            performer1Clickable ? (
               <button
                 onClick={(e) => handlePerformerCardsClick(e, performer1)}
                 className="text-yellow-400/80 text-sm hover:text-yellow-300 transition-colors inline-flex items-center gap-1"
@@ -373,7 +397,7 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText })
             )
           )}
           {item.performerNames2 && (
-            performer2HasCards ? (
+            performer2Clickable ? (
               <button
                 onClick={(e) => handlePerformerCardsClick(e, performer2)}
                 className="text-yellow-400/80 text-sm hover:text-yellow-300 transition-colors inline-flex items-center gap-1"
