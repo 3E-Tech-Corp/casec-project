@@ -16,6 +16,41 @@ import {
 } from "lucide-react";
 import { contentCardsAPI, slideShowsAPI, getAssetUrl } from "../../services/api";
 
+// Simple HTML Editor Component
+function HtmlEditor({ value, onChange, placeholder, rows = 4 }) {
+  const [isHtmlMode, setIsHtmlMode] = useState(false);
+
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setIsHtmlMode(!isHtmlMode)}
+          className={`text-xs px-2 py-0.5 rounded ${isHtmlMode ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}
+        >
+          {isHtmlMode ? 'HTML' : 'Text'}
+        </button>
+      </div>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 ${isHtmlMode ? 'font-mono text-xs bg-gray-50' : ''}`}
+        rows={rows}
+        placeholder={isHtmlMode ? '<p>HTML content...</p>' : placeholder}
+      />
+      {isHtmlMode && value && (
+        <div className="text-xs text-gray-500 border-t pt-1 mt-1">
+          <span className="font-medium">Preview:</span>
+          <div
+            className="mt-1 p-2 bg-white border rounded prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: value }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 const ENTITY_TYPES = [
   { value: "ProgramItem", label: "Program Item", icon: Music },
   { value: "Performer", label: "Performer", icon: Users },
@@ -478,33 +513,31 @@ export default function AdminContentCards() {
                 </div>
               </div>
 
-              {/* Body Text */}
+              {/* Body Text - with HTML support */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Body Text (Chinese)
+                    Body Text (Chinese) <span className="text-xs text-gray-400">- supports HTML</span>
                   </label>
-                  <textarea
+                  <HtmlEditor
                     value={formData.bodyTextZh}
-                    onChange={(e) =>
-                      setFormData({ ...formData, bodyTextZh: e.target.value })
+                    onChange={(val) =>
+                      setFormData({ ...formData, bodyTextZh: val })
                     }
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     placeholder="中文内容..."
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Body Text (English)
+                    Body Text (English) <span className="text-xs text-gray-400">- supports HTML</span>
                   </label>
-                  <textarea
+                  <HtmlEditor
                     value={formData.bodyTextEn}
-                    onChange={(e) =>
-                      setFormData({ ...formData, bodyTextEn: e.target.value })
+                    onChange={(val) =>
+                      setFormData({ ...formData, bodyTextEn: val })
                     }
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     placeholder="English content..."
                   />
                 </div>

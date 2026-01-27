@@ -48,9 +48,10 @@ export default function CardRenderer({ card, lang = "zh" }) {
               <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
             )}
             {bodyText && (
-              <p className="text-white/90 text-sm leading-relaxed whitespace-pre-wrap">
-                {bodyText}
-              </p>
+              <div
+                className="text-white/90 text-sm leading-relaxed prose prose-sm prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: bodyText }}
+              />
             )}
           </div>
         )}
@@ -89,9 +90,10 @@ export default function CardRenderer({ card, lang = "zh" }) {
               <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
             )}
             {bodyText && (
-              <p className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap">
-                {bodyText}
-              </p>
+              <div
+                className="text-white/80 text-sm leading-relaxed prose prose-sm prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: bodyText }}
+              />
             )}
           </div>
         )}
@@ -140,9 +142,10 @@ export default function CardRenderer({ card, lang = "zh" }) {
             <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
           )}
           {bodyText && (
-            <p className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap">
-              {bodyText}
-            </p>
+            <div
+              className="text-white/80 text-sm leading-relaxed prose prose-sm prose-invert max-w-none"
+              dangerouslySetInnerHTML={{ __html: bodyText }}
+            />
           )}
         </div>
       )}
