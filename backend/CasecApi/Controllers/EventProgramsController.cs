@@ -138,24 +138,37 @@ public class EventProgramsController : ControllerBase
                 .Distinct()
                 .ToList() ?? new List<int>();
 
-            // Load all content cards for items and performers in one query
-            var allCards = await _context.ContentCards
-                .Where(c =>
-                    (c.EntityType == "ProgramItem" && itemIds.Contains(c.EntityId)) ||
-                    (c.EntityType == "Performer" && performerIds.Contains(c.EntityId)))
-                .OrderBy(c => c.DisplayOrder)
-                .ToListAsync();
+            // Load content cards - use separate queries to avoid OPENJSON (not supported in SQL Server 2014)
+            var itemCards = new Dictionary<int, List<ContentCard>>();
+            var performerCards = new Dictionary<int, List<ContentCard>>();
 
-            // Group cards by entity
-            var itemCards = allCards
-                .Where(c => c.EntityType == "ProgramItem")
-                .GroupBy(c => c.EntityId)
-                .ToDictionary(g => g.Key, g => g.ToList());
+            if (itemIds.Any())
+            {
+                // Load item cards - filter in memory for SQL Server 2014 compatibility
+                var itemCardsList = await _context.ContentCards
+                    .Where(c => c.EntityType == "ProgramItem")
+                    .OrderBy(c => c.DisplayOrder)
+                    .ToListAsync();
 
-            var performerCards = allCards
-                .Where(c => c.EntityType == "Performer")
-                .GroupBy(c => c.EntityId)
-                .ToDictionary(g => g.Key, g => g.ToList());
+                itemCards = itemCardsList
+                    .Where(c => itemIds.Contains(c.EntityId))
+                    .GroupBy(c => c.EntityId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+            }
+
+            if (performerIds.Any())
+            {
+                // Load performer cards - filter in memory for SQL Server 2014 compatibility
+                var performerCardsList = await _context.ContentCards
+                    .Where(c => c.EntityType == "Performer")
+                    .OrderBy(c => c.DisplayOrder)
+                    .ToListAsync();
+
+                performerCards = performerCardsList
+                    .Where(c => performerIds.Contains(c.EntityId))
+                    .GroupBy(c => c.EntityId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+            }
 
             var dto = MapToDto(program, itemCards, performerCards);
 
