@@ -520,6 +520,41 @@ public class CasecDbContext : DbContext
             entity.HasIndex(e => e.Status);
         });
 
+        // SlideObject entity configuration
+        modelBuilder.Entity<SlideObject>(entity =>
+        {
+            entity.HasKey(e => e.SlideObjectId);
+            entity.Property(e => e.ObjectType).IsRequired().HasMaxLength(20);
+
+            entity.HasOne(e => e.Slide)
+                .WithMany(s => s.Objects)
+                .HasForeignKey(e => e.SlideId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.SlideId);
+            entity.HasIndex(e => new { e.SlideId, e.SortOrder });
+        });
+
+        // SlideBackgroundVideo entity configuration
+        modelBuilder.Entity<SlideBackgroundVideo>(entity =>
+        {
+            entity.HasKey(e => e.SlideBackgroundVideoId);
+
+            entity.HasOne(e => e.Slide)
+                .WithMany(s => s.BackgroundVideos)
+                .HasForeignKey(e => e.SlideId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Video)
+                .WithMany()
+                .HasForeignKey(e => e.VideoId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(e => e.SlideId);
+            entity.HasIndex(e => new { e.SlideId, e.SortOrder });
+            entity.HasIndex(e => e.VideoId);
+        });
+
         // RafflePrize entity configuration
         modelBuilder.Entity<RafflePrize>(entity =>
         {
