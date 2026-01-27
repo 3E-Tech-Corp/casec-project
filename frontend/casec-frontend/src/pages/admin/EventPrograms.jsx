@@ -1090,6 +1090,31 @@ function SectionEditor({ section, onSave, onCancel }) {
 
 // Item Editor Component
 function ItemEditor({ item, performers = [], onSave, onCancel }) {
+  // Find initial performer IDs from existing linked performers or by name match
+  const getInitialPerformerIds = () => {
+    const ids = [];
+    // Check if item has linked performers
+    if (item.performers?.length > 0) {
+      item.performers.forEach(p => {
+        if (p.performerId) ids.push(p.performerId);
+      });
+    }
+    // If no linked performers, try to match by name
+    if (ids.length === 0 && item.performerNames) {
+      const p1 = performers.find(p =>
+        p.name === item.performerNames || p.chineseName === item.performerNames || p.englishName === item.performerNames
+      );
+      if (p1) ids.push(p1.performerId);
+    }
+    if (ids.length < 2 && item.performerNames2) {
+      const p2 = performers.find(p =>
+        p.name === item.performerNames2 || p.chineseName === item.performerNames2 || p.englishName === item.performerNames2
+      );
+      if (p2) ids.push(p2.performerId);
+    }
+    return ids;
+  };
+
   const [data, setData] = useState({
     itemNumber: item.itemNumber,
     title: item.title || "",
@@ -1103,21 +1128,26 @@ function ItemEditor({ item, performers = [], onSave, onCancel }) {
     description: item.description || "",
     descriptionZh: item.descriptionZh || "",
     descriptionEn: item.descriptionEn || "",
+    performerIds: getInitialPerformerIds(),
   });
 
   // Handle performer selection from dropdown
-  const handlePerformerSelect = (performerId, fieldName) => {
-    if (!performerId) {
-      // Clear the field if "None" is selected
-      setData({ ...data, [fieldName]: "" });
-      return;
+  const handlePerformerSelect = (performerId, fieldName, index) => {
+    const id = performerId ? parseInt(performerId) : null;
+    const performer = id ? performers.find(p => p.performerId === id) : null;
+    const displayName = performer ? (performer.name || performer.chineseName || performer.englishName || "") : "";
+
+    // Update performer IDs array
+    const newIds = [...(data.performerIds || [])];
+    if (index === 0) {
+      newIds[0] = id;
+    } else {
+      newIds[1] = id;
     }
-    const performer = performers.find(p => p.performerId === parseInt(performerId));
-    if (performer) {
-      // Use the display name (name field) which typically contains the preferred display format
-      const displayName = performer.name || performer.chineseName || performer.englishName || "";
-      setData({ ...data, [fieldName]: displayName });
-    }
+    // Filter out nulls and keep valid IDs
+    const filteredIds = newIds.filter(pid => pid != null);
+
+    setData({ ...data, [fieldName]: displayName, performerIds: filteredIds });
   };
 
   // Find matching performer ID from name (for dropdown default selection)
@@ -1167,7 +1197,7 @@ function ItemEditor({ item, performers = [], onSave, onCancel }) {
           <label className="text-xs font-medium text-gray-600">Performer 1</label>
           <select
             value={findPerformerIdByName(data.performerNames)}
-            onChange={(e) => handlePerformerSelect(e.target.value, "performerNames")}
+            onChange={(e) => handlePerformerSelect(e.target.value, "performerNames", 0)}
             className="w-full border rounded px-2 py-1 text-sm mb-1"
           >
             <option value="">-- Select --</option>
@@ -1194,7 +1224,7 @@ function ItemEditor({ item, performers = [], onSave, onCancel }) {
           <label className="text-xs font-medium text-gray-600">Performer 2</label>
           <select
             value={findPerformerIdByName(data.performerNames2)}
-            onChange={(e) => handlePerformerSelect(e.target.value, "performerNames2")}
+            onChange={(e) => handlePerformerSelect(e.target.value, "performerNames2", 1)}
             className="w-full border rounded px-2 py-1 text-sm mb-1"
           >
             <option value="">-- None --</option>

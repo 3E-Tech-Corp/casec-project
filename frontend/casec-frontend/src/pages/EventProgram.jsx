@@ -313,16 +313,17 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText })
   };
 
   // Check if performers have cards (from linked Performer entities)
+  // API returns performers as a flat list of PerformerDto objects
   const performer1 = item.performers?.find(p =>
-    p.performer?.name === item.performerNames ||
-    p.performer?.chineseName === item.performerNames ||
-    p.performer?.englishName === item.performerNames
-  )?.performer;
+    p.name === item.performerNames ||
+    p.chineseName === item.performerNames ||
+    p.englishName === item.performerNames
+  );
   const performer2 = item.performers?.find(p =>
-    p.performer?.name === item.performerNames2 ||
-    p.performer?.chineseName === item.performerNames2 ||
-    p.performer?.englishName === item.performerNames2
-  )?.performer;
+    p.name === item.performerNames2 ||
+    p.chineseName === item.performerNames2 ||
+    p.englishName === item.performerNames2
+  );
 
   const performer1HasCards = performer1?.cards?.length > 0;
   const performer2HasCards = performer2?.cards?.length > 0;
