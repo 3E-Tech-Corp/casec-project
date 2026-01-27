@@ -187,6 +187,22 @@ public class AuthController : ControllerBase
             // Generate token
             var token = GenerateJwtToken(user);
 
+            // Fetch user's role permissions (admin areas they can access)
+            var userRoleIds = await _context.UserRoles
+                .Where(ur => ur.UserId == user.UserId)
+                .Select(ur => ur.RoleId)
+                .ToListAsync();
+
+            var allowedAreas = new List<string>();
+            if (userRoleIds.Any())
+            {
+                allowedAreas = await _context.RoleAreaPermissions
+                    .Where(rap => userRoleIds.Contains(rap.RoleId) && rap.CanView)
+                    .Join(_context.AdminAreas, rap => rap.AreaId, a => a.AreaId, (rap, a) => a.AreaKey)
+                    .Distinct()
+                    .ToListAsync();
+            }
+
             var userDto = new UserDto
             {
                 UserId = user.UserId,
@@ -208,7 +224,8 @@ public class AuthController : ControllerBase
                 MembershipTypeId = user.MembershipTypeId,
                 MembershipTypeName = user.MembershipType?.Name ?? "",
                 IsAdmin = user.IsAdmin,
-                MemberSince = user.MemberSince
+                MemberSince = user.MemberSince,
+                AllowedAdminAreas = allowedAreas
             };
 
             return Ok(new ApiResponse<LoginResponse>

@@ -8,33 +8,49 @@ import { useAuthStore } from '../store/useStore';
 import LogoOrText from './LogoOrText';
 
 export default function AdminLayout() {
-  const { user } = useAuthStore();
+  const { user, canAccessArea } = useAuthStore();
   const navigate = useNavigate();
 
-  const adminLinks = [
-    { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
-    { type: 'divider', label: 'Users & Membership' },
-    { path: '/admin/users', label: 'Manage Users', icon: Users },
-    { path: '/admin/membership-types', label: 'Membership Types', icon: Tag },
-    { path: '/admin/payments', label: 'Payments', icon: CreditCard },
-    { path: '/admin/payment-methods', label: 'Payment Methods', icon: CreditCard },
-    { type: 'divider', label: 'Content' },
-    { path: '/admin/clubs', label: 'Manage Clubs', icon: Building2 },
-    { path: '/admin/events', label: 'Manage Events', icon: Calendar },
-    { path: '/admin/event-types', label: 'Event Types', icon: Tag },
-    { path: '/admin/programs', label: 'Event Programs', icon: Music },
-    { path: '/admin/performers', label: 'Performers', icon: Users },
-    { path: '/admin/content-cards', label: 'Content Cards', icon: LayoutGrid },
-    { type: 'divider', label: 'Engagement' },
-    { path: '/admin/polls', label: 'Polls', icon: BarChart3 },
-    { path: '/admin/surveys', label: 'Surveys', icon: ClipboardList },
-    { path: '/admin/raffles', label: 'Raffles', icon: Ticket },
-    { type: 'divider', label: 'Appearance' },
-    { path: '/admin/slideshows', label: 'SlideShows', icon: Image },
-    { path: '/admin/theme', label: 'Theme Settings', icon: Palette },
-    { type: 'divider', label: 'System' },
-    { path: '/admin/roles', label: 'Role Management', icon: Shield },
+  // Links with areaKey for permission checking
+  const allAdminLinks = [
+    { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true, areaKey: 'dashboard' },
+    { type: 'divider', label: 'Users & Membership', category: 'users' },
+    { path: '/admin/users', label: 'Manage Users', icon: Users, areaKey: 'users' },
+    { path: '/admin/membership-types', label: 'Membership Types', icon: Tag, areaKey: 'membership-types' },
+    { path: '/admin/payments', label: 'Payments', icon: CreditCard, areaKey: 'payments' },
+    { path: '/admin/payment-methods', label: 'Payment Methods', icon: CreditCard, areaKey: 'payment-methods' },
+    { type: 'divider', label: 'Content', category: 'content' },
+    { path: '/admin/clubs', label: 'Manage Clubs', icon: Building2, areaKey: 'clubs' },
+    { path: '/admin/events', label: 'Manage Events', icon: Calendar, areaKey: 'events' },
+    { path: '/admin/event-types', label: 'Event Types', icon: Tag, areaKey: 'event-types' },
+    { path: '/admin/programs', label: 'Event Programs', icon: Music, areaKey: 'programs' },
+    { path: '/admin/performers', label: 'Performers', icon: Users, areaKey: 'performers' },
+    { path: '/admin/content-cards', label: 'Content Cards', icon: LayoutGrid, areaKey: 'content-cards' },
+    { type: 'divider', label: 'Engagement', category: 'engagement' },
+    { path: '/admin/polls', label: 'Polls', icon: BarChart3, areaKey: 'polls' },
+    { path: '/admin/surveys', label: 'Surveys', icon: ClipboardList, areaKey: 'surveys' },
+    { path: '/admin/raffles', label: 'Raffles', icon: Ticket, areaKey: 'raffles' },
+    { type: 'divider', label: 'Appearance', category: 'appearance' },
+    { path: '/admin/slideshows', label: 'SlideShows', icon: Image, areaKey: 'slideshows' },
+    { path: '/admin/theme', label: 'Theme Settings', icon: Palette, areaKey: 'theme' },
+    { type: 'divider', label: 'System', category: 'system' },
+    { path: '/admin/roles', label: 'Role Management', icon: Shield, areaKey: 'roles' },
   ];
+
+  // Filter links based on user permissions
+  const adminLinks = allAdminLinks.filter((link, index, arr) => {
+    // For dividers, check if there are any visible links in this category
+    if (link.type === 'divider') {
+      // Find the next divider or end of array
+      const nextDividerIndex = arr.findIndex((l, i) => i > index && l.type === 'divider');
+      const endIndex = nextDividerIndex === -1 ? arr.length : nextDividerIndex;
+      // Check if any link between this divider and the next is accessible
+      const hasVisibleLinks = arr.slice(index + 1, endIndex).some(l => l.areaKey && canAccessArea(l.areaKey));
+      return hasVisibleLinks;
+    }
+    // For regular links, check if user can access this area
+    return canAccessArea(link.areaKey);
+  });
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
@@ -109,8 +125,8 @@ export default function AdminLayout() {
               <span className="text-sm text-gray-600">
                 Logged in as <span className="font-semibold">{user?.firstName} {user?.lastName}</span>
               </span>
-              <span className="px-2 py-1 bg-accent text-white text-xs font-bold rounded">
-                Admin
+              <span className={`px-2 py-1 text-white text-xs font-bold rounded ${user?.isAdmin ? 'bg-accent' : 'bg-indigo-600'}`}>
+                {user?.isAdmin ? 'Admin' : 'Staff'}
               </span>
             </div>
           </div>

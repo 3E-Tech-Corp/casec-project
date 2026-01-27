@@ -53,12 +53,13 @@ function PublicOnlyRoute({ children }) {
 }
 
 function AdminRoute({ children }) {
-  const { isAuthenticated, user } = useAuthStore((state) => ({
+  const { isAuthenticated, hasAdminAccess } = useAuthStore((state) => ({
     isAuthenticated: state.isAuthenticated,
-    user: state.user,
+    hasAdminAccess: state.hasAdminAccess,
   }));
 
-  return isAuthenticated && user?.isAdmin ? children : <Navigate to="/dashboard" />;
+  // Allow access if user is system admin OR has any admin roles
+  return isAuthenticated && hasAdminAccess() ? children : <Navigate to="/dashboard" />;
 }
 
 // Route that allows both system admins and club admins

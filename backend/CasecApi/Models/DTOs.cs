@@ -75,6 +75,7 @@ public class UserDto
     public DateTime MemberSince { get; set; }
     public List<int> ClubIds { get; set; } = new();
     public List<string> Roles { get; set; } = new();
+    public List<string> AllowedAdminAreas { get; set; } = new();
     public List<FamilyMemberDto>? FamilyMembers { get; set; }
 }
 
