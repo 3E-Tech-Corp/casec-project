@@ -312,6 +312,21 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText })
     }
   };
 
+  // Check if performers have cards (from linked Performer entities)
+  const performer1 = item.performers?.find(p =>
+    p.performer?.name === item.performerNames ||
+    p.performer?.chineseName === item.performerNames ||
+    p.performer?.englishName === item.performerNames
+  )?.performer;
+  const performer2 = item.performers?.find(p =>
+    p.performer?.name === item.performerNames2 ||
+    p.performer?.chineseName === item.performerNames2 ||
+    p.performer?.englishName === item.performerNames2
+  )?.performer;
+
+  const performer1HasCards = performer1?.cards?.length > 0;
+  const performer2HasCards = performer2?.cards?.length > 0;
+
   return (
     <div className="border-b border-white/10 last:border-0 pb-3 last:pb-0">
       {/* Main Row: Number, Title, Performers */}
@@ -321,22 +336,52 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText })
           {itemNumber}:
         </span>
 
-        {/* Title - will be clickable for cards later */}
+        {/* Title - clickable if has cards */}
         <div className="flex-1 min-w-0">
-          <span className="text-white font-medium">{itemTitle}</span>
+          {hasCards ? (
+            <button
+              onClick={handleItemCardsClick}
+              className="text-white font-medium hover:text-yellow-400 transition-colors inline-flex items-center gap-1.5 text-left"
+            >
+              {itemTitle}
+              <Info className="w-3.5 h-3.5 text-yellow-400/60" />
+            </button>
+          ) : (
+            <span className="text-white font-medium">{itemTitle}</span>
+          )}
         </div>
 
-        {/* Performer Names - each will be clickable for cards later */}
+        {/* Performer Names - clickable if they have cards */}
         <div className="flex items-center gap-3 flex-shrink-0">
           {item.performerNames && (
-            <span className="text-yellow-400/80 text-sm">
-              {item.performerNames}
-            </span>
+            performer1HasCards ? (
+              <button
+                onClick={(e) => handlePerformerCardsClick(e, performer1)}
+                className="text-yellow-400/80 text-sm hover:text-yellow-300 transition-colors inline-flex items-center gap-1"
+              >
+                {item.performerNames}
+                <Info className="w-3 h-3 text-yellow-400/50" />
+              </button>
+            ) : (
+              <span className="text-yellow-400/80 text-sm">
+                {item.performerNames}
+              </span>
+            )
           )}
           {item.performerNames2 && (
-            <span className="text-yellow-400/80 text-sm">
-              {item.performerNames2}
-            </span>
+            performer2HasCards ? (
+              <button
+                onClick={(e) => handlePerformerCardsClick(e, performer2)}
+                className="text-yellow-400/80 text-sm hover:text-yellow-300 transition-colors inline-flex items-center gap-1"
+              >
+                {item.performerNames2}
+                <Info className="w-3 h-3 text-yellow-400/50" />
+              </button>
+            ) : (
+              <span className="text-yellow-400/80 text-sm">
+                {item.performerNames2}
+              </span>
+            )
           )}
         </div>
       </div>
