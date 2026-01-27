@@ -2186,3 +2186,114 @@ public class ProgramContent
     [ForeignKey("SlideShowId")]
     public virtual SlideShow? SlideShow { get; set; }
 }
+
+// ============ ROLE-BASED ACCESS CONTROL ============
+
+// Role Entity
+public class Role
+{
+    [Key]
+    public int RoleId { get; set; }
+
+    [Required]
+    [MaxLength(100)]
+    public string Name { get; set; } = string.Empty;
+
+    [MaxLength(500)]
+    public string? Description { get; set; }
+
+    public bool IsSystem { get; set; } = false;  // System roles cannot be deleted
+
+    public bool IsActive { get; set; } = true;
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    public virtual ICollection<RoleAreaPermission>? AreaPermissions { get; set; }
+    public virtual ICollection<UserRole>? UserRoles { get; set; }
+}
+
+// Admin Area Entity
+public class AdminArea
+{
+    [Key]
+    public int AreaId { get; set; }
+
+    [Required]
+    [MaxLength(50)]
+    public string AreaKey { get; set; } = string.Empty;  // Unique key (e.g., 'users', 'events')
+
+    [Required]
+    [MaxLength(100)]
+    public string Name { get; set; } = string.Empty;  // Display name
+
+    [MaxLength(500)]
+    public string? Description { get; set; }
+
+    [MaxLength(50)]
+    public string? Category { get; set; }  // Category for grouping
+
+    [MaxLength(50)]
+    public string? IconName { get; set; }
+
+    [MaxLength(200)]
+    public string? Route { get; set; }  // Admin route path
+
+    public int DisplayOrder { get; set; } = 0;
+
+    // Navigation properties
+    public virtual ICollection<RoleAreaPermission>? RolePermissions { get; set; }
+}
+
+// Role Area Permission Entity (which roles can access which areas)
+public class RoleAreaPermission
+{
+    [Key]
+    public int PermissionId { get; set; }
+
+    public int RoleId { get; set; }
+
+    public int AreaId { get; set; }
+
+    public bool CanView { get; set; } = true;
+
+    public bool CanEdit { get; set; } = false;
+
+    public bool CanDelete { get; set; } = false;
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    [ForeignKey("RoleId")]
+    public virtual Role? Role { get; set; }
+
+    [ForeignKey("AreaId")]
+    public virtual AdminArea? Area { get; set; }
+}
+
+// User Role Entity (which users have which roles)
+public class UserRole
+{
+    [Key]
+    public int UserRoleId { get; set; }
+
+    public int UserId { get; set; }
+
+    public int RoleId { get; set; }
+
+    public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
+
+    public int? AssignedBy { get; set; }
+
+    // Navigation properties
+    [ForeignKey("UserId")]
+    public virtual User? User { get; set; }
+
+    [ForeignKey("RoleId")]
+    public virtual Role? Role { get; set; }
+
+    [ForeignKey("AssignedBy")]
+    public virtual User? AssignedByUser { get; set; }
+}

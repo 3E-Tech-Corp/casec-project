@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   Users, CreditCard, Building2, Calendar, Tag, Palette,
   BarChart3, FileText, ClipboardList, Image, ChevronLeft,
-  Settings, Home, LayoutDashboard, Ticket, Music, LayoutGrid
+  Settings, Home, LayoutDashboard, Ticket, Music, LayoutGrid, Shield
 } from 'lucide-react';
 import { useAuthStore } from '../store/useStore';
 import LogoOrText from './LogoOrText';
@@ -32,6 +32,8 @@ export default function AdminLayout() {
     { type: 'divider', label: 'Appearance' },
     { path: '/admin/slideshows', label: 'SlideShows', icon: Image },
     { path: '/admin/theme', label: 'Theme Settings', icon: Palette },
+    { type: 'divider', label: 'System' },
+    { path: '/admin/roles', label: 'Role Management', icon: Shield },
   ];
 
   return (

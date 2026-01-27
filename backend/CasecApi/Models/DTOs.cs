@@ -2033,3 +2033,89 @@ public class UpdateContentCardRequest
     public string? LayoutType { get; set; }
     public int? DisplayOrder { get; set; }
 }
+
+// ============ ROLE-BASED ACCESS CONTROL DTOs ============
+
+public class RoleDto
+{
+    public int RoleId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsSystem { get; set; }
+    public bool IsActive { get; set; }
+    public int UserCount { get; set; }
+    public List<AreaPermissionDto>? AreaPermissions { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+public class AdminAreaDto
+{
+    public int AreaId { get; set; }
+    public string AreaKey { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? Category { get; set; }
+    public string? IconName { get; set; }
+    public string? Route { get; set; }
+    public int DisplayOrder { get; set; }
+}
+
+public class AreaPermissionDto
+{
+    public int AreaId { get; set; }
+    public string AreaKey { get; set; } = string.Empty;
+    public string AreaName { get; set; } = string.Empty;
+    public string? Category { get; set; }
+    public bool CanView { get; set; }
+    public bool CanEdit { get; set; }
+    public bool CanDelete { get; set; }
+}
+
+public class UserRoleDto
+{
+    public int UserRoleId { get; set; }
+    public int UserId { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public string UserEmail { get; set; } = string.Empty;
+    public int RoleId { get; set; }
+    public string RoleName { get; set; } = string.Empty;
+    public DateTime AssignedAt { get; set; }
+    public string? AssignedByName { get; set; }
+}
+
+public class CreateRoleRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public List<AreaPermissionRequest>? AreaPermissions { get; set; }
+}
+
+public class UpdateRoleRequest
+{
+    public string? Name { get; set; }
+    public string? Description { get; set; }
+    public bool? IsActive { get; set; }
+    public List<AreaPermissionRequest>? AreaPermissions { get; set; }
+}
+
+public class AreaPermissionRequest
+{
+    public int AreaId { get; set; }
+    public bool CanView { get; set; }
+    public bool CanEdit { get; set; }
+    public bool CanDelete { get; set; }
+}
+
+public class AssignRoleRequest
+{
+    public int UserId { get; set; }
+    public int RoleId { get; set; }
+}
+
+public class UserPermissionsDto
+{
+    public int UserId { get; set; }
+    public List<string> Roles { get; set; } = new();
+    public List<AreaPermissionDto> Permissions { get; set; } = new();
+}

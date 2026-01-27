@@ -36,6 +36,7 @@ import AdminRaffles from './pages/admin/Raffles';
 import AdminEventPrograms from './pages/admin/EventPrograms';
 import AdminContentCards from './pages/admin/ContentCards';
 import AdminPerformers from './pages/admin/Performers';
+import AdminRoles from './pages/admin/Roles';
 import Membership from './pages/Membership';
 import Raffle from './pages/Raffle';
 import RaffleDrawing from './pages/RaffleDrawing';
@@ -129,6 +130,7 @@ function App() {
           <Route path="programs" element={<AdminEventPrograms />} />
           <Route path="performers" element={<AdminPerformers />} />
           <Route path="content-cards" element={<AdminContentCards />} />
+          <Route path="roles" element={<AdminRoles />} />
           {/* Admin Routes */}
           <Route path="admin/users" element={
             <AdminRoute><AdminUsers /></AdminRoute>

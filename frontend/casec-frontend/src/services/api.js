@@ -500,4 +500,26 @@ export const contentCardsAPI = {
   getProgramItemsWithCards: () => api.get("/contentcards/programitems"),
 };
 
+// Roles API
+export const rolesAPI = {
+  // Roles CRUD
+  getAll: () => api.get("/roles"),
+  getById: (id) => api.get(`/roles/${id}`),
+  create: (data) => api.post("/roles", data),
+  update: (id, data) => api.put(`/roles/${id}`, data),
+  delete: (id) => api.delete(`/roles/${id}`),
+
+  // Admin areas
+  getAreas: () => api.get("/roles/areas"),
+
+  // Role users
+  getRoleUsers: (roleId) => api.get(`/roles/${roleId}/users`),
+  assignRole: (data) => api.post("/roles/assign", data),
+  unassignRole: (userRoleId) => api.delete(`/roles/unassign/${userRoleId}`),
+
+  // User permissions
+  getUserPermissions: (userId) => api.get(`/roles/user/${userId}/permissions`),
+  getMyPermissions: () => api.get("/roles/my-permissions"),
+};
+
 export default api;
