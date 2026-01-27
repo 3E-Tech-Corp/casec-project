@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CasecApi.Data;
 using CasecApi.Models;
+using CasecApi.Models.DTOs;
 
 namespace CasecApi.Controllers;
 
