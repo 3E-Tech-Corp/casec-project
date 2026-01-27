@@ -23,7 +23,7 @@ public class MembershipTypesController : ControllerBase
 
     private int? GetCurrentUserId()
     {
-        var userIdClaim = User.FindFirst("UserId")?.Value;
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : null;
     }
 

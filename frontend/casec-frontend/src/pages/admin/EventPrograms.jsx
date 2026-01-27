@@ -444,31 +444,29 @@ export default function AdminEventPrograms() {
               <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   Description
-                  <span className="text-xs text-gray-400">(Bilingual)</span>
+                  <span className="text-xs text-gray-400">(Bilingual, supports HTML)</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">Chinese 中文</label>
-                    <textarea
+                    <HtmlEditor
                       value={formData.descriptionZh}
-                      onChange={(e) =>
-                        setFormData({ ...formData, descriptionZh: e.target.value, description: e.target.value || formData.description })
+                      onChange={(val) =>
+                        setFormData({ ...formData, descriptionZh: val, description: val || formData.description })
                       }
-                      className="w-full border rounded-lg px-3 py-2"
-                      rows={3}
                       placeholder="中文描述..."
+                      rows={3}
                     />
                   </div>
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">English</label>
-                    <textarea
+                    <HtmlEditor
                       value={formData.descriptionEn}
-                      onChange={(e) =>
-                        setFormData({ ...formData, descriptionEn: e.target.value })
+                      onChange={(val) =>
+                        setFormData({ ...formData, descriptionEn: val })
                       }
-                      className="w-full border rounded-lg px-3 py-2"
-                      rows={3}
                       placeholder="English description..."
+                      rows={3}
                     />
                   </div>
                 </div>
@@ -1119,6 +1117,41 @@ function ProgramEditor({ program, onReload }) {
   );
 }
 
+// Simple HTML Editor Component
+function HtmlEditor({ value, onChange, placeholder, rows = 3 }) {
+  const [isHtmlMode, setIsHtmlMode] = useState(false);
+
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setIsHtmlMode(!isHtmlMode)}
+          className={`text-xs px-2 py-0.5 rounded ${isHtmlMode ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}
+        >
+          {isHtmlMode ? 'HTML' : 'Text'}
+        </button>
+      </div>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full border rounded px-2 py-1 text-sm ${isHtmlMode ? 'font-mono text-xs bg-gray-50' : ''}`}
+        rows={rows}
+        placeholder={isHtmlMode ? '<p>HTML content...</p>' : placeholder}
+      />
+      {isHtmlMode && value && (
+        <div className="text-xs text-gray-500 border-t pt-1 mt-1">
+          <span className="font-medium">Preview:</span>
+          <div
+            className="mt-1 p-2 bg-white border rounded prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: value }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Section Editor Component
 function SectionEditor({ section, onSave, onCancel }) {
   const [data, setData] = useState({
@@ -1131,10 +1164,24 @@ function SectionEditor({ section, onSave, onCancel }) {
     description: section.description || "",
     descriptionZh: section.descriptionZh || "",
     descriptionEn: section.descriptionEn || "",
+    displayOrder: section.displayOrder ?? 0,
   });
 
   return (
     <div className="flex-1 space-y-3 p-3 bg-white rounded-lg border">
+      {/* Display Order */}
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-gray-600">Display Order</label>
+        <input
+          type="number"
+          value={data.displayOrder}
+          onChange={(e) => setData({ ...data, displayOrder: parseInt(e.target.value) || 0 })}
+          className="w-24 border rounded px-2 py-1 text-sm"
+          min="0"
+        />
+        <span className="text-xs text-gray-400 ml-2">Lower numbers appear first</span>
+      </div>
+
       {/* Title - Bilingual */}
       <div className="space-y-1">
         <label className="text-xs font-medium text-gray-600">Title (Bilingual)</label>
@@ -1174,6 +1221,29 @@ function SectionEditor({ section, onSave, onCancel }) {
             className="border rounded px-2 py-1 text-sm"
             placeholder="English Subtitle"
           />
+        </div>
+      </div>
+
+      {/* Description - Bilingual with HTML support */}
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-gray-600">Description (Bilingual, supports HTML)</label>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <span className="text-xs text-gray-400">Chinese 中文</span>
+            <HtmlEditor
+              value={data.descriptionZh}
+              onChange={(val) => setData({ ...data, descriptionZh: val, description: val || data.description })}
+              placeholder="中文描述..."
+            />
+          </div>
+          <div>
+            <span className="text-xs text-gray-400">English</span>
+            <HtmlEditor
+              value={data.descriptionEn}
+              onChange={(val) => setData({ ...data, descriptionEn: val })}
+              placeholder="English description..."
+            />
+          </div>
         </div>
       </div>
 
@@ -1377,26 +1447,24 @@ function ItemEditor({ item, performers = [], onSave, onCancel }) {
         </div>
       </div>
 
-      {/* Row 3: Description (Bilingual) */}
+      {/* Row 3: Description (Bilingual with HTML support) */}
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="text-xs font-medium text-gray-600">Description 中文</label>
-          <textarea
+          <label className="text-xs font-medium text-gray-600">Description 中文 (supports HTML)</label>
+          <HtmlEditor
             value={data.descriptionZh}
-            onChange={(e) => setData({ ...data, descriptionZh: e.target.value, description: e.target.value || data.description })}
-            className="w-full border rounded px-2 py-1 text-sm"
-            rows={2}
+            onChange={(val) => setData({ ...data, descriptionZh: val, description: val || data.description })}
             placeholder="中文描述..."
+            rows={2}
           />
         </div>
         <div>
-          <label className="text-xs font-medium text-gray-600">Description English</label>
-          <textarea
+          <label className="text-xs font-medium text-gray-600">Description English (supports HTML)</label>
+          <HtmlEditor
             value={data.descriptionEn}
-            onChange={(e) => setData({ ...data, descriptionEn: e.target.value })}
-            className="w-full border rounded px-2 py-1 text-sm"
-            rows={2}
+            onChange={(val) => setData({ ...data, descriptionEn: val })}
             placeholder="English description..."
+            rows={2}
           />
         </div>
       </div>
