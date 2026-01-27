@@ -2054,7 +2054,12 @@ public class Performer
     public string? EnglishName { get; set; }
 
     [MaxLength(4000)]
-    public string? Bio { get; set; }
+    public string? Bio { get; set; } // Legacy: keep for backwards compatibility
+
+    // Bilingual bio
+    public string? BioZh { get; set; }
+
+    public string? BioEn { get; set; }
 
     [MaxLength(500)]
     public string? PhotoUrl { get; set; }

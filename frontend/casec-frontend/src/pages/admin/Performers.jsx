@@ -30,6 +30,8 @@ export default function AdminPerformers() {
     chineseName: "",
     englishName: "",
     bio: "",
+    bioZh: "",
+    bioEn: "",
     photoUrl: "",
     website: "",
     instagram: "",
@@ -62,6 +64,8 @@ export default function AdminPerformers() {
       chineseName: "",
       englishName: "",
       bio: "",
+      bioZh: "",
+      bioEn: "",
       photoUrl: "",
       website: "",
       instagram: "",
@@ -78,6 +82,8 @@ export default function AdminPerformers() {
       chineseName: performer.chineseName || "",
       englishName: performer.englishName || "",
       bio: performer.bio || "",
+      bioZh: performer.bioZh || "",
+      bioEn: performer.bioEn || "",
       photoUrl: performer.photoUrl || "",
       website: performer.website || "",
       instagram: performer.instagram || "",
@@ -414,19 +420,35 @@ export default function AdminPerformers() {
                 </div>
               </div>
 
-              {/* Bio */}
+              {/* Bio - Chinese */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Bio
+                  Bio (Chinese)
                 </label>
                 <textarea
-                  value={formData.bio}
+                  value={formData.bioZh}
                   onChange={(e) =>
-                    setFormData({ ...formData, bio: e.target.value })
+                    setFormData({ ...formData, bioZh: e.target.value })
                   }
                   rows={4}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Biography..."
+                  placeholder="中文简介..."
+                />
+              </div>
+
+              {/* Bio - English */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Bio (English)
+                </label>
+                <textarea
+                  value={formData.bioEn}
+                  onChange={(e) =>
+                    setFormData({ ...formData, bioEn: e.target.value })
+                  }
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  placeholder="English biography..."
                 />
               </div>
 

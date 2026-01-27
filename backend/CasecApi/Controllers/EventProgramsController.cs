@@ -902,6 +902,8 @@ public class EventProgramsController : ControllerBase
                     ChineseName = p.ChineseName,
                     EnglishName = p.EnglishName,
                     Bio = p.Bio,
+                    BioZh = p.BioZh,
+                    BioEn = p.BioEn,
                     PhotoUrl = p.PhotoUrl,
                     Website = p.Website,
                     Instagram = p.Instagram,
@@ -949,6 +951,8 @@ public class EventProgramsController : ControllerBase
                 ChineseName = request.ChineseName,
                 EnglishName = request.EnglishName,
                 Bio = request.Bio,
+                BioZh = request.BioZh,
+                BioEn = request.BioEn,
                 PhotoUrl = request.PhotoUrl,
                 Website = request.Website,
                 Instagram = request.Instagram,
@@ -1009,6 +1013,8 @@ public class EventProgramsController : ControllerBase
             if (request.ChineseName != null) performer.ChineseName = request.ChineseName;
             if (request.EnglishName != null) performer.EnglishName = request.EnglishName;
             if (request.Bio != null) performer.Bio = request.Bio;
+            if (request.BioZh != null) performer.BioZh = request.BioZh;
+            if (request.BioEn != null) performer.BioEn = request.BioEn;
             if (request.PhotoUrl != null) performer.PhotoUrl = request.PhotoUrl;
             if (request.Website != null) performer.Website = request.Website;
             if (request.Instagram != null) performer.Instagram = request.Instagram;
@@ -1162,6 +1168,8 @@ public class EventProgramsController : ControllerBase
             ChineseName = performer.ChineseName,
             EnglishName = performer.EnglishName,
             Bio = performer.Bio,
+            BioZh = performer.BioZh,
+            BioEn = performer.BioEn,
             PhotoUrl = performer.PhotoUrl,
             Website = performer.Website,
             Instagram = performer.Instagram,

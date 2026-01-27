@@ -1931,7 +1931,9 @@ public class PerformerDto
     public string Name { get; set; } = string.Empty;
     public string? ChineseName { get; set; }
     public string? EnglishName { get; set; }
-    public string? Bio { get; set; }
+    public string? Bio { get; set; } // Legacy
+    public string? BioZh { get; set; }
+    public string? BioEn { get; set; }
     public string? PhotoUrl { get; set; }
     public string? Website { get; set; }
     public string? Instagram { get; set; }
@@ -1946,7 +1948,9 @@ public class CreatePerformerRequest
     public string Name { get; set; } = string.Empty;
     public string? ChineseName { get; set; }
     public string? EnglishName { get; set; }
-    public string? Bio { get; set; }
+    public string? Bio { get; set; } // Legacy
+    public string? BioZh { get; set; }
+    public string? BioEn { get; set; }
     public string? PhotoUrl { get; set; }
     public string? Website { get; set; }
     public string? Instagram { get; set; }
@@ -1959,7 +1963,9 @@ public class UpdatePerformerRequest
     public string? Name { get; set; }
     public string? ChineseName { get; set; }
     public string? EnglishName { get; set; }
-    public string? Bio { get; set; }
+    public string? Bio { get; set; } // Legacy
+    public string? BioZh { get; set; }
+    public string? BioEn { get; set; }
     public string? PhotoUrl { get; set; }
     public string? Website { get; set; }
     public string? Instagram { get; set; }
