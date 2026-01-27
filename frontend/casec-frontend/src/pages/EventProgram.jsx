@@ -282,7 +282,6 @@ export default function EventProgram() {
 
 // Program Item Row Component
 function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText }) {
-  const [expanded, setExpanded] = useState(false);
   const t = LANGUAGES[lang] || LANGUAGES.zh;
 
   // Item title and fields using bilingual support
@@ -291,14 +290,9 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText })
   const itemDescription = getText(item.descriptionZh, item.descriptionEn, item.description);
 
   const hasCards = item.cards?.length > 0;
-  const hasDetails =
-    itemDescription ||
-    item.performers?.length > 0 ||
-    item.imageUrl ||
-    item.contentPageId ||
-    hasCards;
+  const hasDescription = itemDescription || itemPerformanceType;
 
-  // Handle clicking on item cards
+  // Handle clicking on item cards (for later use)
   const handleItemCardsClick = (e) => {
     e.stopPropagation();
     if (hasCards && onShowCards) {
@@ -306,7 +300,7 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText })
     }
   };
 
-  // Handle clicking on performer cards
+  // Handle clicking on performer cards (for later use)
   const handlePerformerCardsClick = (e, performer) => {
     e.stopPropagation();
     const performerName =
@@ -320,133 +314,39 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText })
 
   return (
     <div className="border-b border-white/10 last:border-0 pb-3 last:pb-0">
-      <div
-        className={`flex items-start gap-4 ${
-          hasDetails ? "cursor-pointer hover:bg-white/5 -mx-2 px-2 py-1 rounded" : ""
-        }`}
-        onClick={() => hasDetails && setExpanded(!expanded)}
-      >
+      {/* Main Row: Number, Title, Performer */}
+      <div className="flex items-start gap-4">
         {/* Item Number */}
         <span className="text-yellow-400/70 font-mono text-sm w-6 text-right flex-shrink-0 pt-0.5">
           {itemNumber}:
         </span>
 
-        {/* Title with optional cards indicator */}
-        <div className="flex-1 min-w-0 flex items-center gap-2">
+        {/* Title - will be clickable for cards later */}
+        <div className="flex-1 min-w-0">
           <span className="text-white font-medium">{itemTitle}</span>
-          {hasCards && (
-            <Info className="w-3.5 h-3.5 text-yellow-400/70 flex-shrink-0" />
-          )}
         </div>
 
-        {/* Performance Type */}
-        {itemPerformanceType && (
-          <span className="text-white/60 text-sm flex-shrink-0 w-24 text-center">
-            {itemPerformanceType}
-          </span>
-        )}
-
-        {/* Performer Names */}
+        {/* Performer Names - will be clickable for cards later */}
         {item.performerNames && (
-          <span className="text-yellow-400/80 text-sm flex-shrink-0 w-32 text-right">
+          <span className="text-yellow-400/80 text-sm flex-shrink-0">
             {item.performerNames}
           </span>
         )}
-
-        {/* Expand indicator */}
-        {hasDetails && (
-          <ChevronRight
-            className={`w-4 h-4 text-white/40 flex-shrink-0 transition-transform ${
-              expanded ? "rotate-90" : ""
-            }`}
-          />
-        )}
       </div>
 
-      {/* Expanded Details */}
-      {expanded && hasDetails && (
-        <div className="ml-10 mt-3 p-4 bg-white/5 rounded-lg space-y-3">
-          {item.imageUrl && (
-            <img
-              src={getAssetUrl(item.imageUrl)}
-              alt={itemTitle}
-              className="w-full max-w-sm rounded-lg"
-            />
+      {/* Description Box - always visible if has content */}
+      {hasDescription && (
+        <div className="ml-10 mt-2 p-3 bg-white/5 rounded-lg">
+          {/* Performance Type as first line */}
+          {itemPerformanceType && (
+            <p className="text-white/60 text-sm">
+              {itemPerformanceType}
+            </p>
           )}
 
+          {/* Description */}
           {itemDescription && (
-            <p className="text-white/70 text-sm">{itemDescription}</p>
-          )}
-
-          {/* Learn more about this program (if cards exist) */}
-          {hasCards && (
-            <button
-              onClick={handleItemCardsClick}
-              className="inline-flex items-center gap-1.5 text-yellow-400 hover:text-yellow-300 text-sm transition-colors"
-            >
-              <Info className="w-4 h-4" />
-              {t.learnMoreProgram}
-            </button>
-          )}
-
-          {item.performers?.length > 0 && (
-            <div className="flex flex-wrap gap-3">
-              {item.performers.map((performer) => {
-                // Get performer name based on selected language
-                const performerName =
-                  lang === "zh"
-                    ? performer.chineseName || performer.name
-                    : performer.englishName || performer.name;
-                const performerHasCards = performer.cards?.length > 0;
-
-                return (
-                  <div
-                    key={performer.performerId}
-                    className={`flex items-center gap-2 bg-white/5 rounded-full px-3 py-1 ${
-                      performerHasCards
-                        ? "cursor-pointer hover:bg-white/10 transition-colors"
-                        : ""
-                    }`}
-                    onClick={
-                      performerHasCards
-                        ? (e) => handlePerformerCardsClick(e, performer)
-                        : undefined
-                    }
-                  >
-                    {performer.photoUrl && (
-                      <img
-                        src={getAssetUrl(performer.photoUrl)}
-                        alt={performerName}
-                        className="w-6 h-6 rounded-full object-cover"
-                      />
-                    )}
-                    <span className="text-white/80 text-sm">{performerName}</span>
-                    {performerHasCards && (
-                      <Info className="w-3 h-3 text-yellow-400/70" />
-                    )}
-                    {performer.contentPageId && !performerHasCards && (
-                      <Link
-                        to={`/content/${performer.contentPageId}`}
-                        className="text-yellow-400 hover:text-yellow-300"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                      </Link>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {item.contentPageId && (
-            <Link
-              to={`/content/${item.contentPageId}`}
-              className="inline-flex items-center gap-1 text-yellow-400 hover:text-yellow-300 text-sm"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {t.viewMore} <ExternalLink className="w-3 h-3" />
-            </Link>
+            <p className="text-white/70 text-sm mt-1">{itemDescription}</p>
           )}
         </div>
       )}
