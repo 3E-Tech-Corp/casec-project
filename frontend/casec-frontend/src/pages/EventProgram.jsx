@@ -515,7 +515,7 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText, p
 
     return (
       <div className="border-b border-white/10 last:border-0 pb-3 last:pb-0">
-        <div className="flex items-center flex-wrap gap-x-4 gap-y-2">
+        <div className="flex items-center justify-center flex-wrap gap-x-4 gap-y-2">
           {/* Item Title - larger */}
           <span className="text-lg font-semibold" style={{ color: primaryColor }}>
             {itemTitle}
@@ -559,7 +559,7 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText, p
 
     return (
       <div className="border-b border-white/10 last:border-0 pb-2 last:pb-0">
-        <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
+        <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-1">
           {/* Item Title */}
           <span className="font-medium" style={{ color: primaryColor }}>
             {itemTitle}
