@@ -221,17 +221,40 @@ public class EventProgramsController : ControllerBase
             // Select title/description based on language
             string titleText;
             string description;
-            var isEnglish = string.Equals(lang, "en", StringComparison.OrdinalIgnoreCase);
 
-            if (isEnglish)
+            // Check for dedicated OG overrides first
+            if (!string.IsNullOrWhiteSpace(program.OgTitle))
             {
-                titleText = program.TitleEn ?? program.Title ?? program.TitleZh ?? "Event Program";
-                description = program.SubtitleEn ?? program.Subtitle ?? program.DescriptionEn ?? program.Description ?? "";
+                titleText = program.OgTitle;
             }
             else
             {
-                titleText = program.TitleZh ?? program.Title ?? program.TitleEn ?? "Event Program";
-                description = program.SubtitleZh ?? program.Subtitle ?? program.DescriptionZh ?? program.Description ?? "";
+                var isEnglish = string.Equals(lang, "en", StringComparison.OrdinalIgnoreCase);
+                if (isEnglish)
+                {
+                    titleText = program.TitleEn ?? program.Title ?? program.TitleZh ?? "Event Program";
+                }
+                else
+                {
+                    titleText = program.TitleZh ?? program.Title ?? program.TitleEn ?? "Event Program";
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(program.OgDescription))
+            {
+                description = program.OgDescription;
+            }
+            else
+            {
+                var isEnglish = string.Equals(lang, "en", StringComparison.OrdinalIgnoreCase);
+                if (isEnglish)
+                {
+                    description = program.SubtitleEn ?? program.Subtitle ?? program.DescriptionEn ?? program.Description ?? "";
+                }
+                else
+                {
+                    description = program.SubtitleZh ?? program.Subtitle ?? program.DescriptionZh ?? program.Description ?? "";
+                }
             }
 
             // Allow query parameter overrides for custom sharing text
@@ -332,6 +355,8 @@ public class EventProgramsController : ControllerBase
                 Description = request.Description,
                 DescriptionZh = request.DescriptionZh,
                 DescriptionEn = request.DescriptionEn,
+                OgTitle = request.OgTitle,
+                OgDescription = request.OgDescription,
                 ImageUrl = request.ImageUrl,
                 EventDate = request.EventDate,
                 TimeBlock = request.TimeBlock,
@@ -406,6 +431,8 @@ public class EventProgramsController : ControllerBase
             if (request.Description != null) program.Description = request.Description;
             if (request.DescriptionZh != null) program.DescriptionZh = request.DescriptionZh;
             if (request.DescriptionEn != null) program.DescriptionEn = request.DescriptionEn;
+            if (request.OgTitle != null) program.OgTitle = request.OgTitle;
+            if (request.OgDescription != null) program.OgDescription = request.OgDescription;
             if (request.ImageUrl != null) program.ImageUrl = request.ImageUrl;
             if (request.EventDate.HasValue) program.EventDate = request.EventDate;
             if (request.TimeBlock != null) program.TimeBlock = request.TimeBlock;
@@ -1203,6 +1230,8 @@ public class EventProgramsController : ControllerBase
             Description = program.Description,
             DescriptionZh = program.DescriptionZh,
             DescriptionEn = program.DescriptionEn,
+            OgTitle = program.OgTitle,
+            OgDescription = program.OgDescription,
             ImageUrl = program.ImageUrl,
             EventDate = program.EventDate,
             TimeBlock = program.TimeBlock,

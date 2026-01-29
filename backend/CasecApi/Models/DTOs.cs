@@ -1740,6 +1740,8 @@ public class EventProgramDto
     public string? Description { get; set; }
     public string? DescriptionZh { get; set; }
     public string? DescriptionEn { get; set; }
+    public string? OgTitle { get; set; }
+    public string? OgDescription { get; set; }
     public string? ImageUrl { get; set; }
     public DateTime? EventDate { get; set; }
     public string? TimeBlock { get; set; }
@@ -1783,6 +1785,8 @@ public class CreateEventProgramRequest
     public string? Description { get; set; }
     public string? DescriptionZh { get; set; }
     public string? DescriptionEn { get; set; }
+    public string? OgTitle { get; set; }
+    public string? OgDescription { get; set; }
     public string? ImageUrl { get; set; }
     public DateTime? EventDate { get; set; }
     public string? TimeBlock { get; set; }
@@ -1805,6 +1809,8 @@ public class UpdateEventProgramRequest
     public string? Description { get; set; }
     public string? DescriptionZh { get; set; }
     public string? DescriptionEn { get; set; }
+    public string? OgTitle { get; set; }
+    public string? OgDescription { get; set; }
     public string? ImageUrl { get; set; }
     public DateTime? EventDate { get; set; }
     public string? TimeBlock { get; set; }

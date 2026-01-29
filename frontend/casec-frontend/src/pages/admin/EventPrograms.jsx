@@ -144,6 +144,8 @@ export default function AdminEventPrograms() {
     colorThemes: [],
     showBackgroundImage: false,
     slug: "",
+    ogTitle: "",
+    ogDescription: "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -206,6 +208,8 @@ export default function AdminEventPrograms() {
       colorThemes: [],
       showBackgroundImage: false,
       slug: "",
+      ogTitle: "",
+      ogDescription: "",
     });
     setShowForm(true);
   };
@@ -235,6 +239,8 @@ export default function AdminEventPrograms() {
           colorThemes: p.colorThemes || [],
           showBackgroundImage: p.showBackgroundImage || false,
           slug: p.slug || "",
+          ogTitle: p.ogTitle || "",
+          ogDescription: p.ogDescription || "",
           status: p.status || "Draft",
           isFeatured: p.isFeatured || false,
         });
@@ -568,6 +574,34 @@ export default function AdminEventPrograms() {
                 {(editingProgram || formData.slug) && (
                   <CopyableUrl slug={formData.slug || editingProgram?.programId} />
                 )}
+              </div>
+
+              {/* Social Sharing (Open Graph) */}
+              <div className="border-t pt-4 mt-4">
+                <h4 className="text-sm font-semibold text-gray-600 mb-3">Social Sharing (Open Graph)</h4>
+                <p className="text-xs text-gray-400 mb-3">Optional. Override the title and description shown in link previews (Facebook, Twitter, messaging apps). If blank, the page title/subtitle will be used.</p>
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">OG Title</label>
+                    <input
+                      type="text"
+                      value={formData.ogTitle}
+                      onChange={(e) => setFormData({ ...formData, ogTitle: e.target.value })}
+                      className="w-full border rounded-lg px-3 py-2"
+                      placeholder="Custom title for link previews"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">OG Description</label>
+                    <textarea
+                      value={formData.ogDescription}
+                      onChange={(e) => setFormData({ ...formData, ogDescription: e.target.value })}
+                      className="w-full border rounded-lg px-3 py-2"
+                      rows={2}
+                      placeholder="Custom description for link previews"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
