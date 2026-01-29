@@ -196,7 +196,7 @@ public class EventProgramsController : ControllerBase
     // Supports ?lang=en for English or ?lang=zh (default) for Chinese
     [HttpGet("{idOrSlug}/og")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetProgramOpenGraph(string idOrSlug, [FromQuery] string? lang = null)
+    public async Task<IActionResult> GetProgramOpenGraph(string idOrSlug, [FromQuery] string? lang = null, [FromQuery] string? title = null, [FromQuery] string? desc = null)
     {
         try
         {
@@ -219,20 +219,24 @@ public class EventProgramsController : ControllerBase
             }
 
             // Select title/description based on language
-            string title;
+            string titleText;
             string description;
             var isEnglish = string.Equals(lang, "en", StringComparison.OrdinalIgnoreCase);
 
             if (isEnglish)
             {
-                title = program.TitleEn ?? program.Title ?? program.TitleZh ?? "Event Program";
+                titleText = program.TitleEn ?? program.Title ?? program.TitleZh ?? "Event Program";
                 description = program.SubtitleEn ?? program.Subtitle ?? program.DescriptionEn ?? program.Description ?? "";
             }
             else
             {
-                title = program.TitleZh ?? program.Title ?? program.TitleEn ?? "Event Program";
+                titleText = program.TitleZh ?? program.Title ?? program.TitleEn ?? "Event Program";
                 description = program.SubtitleZh ?? program.Subtitle ?? program.DescriptionZh ?? program.Description ?? "";
             }
+
+            // Allow query parameter overrides for custom sharing text
+            if (!string.IsNullOrWhiteSpace(title)) titleText = title;
+            if (!string.IsNullOrWhiteSpace(desc)) description = desc;
 
             // Strip HTML tags from description
             description = System.Text.RegularExpressions.Regex.Replace(description, "<[^>]+>", "").Trim();
@@ -242,7 +246,7 @@ public class EventProgramsController : ControllerBase
             var langParam = !string.IsNullOrEmpty(lang) ? $"?lang={lang}" : "";
             var pageUrl = $"{Request.Scheme}://{Request.Host}/program/{slug}{langParam}";
 
-            // Build absolute image URL
+            // Build absolute image URL (prefix /api for relative asset paths)
             var imageUrl = "";
             if (!string.IsNullOrEmpty(program.ImageUrl))
             {
@@ -252,7 +256,13 @@ public class EventProgramsController : ControllerBase
                 }
                 else
                 {
-                    imageUrl = $"{Request.Scheme}://{Request.Host}{program.ImageUrl}";
+                    // Asset URLs like /asset/54 need /api prefix to reach the API endpoint
+                    var assetPath = program.ImageUrl;
+                    if (assetPath.StartsWith("/asset"))
+                    {
+                        assetPath = "/api" + assetPath;
+                    }
+                    imageUrl = $"{Request.Scheme}://{Request.Host}{assetPath}";
                 }
             }
 
@@ -260,21 +270,21 @@ public class EventProgramsController : ControllerBase
 <html>
 <head>
     <meta charset=""UTF-8"" />
-    <title>{System.Net.WebUtility.HtmlEncode(title)}</title>
+    <title>{System.Net.WebUtility.HtmlEncode(titleText)}</title>
     <meta name=""description"" content=""{System.Net.WebUtility.HtmlEncode(description)}"" />
-    <meta property=""og:title"" content=""{System.Net.WebUtility.HtmlEncode(title)}"" />
+    <meta property=""og:title"" content=""{System.Net.WebUtility.HtmlEncode(titleText)}"" />
     <meta property=""og:description"" content=""{System.Net.WebUtility.HtmlEncode(description)}"" />
     <meta property=""og:type"" content=""article"" />
     <meta property=""og:url"" content=""{System.Net.WebUtility.HtmlEncode(pageUrl)}"" />
     {(string.IsNullOrEmpty(imageUrl) ? "" : $@"<meta property=""og:image"" content=""{System.Net.WebUtility.HtmlEncode(imageUrl)}"" />")}
     <meta name=""twitter:card"" content=""summary_large_image"" />
-    <meta name=""twitter:title"" content=""{System.Net.WebUtility.HtmlEncode(title)}"" />
+    <meta name=""twitter:title"" content=""{System.Net.WebUtility.HtmlEncode(titleText)}"" />
     <meta name=""twitter:description"" content=""{System.Net.WebUtility.HtmlEncode(description)}"" />
     {(string.IsNullOrEmpty(imageUrl) ? "" : $@"<meta name=""twitter:image"" content=""{System.Net.WebUtility.HtmlEncode(imageUrl)}"" />")}
     <meta http-equiv=""refresh"" content=""0;url={System.Net.WebUtility.HtmlEncode(pageUrl)}"" />
 </head>
 <body>
-    <p>Redirecting to <a href=""{System.Net.WebUtility.HtmlEncode(pageUrl)}"">{System.Net.WebUtility.HtmlEncode(title)}</a>...</p>
+    <p>Redirecting to <a href=""{System.Net.WebUtility.HtmlEncode(pageUrl)}"">{System.Net.WebUtility.HtmlEncode(titleText)}</a>...</p>
     <script>window.location.replace(""{pageUrl.Replace("\"", "\\\"")}"");</script>
 </body>
 </html>";
