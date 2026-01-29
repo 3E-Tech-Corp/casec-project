@@ -1709,6 +1709,7 @@ public class ColorThemeDto
 {
     public string Name { get; set; } = string.Empty;
     public string Primary { get; set; } = "#facc15"; // Yellow accent
+    public string? Link { get; set; } = "#60a5fa"; // Link/clickable text color
     public string BgFrom { get; set; } = "#7f1d1d"; // Red-900
     public string BgVia { get; set; } = "#991b1b"; // Red-800
     public string BgTo { get; set; } = "#78350f"; // Amber-900
