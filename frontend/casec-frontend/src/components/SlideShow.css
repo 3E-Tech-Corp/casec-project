@@ -19,6 +19,7 @@
 }
 
 /* Slide Up - from bottom of screen */
+/* Desktop: use full viewport height */
 @keyframes slideshow-slideUp {
   from {
     opacity: 0;
@@ -30,8 +31,26 @@
   }
 }
 
+/* Mobile portrait: use smaller, safer translate values */
+@keyframes slideshow-slideUp-mobile {
+  from {
+    opacity: 0;
+    transform: translateY(50vh);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .slideshow-slideUp {
   animation-name: slideshow-slideUp;
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  .slideshow-slideUp {
+    animation-name: slideshow-slideUp-mobile;
+  }
 }
 
 /* Slide Down - from top of screen */
@@ -46,8 +65,25 @@
   }
 }
 
+@keyframes slideshow-slideDown-mobile {
+  from {
+    opacity: 0;
+    transform: translateY(-50vh);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .slideshow-slideDown {
   animation-name: slideshow-slideDown;
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  .slideshow-slideDown {
+    animation-name: slideshow-slideDown-mobile;
+  }
 }
 
 /* Zoom In - from scale 0 */
@@ -78,8 +114,25 @@
   }
 }
 
+@keyframes slideshow-slideInLeft-mobile {
+  from {
+    opacity: 0;
+    transform: translateX(-50vw);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .slideshow-slideInLeft {
   animation-name: slideshow-slideInLeft;
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  .slideshow-slideInLeft {
+    animation-name: slideshow-slideInLeft-mobile;
+  }
 }
 
 /* Slide In Right - from right edge of screen */
@@ -94,8 +147,25 @@
   }
 }
 
+@keyframes slideshow-slideInRight-mobile {
+  from {
+    opacity: 0;
+    transform: translateX(50vw);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .slideshow-slideInRight {
   animation-name: slideshow-slideInRight;
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  .slideshow-slideInRight {
+    animation-name: slideshow-slideInRight-mobile;
+  }
 }
 
 /* Bounce */
@@ -232,8 +302,25 @@
   }
 }
 
+@keyframes slideshow-slideOutUp-mobile {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-50vh);
+  }
+}
+
 .slideshow-slideOutUp {
   animation-name: slideshow-slideOutUp;
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  .slideshow-slideOutUp {
+    animation-name: slideshow-slideOutUp-mobile;
+  }
 }
 
 /* Slide Out Down - fully off screen */
@@ -248,8 +335,25 @@
   }
 }
 
+@keyframes slideshow-slideOutDown-mobile {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(50vh);
+  }
+}
+
 .slideshow-slideOutDown {
   animation-name: slideshow-slideOutDown;
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  .slideshow-slideOutDown {
+    animation-name: slideshow-slideOutDown-mobile;
+  }
 }
 
 /* Zoom Out */
@@ -280,8 +384,25 @@
   }
 }
 
+@keyframes slideshow-slideOutLeft-mobile {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50vw);
+  }
+}
+
 .slideshow-slideOutLeft {
   animation-name: slideshow-slideOutLeft;
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  .slideshow-slideOutLeft {
+    animation-name: slideshow-slideOutLeft-mobile;
+  }
 }
 
 /* Slide Out Right - fully off screen */
@@ -296,8 +417,25 @@
   }
 }
 
+@keyframes slideshow-slideOutRight-mobile {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(50vw);
+  }
+}
+
 .slideshow-slideOutRight {
   animation-name: slideshow-slideOutRight;
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  .slideshow-slideOutRight {
+    animation-name: slideshow-slideOutRight-mobile;
+  }
 }
 
 /* Blur Out */
@@ -368,4 +506,27 @@
   height: 2px;
   background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.8), transparent);
   animation: scan-line 2s linear infinite;
+}
+
+/* YouTube background video - responsive scaling */
+/* On landscape/desktop: scale up to fill and cover letterbox bars */
+.youtube-bg-video {
+  transform: scale(1.5);
+  transform-origin: center center;
+}
+
+/* On portrait mobile: use smaller scale to avoid excessive zoom */
+@media (max-width: 768px) and (orientation: portrait) {
+  .youtube-bg-video {
+    transform: scale(2.2);
+    transform-origin: center center;
+  }
+}
+
+/* On very narrow screens (phone portrait), even more scaling */
+@media (max-width: 480px) and (orientation: portrait) {
+  .youtube-bg-video {
+    transform: scale(2.5);
+    transform-origin: center center;
+  }
 }

@@ -392,11 +392,11 @@ export default function SlideShow({ code, id, onComplete, onSkip, adminMode = fa
           {isYouTubeUrl(backgroundVideoUrl) ? (
             <iframe
               key={backgroundVideoUrl}
-              className="absolute inset-0 w-full h-full z-0 pointer-events-none"
+              className="absolute inset-0 w-full h-full z-0 pointer-events-none youtube-bg-video"
               src={`https://www.youtube.com/embed/${getYouTubeVideoId(backgroundVideoUrl)}?autoplay=1&mute=1&loop=1&playlist=${getYouTubeVideoId(backgroundVideoUrl)}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
               allow="autoplay; encrypted-media"
               allowFullScreen
-              style={{ border: 'none', transform: 'scale(1.5)', transformOrigin: 'center center' }}
+              style={{ border: 'none' }}
               title="Background Video"
               onLoad={() => setVideoReady(true)}
             />

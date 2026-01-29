@@ -69,6 +69,71 @@ export default function EventProgram() {
     loadProgram();
   }, [slug]);
 
+  // Update document title and Open Graph meta tags for social sharing
+  useEffect(() => {
+    if (!program) return;
+
+    const title = lang === "zh"
+      ? (program.titleZh || program.title)
+      : (program.titleEn || program.title);
+    const description = lang === "zh"
+      ? (program.descriptionZh || program.description || program.subtitleZh || program.subtitle)
+      : (program.descriptionEn || program.description || program.subtitleEn || program.subtitle);
+    const imageUrl = program.imageUrl ? getAssetUrl(program.imageUrl) : null;
+
+    // Update document title
+    document.title = title || "Event Program";
+
+    // Helper to update or create meta tag
+    const updateMetaTag = (property, content) => {
+      if (!content) return;
+      let meta = document.querySelector(`meta[property="${property}"]`);
+      if (!meta) {
+        meta = document.createElement("meta");
+        meta.setAttribute("property", property);
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute("content", content);
+    };
+
+    // Helper to update or create name-based meta tag
+    const updateNameMetaTag = (name, content) => {
+      if (!content) return;
+      let meta = document.querySelector(`meta[name="${name}"]`);
+      if (!meta) {
+        meta = document.createElement("meta");
+        meta.setAttribute("name", name);
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute("content", content);
+    };
+
+    // Open Graph tags for Facebook, LinkedIn, etc.
+    updateMetaTag("og:title", title);
+    updateMetaTag("og:description", description);
+    updateMetaTag("og:type", "article");
+    updateMetaTag("og:url", window.location.href);
+    if (imageUrl) {
+      updateMetaTag("og:image", imageUrl);
+    }
+
+    // Twitter Card tags
+    updateNameMetaTag("twitter:card", "summary_large_image");
+    updateNameMetaTag("twitter:title", title);
+    updateNameMetaTag("twitter:description", description);
+    if (imageUrl) {
+      updateNameMetaTag("twitter:image", imageUrl);
+    }
+
+    // Standard meta description
+    updateNameMetaTag("description", description);
+
+    // Cleanup on unmount
+    return () => {
+      document.title = "Community Membership Portal";
+    };
+  }, [program, lang]);
+
   const loadProgram = async () => {
     try {
       setLoading(true);
