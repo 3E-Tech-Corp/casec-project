@@ -506,6 +506,18 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText, p
   const performer1Clickable = !!performer1;
   const performer2Clickable = !!performer2;
 
+  // Helper to get performer display name based on language
+  const getPerformerName = (performer) => {
+    if (!performer) return "";
+    return lang === "zh"
+      ? performer.chineseName || performer.name || performer.englishName
+      : performer.englishName || performer.name || performer.chineseName;
+  };
+
+  // Localized performer display names (use linked performer if available, else raw field)
+  const performer1DisplayName = performer1 ? getPerformerName(performer1) : item.performerNames;
+  const performer2DisplayName = performer2 ? getPerformerName(performer2) : item.performerNames2;
+
   // Whether to show item number (hide if 0, credits, or feature style)
   const showNumber = !isCreditsStyle && !isFeatureStyle && itemNumber > 0;
 
@@ -562,14 +574,6 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText, p
   if (isCreditsStyle) {
     // Get all performers (from linked performers list)
     const allPerformers = item.performers || [];
-
-    // Helper to get performer display name
-    const getPerformerName = (performer) => {
-      if (!performer) return "";
-      return lang === "zh"
-        ? performer.chineseName || performer.name || performer.englishName
-        : performer.englishName || performer.name || performer.chineseName;
-    };
 
     return (
       <div className="border-b border-white/10 last:border-0 pb-2 last:pb-0">
@@ -654,9 +658,9 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText, p
           )}
         </div>
 
-        {/* Performer Names - clickable if they have performer data */}
+        {/* Performer Names - clickable if they have performer data, localized by language */}
         <div className="flex items-center gap-3 flex-shrink-0">
-          {item.performerNames && (
+          {performer1DisplayName && (
             performer1Clickable ? (
               <button
                 onClick={(e) => handlePerformerCardsClick(e, performer1)}
@@ -665,16 +669,16 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText, p
                 onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
                 onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
               >
-                {item.performerNames}
+                {performer1DisplayName}
                 <Info className="w-3 h-3" style={{ color: `${linkColor}80` }} />
               </button>
             ) : (
               <span className="text-sm" style={{ color: `${primaryColor}cc` }}>
-                {item.performerNames}
+                {performer1DisplayName}
               </span>
             )
           )}
-          {item.performerNames2 && (
+          {performer2DisplayName && (
             performer2Clickable ? (
               <button
                 onClick={(e) => handlePerformerCardsClick(e, performer2)}
@@ -683,12 +687,12 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText, p
                 onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
                 onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
               >
-                {item.performerNames2}
+                {performer2DisplayName}
                 <Info className="w-3 h-3" style={{ color: `${linkColor}80` }} />
               </button>
             ) : (
               <span className="text-sm" style={{ color: `${primaryColor}cc` }}>
-                {item.performerNames2}
+                {performer2DisplayName}
               </span>
             )
           )}
