@@ -266,10 +266,10 @@ export default function EventProgram() {
         background: `linear-gradient(to bottom right, ${currentTheme.bgFrom}, ${currentTheme.bgVia}, ${currentTheme.bgTo})`
       }}
     >
-      {/* Background Image Overlay - full width, auto height, fixed at top */}
+      {/* Background Image Overlay - full width, fixed position so it stays while scrolling */}
       {backgroundImageUrl && (
         <div
-          className="absolute inset-0 bg-top bg-no-repeat opacity-20 pointer-events-none"
+          className="fixed inset-0 bg-top bg-no-repeat opacity-20 pointer-events-none"
           style={{
             backgroundImage: `url(${backgroundImageUrl})`,
             backgroundSize: '100% auto'
