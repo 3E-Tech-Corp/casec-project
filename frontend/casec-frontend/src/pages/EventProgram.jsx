@@ -311,6 +311,14 @@ export default function EventProgram() {
                     {getText(section.subtitleZh, section.subtitleEn, section.subtitle)}
                   </p>
                 )}
+                {getText(section.descriptionZh, section.descriptionEn, section.description) && (
+                  <div
+                    className="text-white/70 text-sm mt-2 prose prose-sm prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: getText(section.descriptionZh, section.descriptionEn, section.description)
+                    }}
+                  />
+                )}
               </div>
 
               {/* Section Items - filter out inactive items */}
