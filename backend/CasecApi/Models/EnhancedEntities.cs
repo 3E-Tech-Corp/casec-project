@@ -1846,6 +1846,13 @@ public class EventProgram
 
     public string? DescriptionEn { get; set; }
 
+    // Open Graph overrides - separate title/description for social sharing previews
+    [MaxLength(200)]
+    public string? OgTitle { get; set; }
+
+    [MaxLength(500)]
+    public string? OgDescription { get; set; }
+
     [MaxLength(500)]
     public string? ImageUrl { get; set; } // Cover image for the program
 
