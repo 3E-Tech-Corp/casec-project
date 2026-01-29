@@ -191,6 +191,87 @@ public class EventProgramsController : ControllerBase
         }
     }
 
+    // GET: /EventPrograms/{idOrSlug}/og - Serve HTML with Open Graph meta tags for social sharing
+    // Social media crawlers don't execute JavaScript, so they need server-rendered meta tags
+    [HttpGet("{idOrSlug}/og")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetProgramOpenGraph(string idOrSlug)
+    {
+        try
+        {
+            EventProgram? program;
+
+            if (int.TryParse(idOrSlug, out int id))
+            {
+                program = await _context.EventPrograms
+                    .FirstOrDefaultAsync(p => p.ProgramId == id && p.Status == "Published");
+            }
+            else
+            {
+                program = await _context.EventPrograms
+                    .FirstOrDefaultAsync(p => p.Slug == idOrSlug && p.Status == "Published");
+            }
+
+            if (program == null)
+            {
+                return NotFound("Program not found");
+            }
+
+            var title = program.TitleZh ?? program.Title;
+            var description = program.SubtitleZh ?? program.Subtitle ?? program.DescriptionZh ?? program.Description ?? "";
+            // Strip HTML tags from description
+            description = System.Text.RegularExpressions.Regex.Replace(description, "<[^>]+>", "").Trim();
+            if (description.Length > 200) description = description.Substring(0, 200) + "...";
+
+            var slug = program.Slug ?? program.ProgramId.ToString();
+            var pageUrl = $"{Request.Scheme}://{Request.Host}/program/{slug}";
+
+            // Build absolute image URL
+            var imageUrl = "";
+            if (!string.IsNullOrEmpty(program.ImageUrl))
+            {
+                if (program.ImageUrl.StartsWith("http"))
+                {
+                    imageUrl = program.ImageUrl;
+                }
+                else
+                {
+                    imageUrl = $"{Request.Scheme}://{Request.Host}{program.ImageUrl}";
+                }
+            }
+
+            var html = $@"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=""UTF-8"" />
+    <title>{System.Net.WebUtility.HtmlEncode(title)}</title>
+    <meta name=""description"" content=""{System.Net.WebUtility.HtmlEncode(description)}"" />
+    <meta property=""og:title"" content=""{System.Net.WebUtility.HtmlEncode(title)}"" />
+    <meta property=""og:description"" content=""{System.Net.WebUtility.HtmlEncode(description)}"" />
+    <meta property=""og:type"" content=""article"" />
+    <meta property=""og:url"" content=""{System.Net.WebUtility.HtmlEncode(pageUrl)}"" />
+    {(string.IsNullOrEmpty(imageUrl) ? "" : $@"<meta property=""og:image"" content=""{System.Net.WebUtility.HtmlEncode(imageUrl)}"" />")}
+    <meta name=""twitter:card"" content=""summary_large_image"" />
+    <meta name=""twitter:title"" content=""{System.Net.WebUtility.HtmlEncode(title)}"" />
+    <meta name=""twitter:description"" content=""{System.Net.WebUtility.HtmlEncode(description)}"" />
+    {(string.IsNullOrEmpty(imageUrl) ? "" : $@"<meta name=""twitter:image"" content=""{System.Net.WebUtility.HtmlEncode(imageUrl)}"" />")}
+    <meta http-equiv=""refresh"" content=""0;url={System.Net.WebUtility.HtmlEncode(pageUrl)}"" />
+</head>
+<body>
+    <p>Redirecting to <a href=""{System.Net.WebUtility.HtmlEncode(pageUrl)}"">{System.Net.WebUtility.HtmlEncode(title)}</a>...</p>
+    <script>window.location.replace(""{pageUrl.Replace("\"", "\\\"")}"");</script>
+</body>
+</html>";
+
+            return Content(html, "text/html");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating OG tags for program {IdOrSlug}", idOrSlug);
+            return StatusCode(500, "Error generating page");
+        }
+    }
+
     // POST: /EventPrograms - Create new program (requires edit permission for programs area)
     [Authorize]
     [HttpPost]
@@ -227,9 +308,12 @@ public class EventProgramsController : ControllerBase
                 DescriptionEn = request.DescriptionEn,
                 ImageUrl = request.ImageUrl,
                 EventDate = request.EventDate,
+                TimeBlock = request.TimeBlock,
                 Venue = request.Venue,
                 VenueAddress = request.VenueAddress,
                 SlideShowIds = request.SlideShowIds != null ? JsonSerializer.Serialize(request.SlideShowIds) : null,
+                ColorThemes = request.ColorThemes != null ? JsonSerializer.Serialize(request.ColorThemes) : null,
+                ShowBackgroundImage = request.ShowBackgroundImage,
                 Slug = slug,
                 Status = "Draft",
                 CreatedBy = GetCurrentUserId(),
@@ -298,9 +382,12 @@ public class EventProgramsController : ControllerBase
             if (request.DescriptionEn != null) program.DescriptionEn = request.DescriptionEn;
             if (request.ImageUrl != null) program.ImageUrl = request.ImageUrl;
             if (request.EventDate.HasValue) program.EventDate = request.EventDate;
+            if (request.TimeBlock != null) program.TimeBlock = request.TimeBlock;
             if (request.Venue != null) program.Venue = request.Venue;
             if (request.VenueAddress != null) program.VenueAddress = request.VenueAddress;
             if (request.SlideShowIds != null) program.SlideShowIds = JsonSerializer.Serialize(request.SlideShowIds);
+            if (request.ColorThemes != null) program.ColorThemes = JsonSerializer.Serialize(request.ColorThemes);
+            if (request.ShowBackgroundImage.HasValue) program.ShowBackgroundImage = request.ShowBackgroundImage.Value;
             if (request.Status != null) program.Status = request.Status;
             if (request.IsFeatured.HasValue) program.IsFeatured = request.IsFeatured.Value;
             if (request.Slug != null)
@@ -423,6 +510,7 @@ public class EventProgramsController : ControllerBase
                 DescriptionZh = request.DescriptionZh,
                 DescriptionEn = request.DescriptionEn,
                 DisplayOrder = request.DisplayOrder,
+                IsActive = request.IsActive,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -484,6 +572,7 @@ public class EventProgramsController : ControllerBase
             if (request.DescriptionZh != null) section.DescriptionZh = request.DescriptionZh;
             if (request.DescriptionEn != null) section.DescriptionEn = request.DescriptionEn;
             if (request.DisplayOrder.HasValue) section.DisplayOrder = request.DisplayOrder.Value;
+            if (request.IsActive.HasValue) section.IsActive = request.IsActive.Value;
 
             section.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
@@ -644,6 +733,7 @@ public class EventProgramsController : ControllerBase
                 PerformanceTypeEn = request.PerformanceTypeEn,
                 PerformerNames = request.PerformerNames,
                 PerformerNames2 = request.PerformerNames2,
+                EstimatedLength = request.EstimatedLength,
                 Description = request.Description,
                 DescriptionZh = request.DescriptionZh,
                 DescriptionEn = request.DescriptionEn,
@@ -651,6 +741,8 @@ public class EventProgramsController : ControllerBase
                 ContentPageId = request.ContentPageId,
                 DisplayOrder = request.DisplayOrder,
                 DurationMinutes = request.DurationMinutes,
+                IsActive = request.IsActive,
+                DisplayStyle = request.DisplayStyle ?? "default",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -727,6 +819,7 @@ public class EventProgramsController : ControllerBase
             if (request.PerformanceTypeEn != null) item.PerformanceTypeEn = request.PerformanceTypeEn;
             if (request.PerformerNames != null) item.PerformerNames = request.PerformerNames;
             if (request.PerformerNames2 != null) item.PerformerNames2 = request.PerformerNames2;
+            if (request.EstimatedLength != null) item.EstimatedLength = request.EstimatedLength;
             if (request.Description != null) item.Description = request.Description;
             if (request.DescriptionZh != null) item.DescriptionZh = request.DescriptionZh;
             if (request.DescriptionEn != null) item.DescriptionEn = request.DescriptionEn;
@@ -734,6 +827,8 @@ public class EventProgramsController : ControllerBase
             if (request.ContentPageId.HasValue) item.ContentPageId = request.ContentPageId;
             if (request.DisplayOrder.HasValue) item.DisplayOrder = request.DisplayOrder.Value;
             if (request.DurationMinutes.HasValue) item.DurationMinutes = request.DurationMinutes;
+            if (request.IsActive.HasValue) item.IsActive = request.IsActive.Value;
+            if (request.DisplayStyle != null) item.DisplayStyle = request.DisplayStyle;
 
             // Update performers if specified
             if (request.PerformerIds != null)
@@ -902,6 +997,8 @@ public class EventProgramsController : ControllerBase
                     ChineseName = p.ChineseName,
                     EnglishName = p.EnglishName,
                     Bio = p.Bio,
+                    BioZh = p.BioZh,
+                    BioEn = p.BioEn,
                     PhotoUrl = p.PhotoUrl,
                     Website = p.Website,
                     Instagram = p.Instagram,
@@ -949,6 +1046,8 @@ public class EventProgramsController : ControllerBase
                 ChineseName = request.ChineseName,
                 EnglishName = request.EnglishName,
                 Bio = request.Bio,
+                BioZh = request.BioZh,
+                BioEn = request.BioEn,
                 PhotoUrl = request.PhotoUrl,
                 Website = request.Website,
                 Instagram = request.Instagram,
@@ -1009,6 +1108,8 @@ public class EventProgramsController : ControllerBase
             if (request.ChineseName != null) performer.ChineseName = request.ChineseName;
             if (request.EnglishName != null) performer.EnglishName = request.EnglishName;
             if (request.Bio != null) performer.Bio = request.Bio;
+            if (request.BioZh != null) performer.BioZh = request.BioZh;
+            if (request.BioEn != null) performer.BioEn = request.BioEn;
             if (request.PhotoUrl != null) performer.PhotoUrl = request.PhotoUrl;
             if (request.Website != null) performer.Website = request.Website;
             if (request.Instagram != null) performer.Instagram = request.Instagram;
@@ -1054,6 +1155,16 @@ public class EventProgramsController : ControllerBase
             catch { }
         }
 
+        List<ColorThemeDto>? colorThemes = null;
+        if (!string.IsNullOrEmpty(program.ColorThemes))
+        {
+            try
+            {
+                colorThemes = JsonSerializer.Deserialize<List<ColorThemeDto>>(program.ColorThemes);
+            }
+            catch { }
+        }
+
         return new EventProgramDto
         {
             ProgramId = program.ProgramId,
@@ -1068,9 +1179,12 @@ public class EventProgramsController : ControllerBase
             DescriptionEn = program.DescriptionEn,
             ImageUrl = program.ImageUrl,
             EventDate = program.EventDate,
+            TimeBlock = program.TimeBlock,
             Venue = program.Venue,
             VenueAddress = program.VenueAddress,
             SlideShowIds = slideShowIds,
+            ColorThemes = colorThemes,
+            ShowBackgroundImage = program.ShowBackgroundImage,
             Status = program.Status,
             IsFeatured = program.IsFeatured,
             Slug = program.Slug,
@@ -1102,6 +1216,7 @@ public class EventProgramsController : ControllerBase
             DescriptionZh = section.DescriptionZh,
             DescriptionEn = section.DescriptionEn,
             DisplayOrder = section.DisplayOrder,
+            IsActive = section.IsActive,
             Items = section.Items?
                 .OrderBy(i => i.DisplayOrder)
                 .Select(i => MapItemToDto(i, itemCards, performerCards))
@@ -1131,6 +1246,7 @@ public class EventProgramsController : ControllerBase
             PerformanceTypeEn = item.PerformanceTypeEn,
             PerformerNames = item.PerformerNames,
             PerformerNames2 = item.PerformerNames2,
+            EstimatedLength = item.EstimatedLength,
             Description = item.Description,
             DescriptionZh = item.DescriptionZh,
             DescriptionEn = item.DescriptionEn,
@@ -1138,6 +1254,8 @@ public class EventProgramsController : ControllerBase
             ContentPageId = item.ContentPageId,
             DisplayOrder = item.DisplayOrder,
             DurationMinutes = item.DurationMinutes,
+            IsActive = item.IsActive,
+            DisplayStyle = item.DisplayStyle ?? "default",
             Performers = item.Performers?
                 .OrderBy(ip => ip.DisplayOrder)
                 .Where(ip => ip.Performer != null)
@@ -1162,6 +1280,8 @@ public class EventProgramsController : ControllerBase
             ChineseName = performer.ChineseName,
             EnglishName = performer.EnglishName,
             Bio = performer.Bio,
+            BioZh = performer.BioZh,
+            BioEn = performer.BioEn,
             PhotoUrl = performer.PhotoUrl,
             Website = performer.Website,
             Instagram = performer.Instagram,
@@ -1186,6 +1306,7 @@ public class EventProgramsController : ControllerBase
             MediaUrl = card.MediaUrl,
             MediaType = card.MediaType,
             LayoutType = card.LayoutType,
+            AspectRatio = card.AspectRatio ?? "original",
             DisplayOrder = card.DisplayOrder,
             CreatedAt = card.CreatedAt,
             UpdatedAt = card.UpdatedAt
@@ -1210,7 +1331,7 @@ public class EventProgramsController : ControllerBase
 
     private int? GetCurrentUserId()
     {
-        var userIdClaim = User.FindFirst("UserId")?.Value;
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : null;
     }
 

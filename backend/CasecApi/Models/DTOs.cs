@@ -1704,6 +1704,17 @@ public class RaffleResendOtpRequest
 
 // ============ EVENT PROGRAM DTOs ============
 
+// Color theme for EventProgram styling
+public class ColorThemeDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string Primary { get; set; } = "#facc15"; // Yellow accent
+    public string? Link { get; set; } = "#60a5fa"; // Link/clickable text color
+    public string BgFrom { get; set; } = "#7f1d1d"; // Red-900
+    public string BgVia { get; set; } = "#991b1b"; // Red-800
+    public string BgTo { get; set; } = "#78350f"; // Amber-900
+}
+
 // EventProgram DTOs
 public class EventProgramDto
 {
@@ -1719,9 +1730,12 @@ public class EventProgramDto
     public string? DescriptionEn { get; set; }
     public string? ImageUrl { get; set; }
     public DateTime? EventDate { get; set; }
+    public string? TimeBlock { get; set; }
     public string? Venue { get; set; }
     public string? VenueAddress { get; set; }
     public List<int>? SlideShowIds { get; set; }
+    public List<ColorThemeDto>? ColorThemes { get; set; }
+    public bool ShowBackgroundImage { get; set; }
     public string Status { get; set; } = "Draft";
     public bool IsFeatured { get; set; }
     public string? Slug { get; set; }
@@ -1759,9 +1773,12 @@ public class CreateEventProgramRequest
     public string? DescriptionEn { get; set; }
     public string? ImageUrl { get; set; }
     public DateTime? EventDate { get; set; }
+    public string? TimeBlock { get; set; }
     public string? Venue { get; set; }
     public string? VenueAddress { get; set; }
     public List<int>? SlideShowIds { get; set; }
+    public List<ColorThemeDto>? ColorThemes { get; set; }
+    public bool ShowBackgroundImage { get; set; } = false;
     public string? Slug { get; set; }
 }
 
@@ -1778,9 +1795,12 @@ public class UpdateEventProgramRequest
     public string? DescriptionEn { get; set; }
     public string? ImageUrl { get; set; }
     public DateTime? EventDate { get; set; }
+    public string? TimeBlock { get; set; }
     public string? Venue { get; set; }
     public string? VenueAddress { get; set; }
     public List<int>? SlideShowIds { get; set; }
+    public List<ColorThemeDto>? ColorThemes { get; set; }
+    public bool? ShowBackgroundImage { get; set; }
     public string? Status { get; set; }
     public bool? IsFeatured { get; set; }
     public string? Slug { get; set; }
@@ -1801,6 +1821,7 @@ public class ProgramSectionDto
     public string? DescriptionZh { get; set; }
     public string? DescriptionEn { get; set; }
     public int DisplayOrder { get; set; }
+    public bool IsActive { get; set; } = true;
     public List<ProgramItemDto> Items { get; set; } = new();
 }
 
@@ -1817,6 +1838,7 @@ public class CreateProgramSectionRequest
     public string? DescriptionZh { get; set; }
     public string? DescriptionEn { get; set; }
     public int DisplayOrder { get; set; }
+    public bool IsActive { get; set; } = true;
 }
 
 public class UpdateProgramSectionRequest
@@ -1831,6 +1853,7 @@ public class UpdateProgramSectionRequest
     public string? DescriptionZh { get; set; }
     public string? DescriptionEn { get; set; }
     public int? DisplayOrder { get; set; }
+    public bool? IsActive { get; set; }
 }
 
 // ProgramItem DTOs
@@ -1847,6 +1870,7 @@ public class ProgramItemDto
     public string? PerformanceTypeEn { get; set; }
     public string? PerformerNames { get; set; }
     public string? PerformerNames2 { get; set; }
+    public string? EstimatedLength { get; set; }
     public string? Description { get; set; }
     public string? DescriptionZh { get; set; }
     public string? DescriptionEn { get; set; }
@@ -1854,6 +1878,8 @@ public class ProgramItemDto
     public int? ContentPageId { get; set; }
     public int DisplayOrder { get; set; }
     public int? DurationMinutes { get; set; }
+    public bool IsActive { get; set; } = true;
+    public string? DisplayStyle { get; set; } = "default";
     public List<PerformerDto>? Performers { get; set; }
     public List<ContentCardDto>? Cards { get; set; }
 }
@@ -1870,6 +1896,7 @@ public class CreateProgramItemRequest
     public string? PerformanceTypeEn { get; set; }
     public string? PerformerNames { get; set; }
     public string? PerformerNames2 { get; set; }
+    public string? EstimatedLength { get; set; }
     public string? Description { get; set; }
     public string? DescriptionZh { get; set; }
     public string? DescriptionEn { get; set; }
@@ -1877,6 +1904,8 @@ public class CreateProgramItemRequest
     public int? ContentPageId { get; set; }
     public int DisplayOrder { get; set; }
     public int? DurationMinutes { get; set; }
+    public bool IsActive { get; set; } = true;
+    public string? DisplayStyle { get; set; } = "default";
     public List<int>? PerformerIds { get; set; }
 }
 
@@ -1891,6 +1920,7 @@ public class UpdateProgramItemRequest
     public string? PerformanceTypeEn { get; set; }
     public string? PerformerNames { get; set; }
     public string? PerformerNames2 { get; set; }
+    public string? EstimatedLength { get; set; }
     public string? Description { get; set; }
     public string? DescriptionZh { get; set; }
     public string? DescriptionEn { get; set; }
@@ -1898,6 +1928,8 @@ public class UpdateProgramItemRequest
     public int? ContentPageId { get; set; }
     public int? DisplayOrder { get; set; }
     public int? DurationMinutes { get; set; }
+    public bool? IsActive { get; set; }
+    public string? DisplayStyle { get; set; }
     public List<int>? PerformerIds { get; set; }
 }
 
@@ -1931,7 +1963,9 @@ public class PerformerDto
     public string Name { get; set; } = string.Empty;
     public string? ChineseName { get; set; }
     public string? EnglishName { get; set; }
-    public string? Bio { get; set; }
+    public string? Bio { get; set; } // Legacy
+    public string? BioZh { get; set; }
+    public string? BioEn { get; set; }
     public string? PhotoUrl { get; set; }
     public string? Website { get; set; }
     public string? Instagram { get; set; }
@@ -1946,7 +1980,9 @@ public class CreatePerformerRequest
     public string Name { get; set; } = string.Empty;
     public string? ChineseName { get; set; }
     public string? EnglishName { get; set; }
-    public string? Bio { get; set; }
+    public string? Bio { get; set; } // Legacy
+    public string? BioZh { get; set; }
+    public string? BioEn { get; set; }
     public string? PhotoUrl { get; set; }
     public string? Website { get; set; }
     public string? Instagram { get; set; }
@@ -1959,7 +1995,9 @@ public class UpdatePerformerRequest
     public string? Name { get; set; }
     public string? ChineseName { get; set; }
     public string? EnglishName { get; set; }
-    public string? Bio { get; set; }
+    public string? Bio { get; set; } // Legacy
+    public string? BioZh { get; set; }
+    public string? BioEn { get; set; }
     public string? PhotoUrl { get; set; }
     public string? Website { get; set; }
     public string? Instagram { get; set; }
@@ -2029,6 +2067,7 @@ public class ContentCardDto
     public string? MediaUrl { get; set; }
     public string MediaType { get; set; } = "image";
     public string LayoutType { get; set; } = "left";
+    public string? AspectRatio { get; set; } = "original";
     public int DisplayOrder { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
@@ -2045,6 +2084,7 @@ public class CreateContentCardRequest
     public string? MediaUrl { get; set; }
     public string MediaType { get; set; } = "image";
     public string LayoutType { get; set; } = "left";
+    public string? AspectRatio { get; set; } = "original";
     public int DisplayOrder { get; set; }
 }
 
@@ -2057,6 +2097,7 @@ public class UpdateContentCardRequest
     public string? MediaUrl { get; set; }
     public string? MediaType { get; set; }
     public string? LayoutType { get; set; }
+    public string? AspectRatio { get; set; }
     public int? DisplayOrder { get; set; }
 }
 

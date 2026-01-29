@@ -34,7 +34,7 @@ public class MembershipPaymentsController : ControllerBase
 
     private int? GetCurrentUserIdNullable()
     {
-        var userIdClaim = User.FindFirst("UserId")?.Value;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : null;
     }
 

@@ -1847,6 +1847,9 @@ public class EventProgram
     // Event details
     public DateTime? EventDate { get; set; }
 
+    [MaxLength(100)]
+    public string? TimeBlock { get; set; } // e.g., "7:00 PM - 9:00 PM"
+
     [MaxLength(200)]
     public string? Venue { get; set; }
 
@@ -1856,6 +1859,13 @@ public class EventProgram
     // Link to slideshows to display on the page
     // Stored as JSON array of slideshow IDs: [1, 2, 3]
     public string? SlideShowIds { get; set; }
+
+    // Page styling - color themes stored as JSON array
+    // Each theme: { "name": "Theme Name", "primary": "#hex", "bgFrom": "#hex", "bgVia": "#hex", "bgTo": "#hex" }
+    public string? ColorThemes { get; set; }
+
+    // Whether to show the cover image as background
+    public bool ShowBackgroundImage { get; set; } = false;
 
     // Status: Draft, Published, Archived
     [Required]
@@ -1921,6 +1931,8 @@ public class ProgramSection
 
     public int DisplayOrder { get; set; } = 0;
 
+    public bool IsActive { get; set; } = true;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -1974,6 +1986,10 @@ public class ProgramItem
     [MaxLength(500)]
     public string? PerformerNames2 { get; set; }
 
+    // Estimated length/duration (e.g., "5 min", "3分钟")
+    [MaxLength(50)]
+    public string? EstimatedLength { get; set; }
+
     [MaxLength(2000)]
     public string? Description { get; set; } // Legacy: keep for backwards compatibility
 
@@ -1989,6 +2005,14 @@ public class ProgramItem
     public int? ContentPageId { get; set; }
 
     public int DisplayOrder { get; set; } = 0;
+
+    public bool IsActive { get; set; } = true;
+
+    // Display style for the item (e.g., "default", "credits")
+    // "default" - shows item number, title, performer names, description
+    // "credits" - shows performer avatar and name after item title, no description
+    [MaxLength(50)]
+    public string? DisplayStyle { get; set; } = "default";
 
     // Duration in minutes (optional)
     public int? DurationMinutes { get; set; }
@@ -2050,7 +2074,12 @@ public class Performer
     public string? EnglishName { get; set; }
 
     [MaxLength(4000)]
-    public string? Bio { get; set; }
+    public string? Bio { get; set; } // Legacy: keep for backwards compatibility
+
+    // Bilingual bio
+    public string? BioZh { get; set; }
+
+    public string? BioEn { get; set; }
 
     [MaxLength(500)]
     public string? PhotoUrl { get; set; }
@@ -2119,6 +2148,10 @@ public class ContentCard
     [Required]
     [MaxLength(20)]
     public string LayoutType { get; set; } = "left";
+
+    // Aspect ratio for media: "original", "16:9", "4:3", "3:2", "1:1", "2:3", "3:4", "9:16"
+    [MaxLength(20)]
+    public string? AspectRatio { get; set; } = "original";
 
     public int DisplayOrder { get; set; } = 0;
 

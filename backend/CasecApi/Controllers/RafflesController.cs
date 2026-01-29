@@ -35,14 +35,14 @@ public class RafflesController : ControllerBase
 
     private int? GetCurrentUserIdNullable()
     {
-        var userIdClaim = User.FindFirst("UserId")?.Value;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : null;
     }
 
     private async Task<bool> HasAreaPermissionAsync(string areaKey, bool requireEdit = false, bool requireDelete = false)
     {
         if (User.IsInRole("Admin")) return true;
-        var userId = GetCurrentUserIdNullable();
+        var userId = GetCurrentUserId();
         if (userId == null) return false;
         return await _context.UserRoles
             .Where(ur => ur.UserId == userId.Value)

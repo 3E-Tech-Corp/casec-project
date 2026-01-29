@@ -137,9 +137,12 @@ export default function AdminEventPrograms() {
     descriptionEn: "",
     imageUrl: "",
     eventDate: "",
+    timeBlock: "",
     venue: "",
     venueAddress: "",
     slideShowIds: [],
+    colorThemes: [],
+    showBackgroundImage: false,
     slug: "",
   });
   const [saving, setSaving] = useState(false);
@@ -196,9 +199,12 @@ export default function AdminEventPrograms() {
       descriptionEn: "",
       imageUrl: "",
       eventDate: "",
+      timeBlock: "",
       venue: "",
       venueAddress: "",
       slideShowIds: [],
+      colorThemes: [],
+      showBackgroundImage: false,
       slug: "",
     });
     setShowForm(true);
@@ -222,9 +228,12 @@ export default function AdminEventPrograms() {
           descriptionEn: p.descriptionEn || "",
           imageUrl: p.imageUrl || "",
           eventDate: p.eventDate ? p.eventDate.split("T")[0] : "",
+          timeBlock: p.timeBlock || "",
           venue: p.venue || "",
           venueAddress: p.venueAddress || "",
           slideShowIds: p.slideShowIds || [],
+          colorThemes: p.colorThemes || [],
+          showBackgroundImage: p.showBackgroundImage || false,
           slug: p.slug || "",
           status: p.status || "Draft",
           isFeatured: p.isFeatured || false,
@@ -444,37 +453,35 @@ export default function AdminEventPrograms() {
               <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   Description
-                  <span className="text-xs text-gray-400">(Bilingual)</span>
+                  <span className="text-xs text-gray-400">(Bilingual, supports HTML)</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">Chinese 中文</label>
-                    <textarea
+                    <HtmlEditor
                       value={formData.descriptionZh}
-                      onChange={(e) =>
-                        setFormData({ ...formData, descriptionZh: e.target.value, description: e.target.value || formData.description })
+                      onChange={(val) =>
+                        setFormData({ ...formData, descriptionZh: val, description: val || formData.description })
                       }
-                      className="w-full border rounded-lg px-3 py-2"
-                      rows={3}
                       placeholder="中文描述..."
+                      rows={3}
                     />
                   </div>
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">English</label>
-                    <textarea
+                    <HtmlEditor
                       value={formData.descriptionEn}
-                      onChange={(e) =>
-                        setFormData({ ...formData, descriptionEn: e.target.value })
+                      onChange={(val) =>
+                        setFormData({ ...formData, descriptionEn: val })
                       }
-                      className="w-full border rounded-lg px-3 py-2"
-                      rows={3}
                       placeholder="English description..."
+                      rows={3}
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Event Date
@@ -485,6 +492,20 @@ export default function AdminEventPrograms() {
                     onChange={(e) =>
                       setFormData({ ...formData, eventDate: e.target.value })
                     }
+                    className="w-full border rounded-lg px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Time Block
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.timeBlock}
+                    onChange={(e) =>
+                      setFormData({ ...formData, timeBlock: e.target.value })
+                    }
+                    placeholder="e.g., 7:00 PM - 9:00 PM"
                     className="w-full border rounded-lg px-3 py-2"
                   />
                 </div>
@@ -589,6 +610,153 @@ export default function AdminEventPrograms() {
                     <p className="text-gray-400 text-sm">No slideshows available</p>
                   )}
                 </div>
+              </div>
+
+              {/* Color Themes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Color Themes (up to 3 - viewers can switch between them)
+                </label>
+                <div className="space-y-3 border rounded-lg p-3">
+                  {(formData.colorThemes || []).map((theme, idx) => (
+                    <div key={idx} className="bg-gray-50 rounded-lg p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <input
+                          type="text"
+                          placeholder="Theme name"
+                          value={theme.name || ""}
+                          onChange={(e) => {
+                            const themes = [...(formData.colorThemes || [])];
+                            themes[idx] = { ...themes[idx], name: e.target.value };
+                            setFormData({ ...formData, colorThemes: themes });
+                          }}
+                          className="border rounded px-2 py-1 text-sm flex-1 mr-2"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const themes = formData.colorThemes.filter((_, i) => i !== idx);
+                            setFormData({ ...formData, colorThemes: themes });
+                          }}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-6 gap-2 text-xs">
+                        <div>
+                          <label className="block text-gray-500">Primary</label>
+                          <input
+                            type="color"
+                            value={theme.primary || "#facc15"}
+                            onChange={(e) => {
+                              const themes = [...(formData.colorThemes || [])];
+                              themes[idx] = { ...themes[idx], primary: e.target.value };
+                              setFormData({ ...formData, colorThemes: themes });
+                            }}
+                            className="w-full h-8 rounded cursor-pointer"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-gray-500">Link</label>
+                          <input
+                            type="color"
+                            value={theme.link || "#60a5fa"}
+                            onChange={(e) => {
+                              const themes = [...(formData.colorThemes || [])];
+                              themes[idx] = { ...themes[idx], link: e.target.value };
+                              setFormData({ ...formData, colorThemes: themes });
+                            }}
+                            className="w-full h-8 rounded cursor-pointer"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-gray-500">BG From</label>
+                          <input
+                            type="color"
+                            value={theme.bgFrom || "#7f1d1d"}
+                            onChange={(e) => {
+                              const themes = [...(formData.colorThemes || [])];
+                              themes[idx] = { ...themes[idx], bgFrom: e.target.value };
+                              setFormData({ ...formData, colorThemes: themes });
+                            }}
+                            className="w-full h-8 rounded cursor-pointer"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-gray-500">BG Via</label>
+                          <input
+                            type="color"
+                            value={theme.bgVia || "#991b1b"}
+                            onChange={(e) => {
+                              const themes = [...(formData.colorThemes || [])];
+                              themes[idx] = { ...themes[idx], bgVia: e.target.value };
+                              setFormData({ ...formData, colorThemes: themes });
+                            }}
+                            className="w-full h-8 rounded cursor-pointer"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-gray-500">BG To</label>
+                          <input
+                            type="color"
+                            value={theme.bgTo || "#78350f"}
+                            onChange={(e) => {
+                              const themes = [...(formData.colorThemes || [])];
+                              themes[idx] = { ...themes[idx], bgTo: e.target.value };
+                              setFormData({ ...formData, colorThemes: themes });
+                            }}
+                            className="w-full h-8 rounded cursor-pointer"
+                          />
+                        </div>
+                        <div
+                          className="h-8 rounded mt-4"
+                          style={{
+                            background: `linear-gradient(to bottom right, ${theme.bgFrom || "#7f1d1d"}, ${theme.bgVia || "#991b1b"}, ${theme.bgTo || "#78350f"})`
+                          }}
+                          title="Preview"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  {(formData.colorThemes?.length || 0) < 3 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const themes = [...(formData.colorThemes || [])];
+                        themes.push({
+                          name: `Theme ${themes.length + 1}`,
+                          primary: "#facc15",
+                          link: "#60a5fa",
+                          bgFrom: "#7f1d1d",
+                          bgVia: "#991b1b",
+                          bgTo: "#78350f"
+                        });
+                        setFormData({ ...formData, colorThemes: themes });
+                      }}
+                      className="text-blue-600 hover:text-blue-800 text-sm"
+                    >
+                      + Add Color Theme
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Show Background Image */}
+              <div>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.showBackgroundImage || false}
+                    onChange={(e) =>
+                      setFormData({ ...formData, showBackgroundImage: e.target.checked })
+                    }
+                    className="rounded border-gray-300"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Show cover image as page background
+                  </span>
+                </label>
               </div>
 
               {editingProgram && (
@@ -943,9 +1111,9 @@ function ProgramEditor({ program, onReload }) {
     <div className="space-y-4">
       {/* Sections */}
       {sortedSections.map((section, sectionIdx) => (
-        <div key={section.sectionId} className="border rounded-lg overflow-hidden">
+        <div key={section.sectionId} className={`border rounded-lg overflow-hidden ${section.isActive === false ? 'opacity-60' : ''}`}>
           {/* Section Header */}
-          <div className="bg-gray-50 p-3 flex items-center justify-between">
+          <div className={`p-3 flex items-center justify-between ${section.isActive === false ? 'bg-gray-200' : 'bg-gray-50'}`}>
             {editingSection?.sectionId === section.sectionId ? (
               <SectionEditor
                 section={section}
@@ -983,7 +1151,12 @@ function ProgramEditor({ program, onReload }) {
                     </button>
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900">{section.title}</h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-gray-900">{section.title}</h4>
+                      {section.isActive === false && (
+                        <span className="text-xs bg-gray-400 text-white px-1.5 py-0.5 rounded">Inactive</span>
+                      )}
+                    </div>
                     {section.subtitle && (
                       <p className="text-gray-500 text-sm">{section.subtitle}</p>
                     )}
@@ -1018,7 +1191,7 @@ function ProgramEditor({ program, onReload }) {
             {[...(section.items || [])].sort((a, b) => a.displayOrder - b.displayOrder).map((item, itemIdx, sortedItems) => (
               <div
                 key={item.itemId}
-                className="p-3 flex items-center gap-3 hover:bg-gray-50"
+                className={`p-3 flex items-center gap-3 hover:bg-gray-50 ${item.isActive === false ? 'opacity-50 bg-gray-100' : ''}`}
               >
                 {/* Item Move Buttons */}
                 <div className="flex flex-col">
@@ -1039,7 +1212,7 @@ function ProgramEditor({ program, onReload }) {
                     <ArrowDown className="w-3 h-3" />
                   </button>
                 </div>
-                <span className="text-gray-400 text-sm w-8">{item.itemNumber}:</span>
+                <span className="text-gray-400 text-sm w-8">{item.itemNumber > 0 ? `${item.itemNumber}:` : '—'}</span>
 
                 {editingItem?.itemId === item.itemId ? (
                   <ItemEditor
@@ -1064,6 +1237,15 @@ function ProgramEditor({ program, onReload }) {
                         <span className="text-gray-400 text-sm ml-2">
                           ({item.performanceType})
                         </span>
+                      )}
+                      {item.displayStyle === "credits" && (
+                        <span className="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded ml-2">Credits</span>
+                      )}
+                      {item.displayStyle === "feature" && (
+                        <span className="text-xs bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded ml-2">Feature</span>
+                      )}
+                      {item.isActive === false && (
+                        <span className="text-xs bg-gray-400 text-white px-1.5 py-0.5 rounded ml-2">Inactive</span>
                       )}
                     </div>
                     {item.performerNames && (
@@ -1119,6 +1301,41 @@ function ProgramEditor({ program, onReload }) {
   );
 }
 
+// Simple HTML Editor Component
+function HtmlEditor({ value, onChange, placeholder, rows = 3 }) {
+  const [isHtmlMode, setIsHtmlMode] = useState(false);
+
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setIsHtmlMode(!isHtmlMode)}
+          className={`text-xs px-2 py-0.5 rounded ${isHtmlMode ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}
+        >
+          {isHtmlMode ? 'HTML' : 'Text'}
+        </button>
+      </div>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full border rounded px-2 py-1 text-sm ${isHtmlMode ? 'font-mono text-xs bg-gray-50' : ''}`}
+        rows={rows}
+        placeholder={isHtmlMode ? '<p>HTML content...</p>' : placeholder}
+      />
+      {isHtmlMode && value && (
+        <div className="text-xs text-gray-500 border-t pt-1 mt-1">
+          <span className="font-medium">Preview:</span>
+          <div
+            className="mt-1 p-2 bg-white border rounded prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: value }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Section Editor Component
 function SectionEditor({ section, onSave, onCancel }) {
   const [data, setData] = useState({
@@ -1131,10 +1348,37 @@ function SectionEditor({ section, onSave, onCancel }) {
     description: section.description || "",
     descriptionZh: section.descriptionZh || "",
     descriptionEn: section.descriptionEn || "",
+    displayOrder: section.displayOrder ?? 0,
+    isActive: section.isActive ?? true,
   });
 
   return (
     <div className="flex-1 space-y-3 p-3 bg-white rounded-lg border">
+      {/* Display Order & Active Status */}
+      <div className="flex items-center gap-6">
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-gray-600">Display Order</label>
+          <input
+            type="number"
+            value={data.displayOrder}
+            onChange={(e) => setData({ ...data, displayOrder: parseInt(e.target.value) || 0 })}
+            className="w-24 border rounded px-2 py-1 text-sm"
+            min="0"
+          />
+          <span className="text-xs text-gray-400 ml-2">Lower numbers appear first</span>
+        </div>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={data.isActive}
+            onChange={(e) => setData({ ...data, isActive: e.target.checked })}
+            className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+          />
+          <span className="text-sm font-medium text-gray-700">Active</span>
+          <span className="text-xs text-gray-400">(visible to public)</span>
+        </label>
+      </div>
+
       {/* Title - Bilingual */}
       <div className="space-y-1">
         <label className="text-xs font-medium text-gray-600">Title (Bilingual)</label>
@@ -1174,6 +1418,29 @@ function SectionEditor({ section, onSave, onCancel }) {
             className="border rounded px-2 py-1 text-sm"
             placeholder="English Subtitle"
           />
+        </div>
+      </div>
+
+      {/* Description - Bilingual with HTML support */}
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-gray-600">Description (Bilingual, supports HTML)</label>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <span className="text-xs text-gray-400">Chinese 中文</span>
+            <HtmlEditor
+              value={data.descriptionZh}
+              onChange={(val) => setData({ ...data, descriptionZh: val, description: val || data.description })}
+              placeholder="中文描述..."
+            />
+          </div>
+          <div>
+            <span className="text-xs text-gray-400">English</span>
+            <HtmlEditor
+              value={data.descriptionEn}
+              onChange={(val) => setData({ ...data, descriptionEn: val })}
+              placeholder="English description..."
+            />
+          </div>
         </div>
       </div>
 
@@ -1226,6 +1493,9 @@ function ItemEditor({ item, performers = [], onSave, onCancel }) {
 
   const [data, setData] = useState({
     itemNumber: item.itemNumber,
+    displayOrder: item.displayOrder ?? 0,
+    isActive: item.isActive ?? true,
+    displayStyle: item.displayStyle || "default",
     title: item.title || "",
     titleZh: item.titleZh || "",
     titleEn: item.titleEn || "",
@@ -1234,6 +1504,7 @@ function ItemEditor({ item, performers = [], onSave, onCancel }) {
     performanceTypeEn: item.performanceTypeEn || "",
     performerNames: item.performerNames || "",
     performerNames2: item.performerNames2 || "",
+    estimatedLength: item.estimatedLength || "",
     description: item.description || "",
     descriptionZh: item.descriptionZh || "",
     descriptionEn: item.descriptionEn || "",
@@ -1270,19 +1541,48 @@ function ItemEditor({ item, performers = [], onSave, onCancel }) {
 
   return (
     <div className="flex-1 space-y-3 p-3 bg-white rounded-lg border">
-      {/* Row 1: Item Number + Title (Bilingual) */}
+      {/* Row 1: Item Number + Display Order + Style + Title (Bilingual) */}
       <div className="grid grid-cols-12 gap-2">
         <div className="col-span-1">
-          <label className="text-xs font-medium text-gray-600">#</label>
+          <label className="text-xs font-medium text-gray-600" title="Set to 0 to hide number"># (0=hide)</label>
           <input
             type="number"
+            min="0"
             value={data.itemNumber}
-            onChange={(e) => setData({ ...data, itemNumber: parseInt(e.target.value) || 1 })}
+            onChange={(e) => {
+              const val = parseInt(e.target.value);
+              setData({ ...data, itemNumber: isNaN(val) ? 0 : val });
+            }}
             className="w-full border rounded px-2 py-1 text-sm"
             placeholder="#"
           />
         </div>
-        <div className="col-span-4">
+        <div className="col-span-1">
+          <label className="text-xs font-medium text-gray-600">Order</label>
+          <input
+            type="number"
+            value={data.displayOrder}
+            onChange={(e) => setData({ ...data, displayOrder: parseInt(e.target.value) || 0 })}
+            className="w-full border rounded px-2 py-1 text-sm"
+            placeholder="0"
+            min="0"
+            title="Display order - lower numbers appear first"
+          />
+        </div>
+        <div className="col-span-1">
+          <label className="text-xs font-medium text-gray-600">Style</label>
+          <select
+            value={data.displayStyle}
+            onChange={(e) => setData({ ...data, displayStyle: e.target.value })}
+            className="w-full border rounded px-2 py-1 text-sm"
+            title="Display style: default or credits (avatar + name, no description)"
+          >
+            <option value="default">Default</option>
+            <option value="credits">Credits</option>
+            <option value="feature">Feature</option>
+          </select>
+        </div>
+        <div className="col-span-3">
           <label className="text-xs font-medium text-gray-600">Title 中文</label>
           <input
             type="text"
@@ -1292,7 +1592,7 @@ function ItemEditor({ item, performers = [], onSave, onCancel }) {
             placeholder="中文标题"
           />
         </div>
-        <div className="col-span-4">
+        <div className="col-span-3">
           <label className="text-xs font-medium text-gray-600">Title English</label>
           <input
             type="text"
@@ -1326,9 +1626,20 @@ function ItemEditor({ item, performers = [], onSave, onCancel }) {
         </div>
       </div>
 
-      {/* Row 1b: Performer 2 */}
+      {/* Row 1b: Estimated Length + Performer 2 */}
       <div className="grid grid-cols-12 gap-2">
-        <div className="col-span-9"></div>
+        <div className="col-span-7"></div>
+        <div className="col-span-2">
+          <label className="text-xs font-medium text-gray-600">Length</label>
+          <input
+            type="text"
+            value={data.estimatedLength}
+            onChange={(e) => setData({ ...data, estimatedLength: e.target.value })}
+            className="w-full border rounded px-2 py-1 text-sm"
+            placeholder="e.g., 5 min"
+            title="Estimated duration (shown after title)"
+          />
+        </div>
         <div className="col-span-3">
           <label className="text-xs font-medium text-gray-600">Performer 2</label>
           <select
@@ -1377,45 +1688,56 @@ function ItemEditor({ item, performers = [], onSave, onCancel }) {
         </div>
       </div>
 
-      {/* Row 3: Description (Bilingual) */}
+      {/* Row 3: Description (Bilingual with HTML support) */}
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="text-xs font-medium text-gray-600">Description 中文</label>
-          <textarea
+          <label className="text-xs font-medium text-gray-600">Description 中文 (supports HTML)</label>
+          <HtmlEditor
             value={data.descriptionZh}
-            onChange={(e) => setData({ ...data, descriptionZh: e.target.value, description: e.target.value || data.description })}
-            className="w-full border rounded px-2 py-1 text-sm"
-            rows={2}
+            onChange={(val) => setData({ ...data, descriptionZh: val, description: val || data.description })}
             placeholder="中文描述..."
+            rows={2}
           />
         </div>
         <div>
-          <label className="text-xs font-medium text-gray-600">Description English</label>
-          <textarea
+          <label className="text-xs font-medium text-gray-600">Description English (supports HTML)</label>
+          <HtmlEditor
             value={data.descriptionEn}
-            onChange={(e) => setData({ ...data, descriptionEn: e.target.value })}
-            className="w-full border rounded px-2 py-1 text-sm"
-            rows={2}
+            onChange={(val) => setData({ ...data, descriptionEn: val })}
             placeholder="English description..."
+            rows={2}
           />
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex justify-end gap-2 pt-2">
-        <button
-          onClick={onCancel}
-          className="text-sm text-gray-500 px-3 py-1 hover:text-gray-700"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={() => onSave(data)}
-          className="flex items-center gap-1 text-sm bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700"
-        >
-          <Save className="w-3 h-3" />
-          Save
-        </button>
+      {/* Active Status & Action Buttons */}
+      <div className="flex items-center justify-between pt-2 border-t">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={data.isActive}
+            onChange={(e) => setData({ ...data, isActive: e.target.checked })}
+            className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+          />
+          <span className="text-sm font-medium text-gray-700">Active</span>
+          <span className="text-xs text-gray-400">(visible to public)</span>
+        </label>
+
+        <div className="flex gap-2">
+          <button
+            onClick={onCancel}
+            className="text-sm text-gray-500 px-3 py-1 hover:text-gray-700"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onSave(data)}
+            className="flex items-center gap-1 text-sm bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700"
+          >
+            <Save className="w-3 h-3" />
+            Save
+          </button>
+        </div>
       </div>
     </div>
   );
