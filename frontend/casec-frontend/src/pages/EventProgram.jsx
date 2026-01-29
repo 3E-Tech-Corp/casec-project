@@ -327,7 +327,7 @@ export default function EventProgram() {
                   <ProgramItemRow
                     key={item.itemId}
                     item={item}
-                    itemNumber={item.itemNumber || itemIdx + 1}
+                    itemNumber={item.itemNumber ?? (itemIdx + 1)}
                     lang={lang}
                     onShowCards={showCards}
                     getText={getText}
@@ -428,14 +428,19 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText })
   const performer1Clickable = !!performer1;
   const performer2Clickable = !!performer2;
 
+  // Whether to show item number (hide if 0)
+  const showNumber = itemNumber > 0;
+
   return (
     <div className="border-b border-white/10 last:border-0 pb-3 last:pb-0">
       {/* Main Row: Number, Title, Performers */}
       <div className="flex items-start gap-4">
-        {/* Item Number */}
-        <span className="text-yellow-400/70 font-mono text-sm w-6 text-right flex-shrink-0 pt-0.5">
-          {itemNumber}:
-        </span>
+        {/* Item Number - hidden when set to 0 */}
+        {showNumber && (
+          <span className="text-yellow-400/70 font-mono text-sm w-6 text-right flex-shrink-0 pt-0.5">
+            {itemNumber}:
+          </span>
+        )}
 
         {/* Title - clickable if has cards */}
         <div className="flex-1 min-w-0">
@@ -489,7 +494,7 @@ function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText })
 
       {/* Description Box - always visible if has content */}
       {hasDescription && (
-        <div className="ml-10 mt-2 p-3 bg-white/5 rounded-lg">
+        <div className={`${showNumber ? 'ml-10' : 'ml-0'} mt-2 p-3 bg-white/5 rounded-lg`}>
           {/* Performance Type as first line */}
           {itemPerformanceType && (
             <p className="text-white/60 text-sm">

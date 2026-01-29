@@ -1042,7 +1042,7 @@ function ProgramEditor({ program, onReload }) {
                     <ArrowDown className="w-3 h-3" />
                   </button>
                 </div>
-                <span className="text-gray-400 text-sm w-8">{item.itemNumber}:</span>
+                <span className="text-gray-400 text-sm w-8">{item.itemNumber > 0 ? `${item.itemNumber}:` : '—'}</span>
 
                 {editingItem?.itemId === item.itemId ? (
                   <ItemEditor
@@ -1366,11 +1366,15 @@ function ItemEditor({ item, performers = [], onSave, onCancel }) {
       {/* Row 1: Item Number + Display Order + Title (Bilingual) */}
       <div className="grid grid-cols-12 gap-2">
         <div className="col-span-1">
-          <label className="text-xs font-medium text-gray-600">#</label>
+          <label className="text-xs font-medium text-gray-600" title="Set to 0 to hide number"># (0=hide)</label>
           <input
             type="number"
+            min="0"
             value={data.itemNumber}
-            onChange={(e) => setData({ ...data, itemNumber: parseInt(e.target.value) || 1 })}
+            onChange={(e) => {
+              const val = parseInt(e.target.value);
+              setData({ ...data, itemNumber: isNaN(val) ? 0 : val });
+            }}
             className="w-full border rounded px-2 py-1 text-sm"
             placeholder="#"
           />
