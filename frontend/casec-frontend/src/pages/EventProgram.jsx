@@ -182,11 +182,15 @@ export default function EventProgram() {
   };
 
   // Helper to get bilingual text based on selected language
+  // Returns trimmed text, or empty string if all values are empty/whitespace
   const getText = (zhField, enField, fallback) => {
+    const zh = zhField?.trim?.() || zhField || "";
+    const en = enField?.trim?.() || enField || "";
+    const fb = fallback?.trim?.() || fallback || "";
     if (lang === "zh") {
-      return zhField || fallback || enField || "";
+      return zh || fb || en;
     }
-    return enField || fallback || zhField || "";
+    return en || fb || zh;
   };
 
   if (loading) {
