@@ -186,10 +186,12 @@ jobs:
           foreach ($url in $urls) {
             Write-Host "[MIGRATIONS] Running pending migrations via $url ..."
             try {
-              $response = Invoke-RestMethod -Uri $url -Method POST -Headers $headers -TimeoutSec 120
-              Write-Host "[MIGRATIONS] $($response.message)"
-              if ($response.results) {
-                foreach ($r in $response.results) {
+              # Use Invoke-WebRequest to get response body even on errors
+              $resp = Invoke-WebRequest -Uri $url -Method POST -Headers $headers -TimeoutSec 120 -UseBasicParsing
+              $json = $resp.Content | ConvertFrom-Json
+              Write-Host "[MIGRATIONS] $($json.message)"
+              if ($json.results) {
+                foreach ($r in $json.results) {
                   Write-Host "  $($r.status): $($r.folder)/$($r.script) ($($r.durationMs)ms)"
                 }
               }
@@ -197,7 +199,14 @@ jobs:
               break
             } catch {
               $code = $_.Exception.Response.StatusCode.value__
+              $body = ""
+              try {
+                $stream = $_.Exception.Response.GetResponseStream()
+                $reader = New-Object System.IO.StreamReader($stream)
+                $body = $reader.ReadToEnd()
+              } catch {}
               Write-Host "[MIGRATIONS] Failed on $url (HTTP $code): $($_.Exception.Message)"
+              Write-Host "[MIGRATIONS] Response body: $body"
             }
           }
           if (-not $success) {
