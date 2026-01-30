@@ -98,21 +98,30 @@ jobs:
         env:
           DEPLOY_API_KEY: ${{ secrets.DEPLOY_API_KEY }}
         run: |
-          Start-Sleep -Seconds 5  # Let IIS warm up
+          Write-Host "[MIGRATIONS] Waiting for IIS to warm up..."
+          Start-Sleep -Seconds 10
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
           $headers = @{ "X-Deploy-Key" = $env:DEPLOY_API_KEY }
-          try {
-            $response = Invoke-RestMethod -Uri "https://casecflorida.org/api/admin/migrations/run" -Method POST -Headers $headers -TimeoutSec 120
-            Write-Host "[MIGRATIONS] $($response.message)"
-            if ($response.results) {
-              foreach ($r in $response.results) {
-                Write-Host "  $($r.status): $($r.folder)/$($r.script) ($($r.durationMs)ms)"
+          # Try local first (runner is on IIS server), fall back to public URL
+          $urls = @("http://localhost/api/admin/migrations/run", "https://casecflorida.org/api/admin/migrations/run")
+          $success = $false
+          foreach ($url in $urls) {
+            Write-Host "[MIGRATIONS] Trying $url ..."
+            try {
+              $response = Invoke-RestMethod -Uri $url -Method POST -Headers $headers -TimeoutSec 120
+              Write-Host "[MIGRATIONS] $($response.message)"
+              if ($response.results) {
+                foreach ($r in $response.results) {
+                  Write-Host "  $($r.status): $($r.folder)/$($r.script) ($($r.durationMs)ms)"
+                }
               }
+              $success = $true
+              break
+            } catch {
+              $code = $_.Exception.Response.StatusCode.value__
+              Write-Host "[MIGRATIONS] Failed on $url (HTTP $code): $($_.Exception.Message)"
             }
-          } catch {
-            $code = $_.Exception.Response.StatusCode.value__
-            if ($code -eq 401) {
-              Write-Host "[MIGRATIONS] WARN: Deploy API key not configured on server. Skipping migrations."
-            } else {
-              Write-Host "[MIGRATIONS] WARN: Migration call failed (HTTP $code): $($_.Exception.Message)"
-            }
+          }
+          if (-not $success) {
+            Write-Host "[MIGRATIONS] WARN: Could not run migrations. You may need to run them manually."
           }
