@@ -8,25 +8,38 @@ import { eventProgramsAPI, getAssetUrl } from "../services/api";
  * Mimics a traditional Chinese gala printed program (红金主题).
  * Route: /program/:slug/poster
  *
- * Same data as EventProgram.jsx but rendered as a scrollable poster
- * with red/gold Chinese New Year theme, section banners, and
- * bilingual Chinese/English text.
+ * Uses real image assets from /assets/poster/ for authentic look.
  */
 
-// ── Language config ──────────────────────────────────────────────────────
+// ── Poster image assets (public folder) ──────────────────────────────
+const POSTER = {
+  headerEmblem: "/assets/poster/header-emblem.jpg",
+  bannerTop: "/assets/poster/banner-top.jpg",
+  bannerBottom: "/assets/poster/banner-bottom.jpg",
+  goldBar: "/assets/poster/gold-bar.jpg",
+  cloudLarge: "/assets/poster/cloud-large.jpg",
+  cloudSmall: "/assets/poster/cloud-small.jpg",
+  firework: "/assets/poster/firework.jpg",
+  waveBottom: "/assets/poster/wave-bottom.jpg",
+};
+
+// ── Language config ──────────────────────────────────────────────────
 const LANG = {
   zh: {
     title: "节目单",
-    footer: "在热烈欢快的歌舞声中，全体演员重返舞台，共庆团结、欢乐与祝福，圆满结束本届佛州华人春晚。",
-    footerEn: "",
-    programSubject: "Program is subject to change",
+    footer:
+      "在热烈欢快的歌舞声中，全体演员重返舞台，共庆团结、欢乐与祝福，圆满结束本届佛州华人春晚。",
+    footerEn:
+      "In a joyful and festive finale, all performers return to the stage, celebrating unity, happiness, and shared blessings to conclude the 2026 Florida Chinese New Year Gala.",
+    disclaimer: "节目内容可能会有所调整，以实际演出为准",
     locale: "zh-CN",
   },
   en: {
     title: "Program",
-    footer: "In a joyful and festive finale, all performers return to the stage, celebrating unity, happiness, and shared blessings.",
+    footer:
+      "In a joyful and festive finale, all performers return to the stage, celebrating unity, happiness, and shared blessings.",
     footerEn: "",
-    programSubject: "Program is subject to change",
+    disclaimer: "Program is subject to change",
     locale: "en-US",
   },
 };
@@ -66,7 +79,7 @@ export default function ProgramPoster() {
     }
   };
 
-  // Bilingual text helper
+  // Bilingual text helpers
   const getText = (zh, en, fallback) => {
     const z = zh?.trim?.() || "";
     const e = en?.trim?.() || "";
@@ -75,7 +88,6 @@ export default function ProgramPoster() {
     return e || f || z;
   };
 
-  // Get both languages for display (Chinese main + English subtitle)
   const getBilingual = (zh, en, fallback) => {
     const z = zh?.trim?.() || fallback?.trim?.() || "";
     const e = en?.trim?.() || "";
@@ -108,45 +120,41 @@ export default function ProgramPoster() {
         {lang === "zh" ? "EN" : "中文"}
       </button>
 
-      {/* ── Poster Container ────────────────────────────────────── */}
+      {/* ── Poster Container ──────────────────────────────────── */}
       <div style={styles.poster}>
-        {/* Decorative top border */}
-        <div style={styles.topBorder} />
-
-        {/* ── Header ─────────────────────────────────────────── */}
+        {/* ── Header with emblem ──────────────────────────────── */}
         <div style={styles.header}>
-          {/* Decorative curtain/lantern elements */}
-          <div style={styles.curtainLeft} />
-          <div style={styles.curtainRight} />
+          {/* Decorative clouds */}
+          <img
+            src={POSTER.cloudLarge}
+            alt=""
+            style={styles.cloudTopLeft}
+          />
+          <img
+            src={POSTER.cloudSmall}
+            alt=""
+            style={styles.cloudTopRight}
+          />
 
-          {/* Subtitle */}
-          {getText(program.subtitleZh, program.subtitleEn, program.subtitle) && (
-            <p style={styles.headerSubtitle}>
-              {getText(program.subtitleZh, program.subtitleEn, program.subtitle)}
-            </p>
-          )}
-
-          {/* Main Title */}
-          <h1 style={styles.headerTitle}>
-            {getText(program.titleZh, program.titleEn, program.title)}
-          </h1>
-
-          {/* Year Badge */}
-          {program.eventDate && (
-            <div style={styles.yearBadge}>
-              {new Date(program.eventDate).getFullYear()}
-            </div>
-          )}
+          {/* Main emblem */}
+          <img
+            src={POSTER.headerEmblem}
+            alt={getText(program.titleZh, program.titleEn, program.title)}
+            style={styles.headerEmblem}
+          />
         </div>
 
-        {/* ── Program Title Banner ───────────────────────────── */}
-        <div style={styles.programTitleBanner}>
-          <div style={styles.programTitleInner}>
-            {t.title}
+        {/* ── 节目单 Title Banner ─────────────────────────────── */}
+        <div style={styles.programTitleWrap}>
+          <img src={POSTER.bannerTop} alt="" style={styles.bannerDivider} />
+          <div style={styles.programTitleBanner}>
+            <img src={POSTER.goldBar} alt="" style={styles.goldBarBg} />
+            <span style={styles.programTitleText}>{t.title}</span>
           </div>
+          <img src={POSTER.bannerBottom} alt="" style={styles.bannerDivider} />
         </div>
 
-        {/* ── Sections ───────────────────────────────────────── */}
+        {/* ── Sections ────────────────────────────────────────── */}
         <div style={styles.sectionsContainer}>
           {sections.map((section, sIdx) => (
             <PosterSection
@@ -160,20 +168,24 @@ export default function ProgramPoster() {
           ))}
         </div>
 
-        {/* ── Footer ─────────────────────────────────────────── */}
+        {/* ── Footer ──────────────────────────────────────────── */}
         <div style={styles.footer}>
-          <p style={styles.footerText}>{t.footer}</p>
-          <p style={styles.footerDisclaimer}>{t.programSubject}</p>
+          {/* Decorative fireworks */}
+          <img src={POSTER.firework} alt="" style={styles.fireworkLeft} />
+          <img src={POSTER.firework} alt="" style={styles.fireworkRight} />
+
+          <p style={styles.footerTextZh}>{LANG.zh.footer}</p>
+          <p style={styles.footerTextEn}>{LANG.zh.footerEn}</p>
         </div>
 
-        {/* Decorative bottom border */}
-        <div style={styles.bottomBorder} />
+        {/* ── Bottom wave decoration ──────────────────────────── */}
+        <img src={POSTER.waveBottom} alt="" style={styles.waveBottom} />
       </div>
     </div>
   );
 }
 
-// ── Section Component ──────────────────────────────────────────────────
+// ── Section Component ─────────────────────────────────────────────────
 function PosterSection({ section, sectionIndex, lang, getText, getBilingual }) {
   const items = (section.items || []).filter((i) => i.isActive !== false);
   const sectionTitle = getBilingual(section.titleZh, section.titleEn, section.title);
@@ -182,14 +194,16 @@ function PosterSection({ section, sectionIndex, lang, getText, getBilingual }) {
     <div style={styles.section}>
       {/* Section Banner */}
       <div style={styles.sectionBanner}>
-        <div style={styles.sectionBannerDecorLeft}>◆</div>
+        <div style={styles.sectionBannerLine} />
         <div style={styles.sectionBannerContent}>
-          <span style={styles.sectionBannerTitle}>{sectionTitle.zh}</span>
-          {sectionTitle.en && (
-            <span style={styles.sectionBannerSubtitle}>{sectionTitle.en}</span>
-          )}
+          <span style={styles.sectionBannerTitle}>
+            {sectionTitle.zh}
+            {sectionTitle.en && (
+              <span style={styles.sectionBannerEn}> · {sectionTitle.en}</span>
+            )}
+          </span>
         </div>
-        <div style={styles.sectionBannerDecorRight}>◆</div>
+        <div style={styles.sectionBannerLine} />
       </div>
 
       {/* Section Description */}
@@ -219,17 +233,20 @@ function PosterSection({ section, sectionIndex, lang, getText, getBilingual }) {
   );
 }
 
-// ── Item Component ─────────────────────────────────────────────────────
+// ── Item Component ────────────────────────────────────────────────────
 function PosterItem({ item, itemIndex, lang, getText, getBilingual }) {
   const displayStyle = item.displayStyle || "default";
   const isCredits = displayStyle === "credits";
   const isFeature = displayStyle === "feature";
   const itemTitle = getBilingual(item.titleZh, item.titleEn, item.title);
-  const perfType = getBilingual(item.performanceTypeZh, item.performanceTypeEn, item.performanceType);
+  const perfType = getBilingual(
+    item.performanceTypeZh,
+    item.performanceTypeEn,
+    item.performanceType
+  );
 
   const allPerformers = item.performers || [];
 
-  // Helper to get performer name
   const getPerformerName = (p) => {
     if (!p) return "";
     const zh = p.chineseName || p.name || "";
@@ -238,7 +255,6 @@ function PosterItem({ item, itemIndex, lang, getText, getBilingual }) {
     return zh || en;
   };
 
-  // Performer display from linked list or raw fields
   const getPerformerDisplay = () => {
     if (allPerformers.length > 0) {
       return allPerformers.map((p) => getPerformerName(p)).join("、");
@@ -252,21 +268,21 @@ function PosterItem({ item, itemIndex, lang, getText, getBilingual }) {
   const performerDisplay = getPerformerDisplay();
   const itemDesc = getText(item.descriptionZh, item.descriptionEn, item.description);
   const showNumber = !isCredits && !isFeature && (item.itemNumber ?? itemIndex + 1) > 0;
-  const itemNumber = item.itemNumber ?? (itemIndex + 1);
+  const itemNumber = item.itemNumber ?? itemIndex + 1;
 
-  // ── Credits style (e.g., "Musical Director: John Smith") ──
+  // ── Credits style ──
   if (isCredits) {
     return (
       <div style={styles.creditsItem}>
-        <span style={styles.creditsTitle}>{itemTitle.zh || itemTitle.en}</span>
+        <span style={styles.creditsLabel}>{itemTitle.zh || itemTitle.en}</span>
         {performerDisplay && (
-          <span style={styles.creditsPerformer}>{performerDisplay}</span>
+          <span style={styles.creditsNames}>{performerDisplay}</span>
         )}
       </div>
     );
   }
 
-  // ── Feature style (highlighted item) ──
+  // ── Feature style ──
   if (isFeature) {
     return (
       <div style={styles.featureItem}>
@@ -284,24 +300,22 @@ function PosterItem({ item, itemIndex, lang, getText, getBilingual }) {
   // ── Default style ──
   return (
     <div style={styles.item}>
-      {/* Emoji bullet / number */}
+      {/* Bullet / Emoji */}
       <div style={styles.itemBullet}>
-        {showNumber ? `${itemNumber}.` : "●"}
+        {showNumber ? "●" : ""}
       </div>
 
       {/* Content */}
       <div style={styles.itemContent}>
-        {/* Title row: Chinese name + performance type */}
+        {/* Chinese title + type */}
         <div style={styles.itemTitleRow}>
           <span style={styles.itemTitleZh}>
             {itemTitle.zh ? `《${itemTitle.zh}》` : itemTitle.en}
           </span>
-          {perfType.zh && (
-            <span style={styles.itemPerfType}>{perfType.zh}</span>
-          )}
+          {perfType.zh && <span style={styles.itemPerfType}>{perfType.zh}</span>}
         </div>
 
-        {/* English title + English performance type */}
+        {/* English title + type */}
         {(itemTitle.en || perfType.en) && (
           <div style={styles.itemEnglishRow}>
             {itemTitle.en && (
@@ -309,21 +323,17 @@ function PosterItem({ item, itemIndex, lang, getText, getBilingual }) {
                 <em>{itemTitle.en}</em>
               </span>
             )}
-            {perfType.en && (
-              <span style={styles.itemPerfTypeEn}>{perfType.en}</span>
-            )}
+            {perfType.en && <span style={styles.itemPerfTypeEn}>{perfType.en}</span>}
           </div>
         )}
 
-        {/* Performer / group info */}
+        {/* Performers */}
         {performerDisplay && (
-          <div style={styles.itemPerformer}>
-            {performerDisplay}
-          </div>
+          <div style={styles.itemPerformer}>{performerDisplay}</div>
         )}
 
-        {/* Extra description */}
-        {itemDesc && !isFeature && (
+        {/* Description */}
+        {itemDesc && (
           <div
             style={styles.itemDescription}
             dangerouslySetInnerHTML={{ __html: itemDesc }}
@@ -335,17 +345,18 @@ function PosterItem({ item, itemIndex, lang, getText, getBilingual }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// STYLES — inline CSS to match the printed poster aesthetic
+// STYLES
 // ═══════════════════════════════════════════════════════════════════════
 const styles = {
   // ── Page ──
   page: {
     minHeight: "100vh",
-    background: "linear-gradient(180deg, #1a0000 0%, #2d0a0a 100%)",
+    background: "#1a0000",
     display: "flex",
     justifyContent: "center",
-    padding: "20px 10px",
-    fontFamily: "'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', serif",
+    padding: "0",
+    fontFamily:
+      "'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', 'Georgia', serif",
   },
 
   loadingContainer: {
@@ -358,18 +369,18 @@ const styles = {
 
   langButton: {
     position: "fixed",
-    top: 16,
-    right: 16,
+    top: 12,
+    right: 12,
     zIndex: 50,
     display: "flex",
     alignItems: "center",
     gap: 6,
     background: "rgba(0,0,0,0.6)",
-    color: "#facc15",
-    border: "1px solid rgba(250,204,21,0.3)",
+    color: "#ffd700",
+    border: "1px solid rgba(255,215,0,0.3)",
     borderRadius: 20,
-    padding: "8px 16px",
-    fontSize: 13,
+    padding: "6px 14px",
+    fontSize: 12,
     cursor: "pointer",
     backdropFilter: "blur(8px)",
   },
@@ -377,183 +388,165 @@ const styles = {
   // ── Poster ──
   poster: {
     width: "100%",
-    maxWidth: 680,
-    background: "linear-gradient(180deg, #8b1a1a 0%, #a01c1c 3%, #b22222 8%, #a01c1c 15%, #8b0000 50%, #7a0000 85%, #6b0000 100%)",
-    borderRadius: 12,
-    overflow: "hidden",
-    boxShadow: "0 0 60px rgba(139,0,0,0.6), 0 0 120px rgba(0,0,0,0.8)",
+    maxWidth: 640,
+    background: "linear-gradient(180deg, #b22222 0%, #a01c1c 10%, #8b0000 30%, #7a0000 60%, #6b0000 80%, #5c0000 100%)",
     position: "relative",
-  },
-
-  topBorder: {
-    height: 6,
-    background: "linear-gradient(90deg, #b8860b, #ffd700, #daa520, #ffd700, #b8860b)",
-  },
-
-  bottomBorder: {
-    height: 6,
-    background: "linear-gradient(90deg, #b8860b, #ffd700, #daa520, #ffd700, #b8860b)",
+    overflow: "hidden",
   },
 
   // ── Header ──
   header: {
     position: "relative",
     textAlign: "center",
-    padding: "40px 30px 24px",
-    background: "linear-gradient(180deg, rgba(139,26,26,0.9) 0%, transparent 100%)",
-    overflow: "hidden",
+    padding: "30px 20px 10px",
+    minHeight: 280,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
-  curtainLeft: {
+  headerEmblem: {
+    width: "85%",
+    maxWidth: 440,
+    height: "auto",
+    position: "relative",
+    zIndex: 2,
+    filter: "drop-shadow(0 4px 20px rgba(0,0,0,0.4))",
+  },
+
+  cloudTopLeft: {
+    position: "absolute",
+    top: 12,
+    left: -10,
+    width: 120,
+    opacity: 0.15,
+    transform: "scaleX(-1)",
+    zIndex: 1,
+  },
+
+  cloudTopRight: {
+    position: "absolute",
+    top: 60,
+    right: -5,
+    width: 90,
+    opacity: 0.12,
+    zIndex: 1,
+  },
+
+  // ── Program Title ──
+  programTitleWrap: {
+    textAlign: "center",
+    padding: "8px 40px 4px",
+  },
+
+  bannerDivider: {
+    width: "70%",
+    maxWidth: 300,
+    height: "auto",
+    display: "block",
+    margin: "0 auto",
+  },
+
+  programTitleBanner: {
+    position: "relative",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "6px 0",
+    minWidth: 200,
+  },
+
+  goldBarBg: {
+    width: "100%",
+    height: "100%",
     position: "absolute",
     top: 0,
     left: 0,
-    width: 60,
-    height: "100%",
-    background: "linear-gradient(90deg, rgba(100,0,0,0.8), transparent)",
-    pointerEvents: "none",
+    borderRadius: 4,
+    objectFit: "fill",
   },
 
-  curtainRight: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    width: 60,
-    height: "100%",
-    background: "linear-gradient(-90deg, rgba(100,0,0,0.8), transparent)",
-    pointerEvents: "none",
-  },
-
-  headerSubtitle: {
-    color: "#ffd700",
-    fontSize: 16,
-    marginBottom: 8,
-    letterSpacing: 2,
-    textShadow: "0 2px 4px rgba(0,0,0,0.5)",
-  },
-
-  headerTitle: {
-    color: "#ffd700",
-    fontSize: 36,
-    fontWeight: 700,
-    margin: "0 0 12px",
-    letterSpacing: 4,
-    textShadow: "0 2px 8px rgba(0,0,0,0.6), 0 0 20px rgba(255,215,0,0.3)",
-    lineHeight: 1.3,
-  },
-
-  yearBadge: {
-    display: "inline-block",
-    color: "#ffd700",
-    fontSize: 28,
-    fontWeight: 700,
-    fontStyle: "italic",
-    textShadow: "0 2px 4px rgba(0,0,0,0.5)",
-    marginTop: 4,
-  },
-
-  // ── Program Title Banner ──
-  programTitleBanner: {
-    display: "flex",
-    justifyContent: "center",
-    padding: "16px 30px",
-  },
-
-  programTitleInner: {
-    background: "linear-gradient(180deg, #ffd700, #daa520)",
+  programTitleText: {
+    position: "relative",
+    zIndex: 2,
     color: "#5c1010",
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 700,
-    letterSpacing: 6,
+    letterSpacing: 8,
     padding: "10px 40px",
-    borderRadius: 6,
-    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-    border: "2px solid #b8860b",
   },
 
   // ── Sections Container ──
   sectionsContainer: {
-    padding: "8px 20px 20px",
+    padding: "12px 24px 16px",
   },
 
   // ── Section ──
   section: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
 
   sectionBanner: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
     gap: 12,
-    margin: "0 0 12px",
-    padding: "10px 0",
-    borderTop: "1px solid rgba(255,215,0,0.3)",
-    borderBottom: "1px solid rgba(255,215,0,0.3)",
+    margin: "0 0 10px",
+    padding: "8px 0",
   },
 
-  sectionBannerDecorLeft: {
-    color: "#ffd700",
-    fontSize: 10,
-    opacity: 0.6,
-  },
-
-  sectionBannerDecorRight: {
-    color: "#ffd700",
-    fontSize: 10,
-    opacity: 0.6,
+  sectionBannerLine: {
+    flex: 1,
+    height: 1,
+    background: "linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent)",
   },
 
   sectionBannerContent: {
     textAlign: "center",
+    flexShrink: 0,
   },
 
   sectionBannerTitle: {
-    display: "block",
     color: "#ffd700",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 700,
     letterSpacing: 2,
-    textShadow: "0 1px 3px rgba(0,0,0,0.4)",
+    textShadow: "0 1px 3px rgba(0,0,0,0.5)",
   },
 
-  sectionBannerSubtitle: {
-    display: "block",
-    color: "rgba(255,215,0,0.7)",
+  sectionBannerEn: {
+    color: "rgba(255,215,0,0.6)",
     fontSize: 12,
-    marginTop: 2,
+    fontWeight: 400,
     letterSpacing: 1,
   },
 
   sectionDescription: {
-    color: "rgba(255,215,0,0.6)",
-    fontSize: 13,
+    color: "rgba(255,215,0,0.5)",
+    fontSize: 12,
     textAlign: "center",
-    marginBottom: 12,
+    marginBottom: 10,
     lineHeight: 1.6,
   },
 
-  // ── Items List ──
+  // ── Items ──
   itemsList: {
-    padding: "0 8px",
+    padding: "0 4px",
   },
 
-  // ── Default Item ──
   item: {
     display: "flex",
-    gap: 10,
-    marginBottom: 14,
+    gap: 8,
+    marginBottom: 12,
     alignItems: "flex-start",
   },
 
   itemBullet: {
     color: "#ffd700",
-    fontSize: 13,
-    fontWeight: 700,
-    minWidth: 24,
+    fontSize: 8,
+    minWidth: 16,
     textAlign: "right",
-    paddingTop: 2,
-    opacity: 0.8,
+    paddingTop: 6,
+    opacity: 0.7,
   },
 
   itemContent: {
@@ -565,13 +558,14 @@ const styles = {
     display: "flex",
     flexWrap: "wrap",
     alignItems: "baseline",
-    gap: 8,
+    gap: 6,
   },
 
   itemTitleZh: {
     color: "#fff",
     fontSize: 15,
     fontWeight: 600,
+    lineHeight: 1.4,
   },
 
   itemPerfType: {
@@ -583,31 +577,32 @@ const styles = {
     display: "flex",
     flexWrap: "wrap",
     alignItems: "baseline",
-    gap: 8,
+    gap: 6,
     marginTop: 1,
   },
 
   itemTitleEn: {
-    color: "rgba(255,255,255,0.7)",
+    color: "rgba(255,255,255,0.6)",
     fontSize: 12,
+    lineHeight: 1.4,
   },
 
   itemPerfTypeEn: {
-    color: "rgba(255,215,0,0.5)",
+    color: "rgba(255,215,0,0.45)",
     fontSize: 11,
   },
 
   itemPerformer: {
-    color: "rgba(255,215,0,0.65)",
+    color: "rgba(255,215,0,0.55)",
     fontSize: 12,
-    marginTop: 3,
+    marginTop: 2,
     lineHeight: 1.5,
   },
 
   itemDescription: {
-    color: "rgba(255,255,255,0.5)",
+    color: "rgba(255,255,255,0.45)",
     fontSize: 11,
-    marginTop: 4,
+    marginTop: 3,
     lineHeight: 1.5,
   },
 
@@ -618,69 +613,97 @@ const styles = {
     justifyContent: "center",
     alignItems: "baseline",
     gap: 8,
-    marginBottom: 6,
+    marginBottom: 5,
     textAlign: "center",
   },
 
-  creditsTitle: {
+  creditsLabel: {
     color: "#fff",
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 600,
   },
 
-  creditsPerformer: {
-    color: "rgba(255,215,0,0.7)",
-    fontSize: 13,
+  creditsNames: {
+    color: "rgba(255,215,0,0.65)",
+    fontSize: 12,
   },
 
   // ── Feature Item ──
   featureItem: {
     textAlign: "center",
-    marginBottom: 14,
-    padding: "12px 16px",
-    background: "rgba(255,215,0,0.08)",
-    borderRadius: 8,
-    border: "1px solid rgba(255,215,0,0.15)",
+    marginBottom: 12,
+    padding: "10px 16px",
+    background: "rgba(255,215,0,0.06)",
+    borderRadius: 6,
+    border: "1px solid rgba(255,215,0,0.12)",
   },
 
   featureTitle: {
     color: "#ffd700",
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 700,
     letterSpacing: 2,
     textShadow: "0 1px 4px rgba(0,0,0,0.4)",
   },
 
   featureSubtitle: {
-    color: "rgba(255,215,0,0.7)",
-    fontSize: 13,
-    marginTop: 4,
+    color: "rgba(255,215,0,0.6)",
+    fontSize: 12,
+    marginTop: 3,
   },
 
   featurePerformer: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 13,
-    marginTop: 6,
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 12,
+    marginTop: 5,
   },
 
   // ── Footer ──
   footer: {
+    position: "relative",
     textAlign: "center",
-    padding: "24px 30px",
-    borderTop: "1px solid rgba(255,215,0,0.2)",
+    padding: "20px 30px 16px",
+    borderTop: "1px solid rgba(255,215,0,0.15)",
   },
 
-  footerText: {
-    color: "rgba(255,215,0,0.6)",
+  fireworkLeft: {
+    position: "absolute",
+    top: -20,
+    left: 20,
+    width: 50,
+    opacity: 0.1,
+  },
+
+  fireworkRight: {
+    position: "absolute",
+    top: -20,
+    right: 20,
+    width: 50,
+    opacity: 0.1,
+  },
+
+  footerTextZh: {
+    color: "rgba(255,215,0,0.5)",
     fontSize: 12,
     lineHeight: 1.8,
-    maxWidth: 500,
-    margin: "0 auto 8px",
+    maxWidth: 480,
+    margin: "0 auto 6px",
   },
 
-  footerDisclaimer: {
+  footerTextEn: {
     color: "rgba(255,215,0,0.35)",
     fontSize: 11,
+    lineHeight: 1.7,
+    maxWidth: 480,
+    margin: "0 auto",
     fontStyle: "italic",
+  },
+
+  // ── Wave Bottom ──
+  waveBottom: {
+    width: "100%",
+    height: "auto",
+    display: "block",
+    marginTop: 8,
   },
 };
