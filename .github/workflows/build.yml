@@ -1,10 +1,14 @@
-name: Deploy
+name: Build
 
 on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
-  group: deploy-production
+  group: build-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -57,38 +61,3 @@ jobs:
           name: frontend
           path: frontend/casec-frontend/dist/
           retention-days: 3
-
-      - name: Upload deploy script
-        uses: actions/upload-artifact@v4
-        with:
-          name: deploy-script
-          path: Deployment/deploy-iis.ps1
-          retention-days: 3
-
-  deploy:
-    name: Deploy to IIS
-    needs: build
-    runs-on: [self-hosted, windows, iis]
-    steps:
-      - name: Download backend artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: backend
-          path: artifacts/backend
-
-      - name: Download frontend artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend
-          path: artifacts/frontend
-
-      - name: Download deploy script
-        uses: actions/download-artifact@v4
-        with:
-          name: deploy-script
-          path: artifacts/scripts
-
-      - name: Deploy to IIS
-        shell: powershell
-        run: |
-          & artifacts\scripts\deploy-iis.ps1 -SiteName "Asso_CASEC" -AppPoolName "Asso_CASEC" -FrontendArtifact "artifacts\frontend" -BackendArtifact "artifacts\backend"
