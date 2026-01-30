@@ -1,4 +1,3 @@
-#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Deploy CASEC project to IIS (frontend + backend virtual app).
