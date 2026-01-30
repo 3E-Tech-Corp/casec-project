@@ -1,0 +1,150 @@
+name: Build & Deploy to IIS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # Manual trigger from GitHub UI
+
+# Cancel any in-progress deployments when a new push arrives
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+jobs:
+  # ══════════════════════════════════════════════════════════════════════
+  # JOB 1: Build (runs on GitHub-hosted Ubuntu runner — free for public repos)
+  # ══════════════════════════════════════════════════════════════════════
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── Backend (.NET 8) ──────────────────────────────────────────
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore backend
+        run: dotnet restore backend/CasecApi/CasecApi.csproj
+
+      - name: Build backend
+        run: dotnet build backend/CasecApi/CasecApi.csproj --configuration Release --no-restore
+
+      - name: Publish backend
+        run: dotnet publish backend/CasecApi/CasecApi.csproj --configuration Release --output ./publish/backend --no-build
+
+      # ── Frontend (React + Vite) ───────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/casec-frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend/casec-frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend/casec-frontend
+
+      # ── Upload artifacts ──────────────────────────────────────────
+      - name: Upload backend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend
+          path: publish/backend/
+          retention-days: 3
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend
+          path: frontend/casec-frontend/dist/
+          retention-days: 3
+
+      - name: Upload deploy script
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-script
+          path: Deployment/deploy-iis.ps1
+          retention-days: 3
+
+  # ══════════════════════════════════════════════════════════════════════
+  # JOB 2: Deploy (runs on self-hosted IIS server)
+  # ══════════════════════════════════════════════════════════════════════
+  deploy:
+    name: Deploy to IIS
+    needs: build
+    runs-on: [self-hosted, windows, iis]
+
+    steps:
+      - name: Download backend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend
+          path: artifacts/backend
+
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend
+          path: artifacts/frontend
+
+      - name: Download deploy script
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-script
+          path: artifacts/scripts
+
+      - name: Deploy to IIS
+        shell: powershell
+        run: |
+          & artifacts\scripts\deploy-iis.ps1 `
+            -SiteName "Asso_CASEC" `
+            -AppPoolName "Asso_CASEC" `
+            -FrontendArtifact "artifacts\frontend" `
+            -BackendArtifact "artifacts\backend"
+
+  # ══════════════════════════════════════════════════════════════════════
+  # JOB 3: Notify (Telegram)
+  # ══════════════════════════════════════════════════════════════════════
+  notify:
+    name: Notify
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Send Telegram notification
+        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            EMOJI="✅"
+            STATUS="SUCCESS"
+          else
+            EMOJI="❌"
+            STATUS="FAILED"
+          fi
+
+          MESSAGE="${EMOJI} *CASEC Deploy ${STATUS}*
+          
+          📦 Repo: \`casec-project\`
+          🔀 Branch: \`${{ github.ref_name }}\`
+          👤 By: ${{ github.actor }}
+          💬 _${{ github.event.head_commit.message }}_
+          
+          [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            -d parse_mode="Markdown" \
+            -d text="${MESSAGE}"
