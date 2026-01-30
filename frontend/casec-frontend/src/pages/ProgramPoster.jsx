@@ -13,14 +13,14 @@ import { eventProgramsAPI, getAssetUrl } from "../services/api";
 
 // ── Poster image assets (public folder) ──────────────────────────────
 const POSTER = {
-  headerEmblem: "/assets/poster/header-emblem.jpg",
-  bannerTop: "/assets/poster/banner-top.jpg",
-  bannerBottom: "/assets/poster/banner-bottom.jpg",
-  goldBar: "/assets/poster/gold-bar.jpg",
-  cloudLarge: "/assets/poster/cloud-large.jpg",
-  cloudSmall: "/assets/poster/cloud-small.jpg",
-  firework: "/assets/poster/firework.jpg",
-  waveBottom: "/assets/poster/wave-bottom.jpg",
+  headerEmblem: "/assets/poster/header-emblem.png",
+  bannerTop: "/assets/poster/banner-top.png",
+  bannerBottom: "/assets/poster/banner-bottom.png",
+  goldBar: "/assets/poster/gold-bar.png",
+  cloudLarge: "/assets/poster/cloud-large.png",
+  cloudSmall: "/assets/poster/cloud-small.png",
+  firework: "/assets/poster/firework.png",
+  waveBottom: "/assets/poster/wave-bottom.png",
 };
 
 // ── Language config ──────────────────────────────────────────────────
