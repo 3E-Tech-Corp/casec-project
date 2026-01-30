@@ -92,6 +92,9 @@ public class CasecDbContext : DbContext
     // Migration tracking
     public DbSet<MigrationHistory> MigrationHistory { get; set; }
 
+    // Deployment history
+    public DbSet<Deployment> Deployments { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
