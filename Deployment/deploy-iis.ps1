@@ -120,21 +120,15 @@ if (-not $SkipBackup) {
     }
 }
 
-# -- Stop app pool using appcmd --
+# -- Stop app pool --
 Write-Host "`n[DEPLOY] Stopping app pool: $AppPoolName" -ForegroundColor Yellow
 $appcmd = "$env:SystemRoot\System32\inetsrv\appcmd.exe"
 
-try {
-    $poolState = & $appcmd list apppool $AppPoolName /text:state 2>$null
-    if ($poolState -eq "Started") {
-        & $appcmd stop apppool $AppPoolName
-        Start-Sleep -Seconds 3
-    }
-    Write-Host "[DEPLOY] App pool stopped" -ForegroundColor Green
-} catch {
-    Write-Host "[WARN] Could not stop app pool: $($_.Exception.Message)" -ForegroundColor Yellow
-    Write-Host "[WARN] Continuing with deployment..." -ForegroundColor Yellow
-}
+$ErrorActionPreference = "Continue"
+& $appcmd stop apppool $AppPoolName 2>&1 | ForEach-Object { Write-Host "  $_" }
+Start-Sleep -Seconds 3
+Write-Host "[DEPLOY] App pool stop requested" -ForegroundColor Green
+$ErrorActionPreference = "Stop"
 
 # -- Deploy frontend --
 Write-Host "`n[DEPLOY] Copying frontend..." -ForegroundColor Yellow
@@ -157,15 +151,13 @@ Get-ChildItem $backendPath -Exclude $preserveFiles | Remove-Item -Recurse -Force
 Copy-Item -Path "$BackendArtifact\*" -Destination $backendPath -Recurse -Force
 Write-Host "[DEPLOY] Backend deployed" -ForegroundColor Green
 
-# -- Start app pool using appcmd --
+# -- Start app pool --
 Write-Host "`n[DEPLOY] Starting app pool: $AppPoolName" -ForegroundColor Yellow
-try {
-    & $appcmd start apppool $AppPoolName
-    Start-Sleep -Seconds 2
-    Write-Host "[DEPLOY] App pool started" -ForegroundColor Green
-} catch {
-    Write-Host "[WARN] Could not start app pool: $($_.Exception.Message)" -ForegroundColor Yellow
-}
+$ErrorActionPreference = "Continue"
+& $appcmd start apppool $AppPoolName 2>&1 | ForEach-Object { Write-Host "  $_" }
+Start-Sleep -Seconds 2
+Write-Host "[DEPLOY] App pool start requested" -ForegroundColor Green
+$ErrorActionPreference = "Stop"
 
 # -- Health check --
 if ($HealthCheckUrl) {
