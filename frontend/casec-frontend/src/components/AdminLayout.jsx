@@ -34,6 +34,8 @@ export default function AdminLayout() {
     { path: '/admin/slideshows', label: 'SlideShows', icon: Image, areaKey: 'slideshows' },
     { path: '/admin/theme', label: 'Theme Settings', icon: Palette, areaKey: 'theme' },
     { type: 'divider', label: 'System', category: 'system' },
+    { path: '/admin/assets', label: 'Asset Manager', icon: Image, areaKey: 'assets' },
+    { path: '/admin/asset-file-types', label: 'File Types', icon: FileText, areaKey: 'assets' },
     { path: '/admin/roles', label: 'Role Management', icon: Shield, areaKey: 'roles' },
   ];
 

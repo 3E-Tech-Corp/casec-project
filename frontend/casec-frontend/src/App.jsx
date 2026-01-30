@@ -38,6 +38,8 @@ import AdminEventPrograms from './pages/admin/EventPrograms';
 import AdminContentCards from './pages/admin/ContentCards';
 import AdminPerformers from './pages/admin/Performers';
 import AdminRoles from './pages/admin/Roles';
+import AdminAssetManager from './pages/admin/AssetManager';
+import AdminAssetFileTypes from './pages/admin/AssetFileTypes';
 import Membership from './pages/Membership';
 import Raffle from './pages/Raffle';
 import RaffleDrawing from './pages/RaffleDrawing';
@@ -142,6 +144,8 @@ function App() {
           <Route path="performers" element={<AdminPerformers />} />
           <Route path="content-cards" element={<AdminContentCards />} />
           <Route path="roles" element={<AdminRoles />} />
+          <Route path="assets" element={<AdminAssetManager />} />
+          <Route path="asset-file-types" element={<AdminAssetFileTypes />} />
           {/* Admin Routes */}
           <Route path="admin/users" element={
             <AdminRoute><AdminUsers /></AdminRoute>

@@ -541,4 +541,35 @@ export const chatAPI = {
   getAvailability: () => api.get("/chat/availability"),
 };
 
+// Asset Management APIs (admin)
+export const assetsAPI = {
+  // Browse / search
+  browse: (params) => api.get("/asset/browse", { params }),
+  getStats: () => api.get("/asset/stats"),
+  getInfo: (id) => api.get(`/asset/${id}/info`),
+
+  // Metadata updates
+  updateMeta: (id, data) => api.post(`/asset/${id}/update-meta`, data),
+
+  // Delete
+  delete: (id) => api.delete(`/asset/${id}`),
+  bulkDelete: (fileIds) => api.post("/asset/bulk-delete", fileIds),
+
+  // Migration tool
+  migratePreview: () => api.post("/asset/migrate/preview"),
+  migrate: () => api.post("/asset/migrate"),
+};
+
+// Asset File Types APIs (admin)
+export const assetFileTypesAPI = {
+  getAll: () => api.get("/assetfiletype"),
+  getEnabled: () => api.get("/assetfiletype/enabled"),
+  getById: (id) => api.get(`/assetfiletype/${id}`),
+  getByCategory: (category) => api.get(`/assetfiletype/category/${category}`),
+  create: (data) => api.post("/assetfiletype", data),
+  update: (id, data) => api.put(`/assetfiletype/${id}`, data),
+  delete: (id) => api.delete(`/assetfiletype/${id}`),
+  toggleEnabled: (id) => api.post(`/assetfiletype/${id}/toggle`),
+};
+
 export default api;

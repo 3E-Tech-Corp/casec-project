@@ -38,6 +38,12 @@ else
     builder.Services.AddSingleton<IFileStorageService, LocalFileStorageService>();
 }
 
+// Add in-memory cache (used by AssetFileTypeService)
+builder.Services.AddMemoryCache();
+
+// Add AssetFileType Service (DB-driven file type governance with caching)
+builder.Services.AddSingleton<IAssetFileTypeService, AssetFileTypeService>();
+
 // Add Asset Service (wraps file storage and saves to database)
 builder.Services.AddScoped<IAssetService, AssetService>();
 
