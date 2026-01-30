@@ -9,7 +9,7 @@ using System.Diagnostics;
 namespace CasecApi.Controllers;
 
 [ApiController]
-[Route("api/admin/migrations")]
+[Route("admin/migrations")]
 public class MigrationsController : ControllerBase
 {
     private readonly CasecDbContext _context;

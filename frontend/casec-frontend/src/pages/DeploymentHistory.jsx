@@ -11,7 +11,7 @@ export default function DeploymentHistory() {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get("/api/deployments?limit=50");
+      const response = await api.get("/deployments?limit=50");
       setDeployments(response.data.data || []);
     } catch (err) {
       setError("Failed to load deployment history");

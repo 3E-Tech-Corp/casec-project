@@ -7,7 +7,7 @@ using CasecApi.Models;
 namespace CasecApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class DeploymentsController : ControllerBase
 {
     private readonly CasecDbContext _context;
