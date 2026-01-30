@@ -22,4 +22,10 @@
     <PackageReference Include="AWSSDK.S3" Version="3.7.305.23" />
   </ItemGroup>
 
+  <!-- Include SQL migration scripts in publish output -->
+  <ItemGroup>
+    <Content Include="Database\**\*.sql" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Migrations\**\*.sql" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

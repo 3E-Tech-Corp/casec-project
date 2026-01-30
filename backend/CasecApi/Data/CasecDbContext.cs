@@ -89,6 +89,9 @@ public class CasecDbContext : DbContext
     public DbSet<RoleAreaPermission> RoleAreaPermissions { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
 
+    // Migration tracking
+    public DbSet<MigrationHistory> MigrationHistory { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
