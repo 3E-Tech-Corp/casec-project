@@ -186,3 +186,4 @@ jobs:
           } catch {
             Write-Host "[DEPLOY] Could not record: $($_.Exception.Message)"
           }
+          exit 0
