@@ -45,7 +45,6 @@ export default function CardRenderer({ card, lang = "zh" }) {
                 src={getAssetUrl(card.mediaUrl)}
                 className="w-full h-full object-cover"
                 autoPlay
-                muted
                 loop
                 playsInline
                 controls
@@ -87,7 +86,6 @@ export default function CardRenderer({ card, lang = "zh" }) {
                 src={getAssetUrl(card.mediaUrl)}
                 className={`w-full ${aspectClass ? "h-full object-cover" : ""}`}
                 autoPlay
-                muted
                 loop
                 playsInline
                 controls
@@ -139,7 +137,6 @@ export default function CardRenderer({ card, lang = "zh" }) {
               src={getAssetUrl(card.mediaUrl)}
               className={`w-full ${aspectClass ? "h-full object-cover" : ""}`}
               autoPlay
-              muted
               loop
               playsInline
               controls
