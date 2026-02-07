@@ -273,6 +273,81 @@ function MigrationTab() {
   );
 }
 
+// ---------- Preview Modal (Lightbox) ----------
+function PreviewModal({ asset, onClose, onEdit }) {
+  if (!asset) return null;
+
+  const isImage = asset.contentType?.startsWith("image/");
+  const isVideo = asset.contentType?.startsWith("video/");
+
+  return (
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+      onClick={onClose}
+    >
+      {/* Close button */}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 text-white/70 hover:text-white z-10"
+      >
+        <X className="w-8 h-8" />
+      </button>
+
+      {/* Asset info header */}
+      <div className="absolute top-4 left-4 text-white z-10">
+        <div className="text-lg font-semibold">#{asset.fileId} — {asset.originalFileName}</div>
+        <div className="text-sm text-white/70">{asset.contentType} · {formatBytes(asset.fileSize)}</div>
+      </div>
+
+      {/* Edit button */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onEdit?.(); }}
+        className="absolute bottom-4 right-4 flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg z-10"
+      >
+        <Settings className="w-4 h-4" />
+        Edit Details
+      </button>
+
+      {/* Content */}
+      <div 
+        className="max-w-[90vw] max-h-[85vh] flex items-center justify-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {isImage && (
+          <img
+            src={getAssetUrl(`/asset/${asset.fileId}`)}
+            alt={asset.originalFileName}
+            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+          />
+        )}
+        {isVideo && (
+          <video
+            src={getAssetUrl(`/asset/${asset.fileId}`)}
+            controls
+            autoPlay
+            className="max-w-full max-h-[85vh] rounded-lg shadow-2xl"
+          />
+        )}
+        {!isImage && !isVideo && (
+          <div className="bg-white rounded-lg p-8 text-center">
+            {getTypeIcon(asset.contentType)}
+            <p className="mt-4 text-gray-600">{asset.originalFileName}</p>
+            <a
+              href={getAssetUrl(`/asset/${asset.fileId}`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Download className="w-4 h-4" />
+              Download
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ---------- Detail Modal ----------
 function AssetDetailModal({ asset, onClose, onUpdate }) {
   const [caption, setCaption] = useState(asset?.caption || "");
@@ -420,9 +495,10 @@ export default function AssetManager() {
   const [searchQuery, setSearchQuery] = useState("");
   const [includeDeleted, setIncludeDeleted] = useState(false);
 
-  // Selection
+  // Selection & Modals
   const [selected, setSelected] = useState(new Set());
-  const [detailAsset, setDetailAsset] = useState(null);
+  const [previewAsset, setPreviewAsset] = useState(null);  // Lightbox preview
+  const [detailAsset, setDetailAsset] = useState(null);    // Edit modal
 
   const loadAssets = useCallback(async () => {
     setLoading(true);
@@ -666,6 +742,7 @@ export default function AssetManager() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {assets.map((asset) => {
                 const isImage = asset.contentType?.startsWith("image/");
+                const isVideo = asset.contentType?.startsWith("video/");
                 const isSelected = selected.has(asset.fileId);
                 return (
                   <div
@@ -690,8 +767,8 @@ export default function AssetManager() {
 
                     {/* Thumbnail */}
                     <div
-                      className="aspect-square bg-gray-100 flex items-center justify-center"
-                      onClick={() => setDetailAsset(asset)}
+                      className="aspect-square bg-gray-100 flex items-center justify-center relative"
+                      onClick={() => setPreviewAsset(asset)}
                     >
                       {isImage ? (
                         <img
@@ -700,6 +777,21 @@ export default function AssetManager() {
                           className="w-full h-full object-cover"
                           loading="lazy"
                         />
+                      ) : isVideo ? (
+                        <>
+                          <video
+                            src={getAssetUrl(`/asset/${asset.fileId}`)}
+                            className="w-full h-full object-cover"
+                            preload="metadata"
+                            muted
+                          />
+                          {/* Play icon overlay */}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
+                            <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                              <Play className="w-6 h-6 text-purple-600 ml-1" />
+                            </div>
+                          </div>
+                        </>
                       ) : (
                         <div className="flex flex-col items-center gap-1">
                           {getTypeIcon(asset.contentType)}
@@ -712,6 +804,7 @@ export default function AssetManager() {
 
                     {/* Info */}
                     <div className="p-1.5">
+                      <div className="text-xs font-medium text-blue-600">#{asset.fileId}</div>
                       <div className="text-xs truncate" title={asset.originalFileName}>
                         {asset.originalFileName}
                       </div>
@@ -774,19 +867,38 @@ export default function AssetManager() {
                             <img
                               src={getAssetUrl(`/asset/${asset.fileId}`)}
                               alt=""
-                              className="w-8 h-8 rounded object-cover"
+                              className="w-8 h-8 rounded object-cover cursor-pointer hover:opacity-80"
                               loading="lazy"
+                              onClick={() => setPreviewAsset(asset)}
                             />
+                          ) : asset.contentType?.startsWith("video/") ? (
+                            <div 
+                              className="relative w-8 h-8 rounded overflow-hidden cursor-pointer hover:opacity-80"
+                              onClick={() => setPreviewAsset(asset)}
+                            >
+                              <video
+                                src={getAssetUrl(`/asset/${asset.fileId}`)}
+                                className="w-8 h-8 object-cover"
+                                preload="metadata"
+                                muted
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                                <Play className="w-3 h-3 text-white" />
+                              </div>
+                            </div>
                           ) : (
                             getTypeIcon(asset.contentType)
                           )}
-                          <button
-                            onClick={() => setDetailAsset(asset)}
-                            className="text-blue-600 hover:underline truncate max-w-[200px]"
-                            title={asset.originalFileName}
-                          >
-                            {asset.originalFileName}
-                          </button>
+                          <div className="flex flex-col">
+                            <span className="text-xs text-blue-600 font-medium">#{asset.fileId}</span>
+                            <button
+                              onClick={() => setPreviewAsset(asset)}
+                              className="text-gray-900 hover:text-blue-600 hover:underline truncate max-w-[200px] text-left"
+                              title={asset.originalFileName}
+                            >
+                              {asset.originalFileName}
+                            </button>
+                          </div>
                         </div>
                       </td>
                       <td className="px-3 py-2 text-gray-500 text-xs">{asset.contentType}</td>
@@ -812,7 +924,7 @@ export default function AssetManager() {
                       <td className="px-3 py-2 text-right">
                         <div className="flex justify-end gap-1">
                           <button
-                            onClick={() => setDetailAsset(asset)}
+                            onClick={() => setPreviewAsset(asset)}
                             className="p-1 text-gray-400 hover:text-blue-600"
                             title="View details"
                           >
@@ -875,7 +987,19 @@ export default function AssetManager() {
       {/* Migration Tab */}
       {activeTab === "migration" && <MigrationTab />}
 
-      {/* Detail Modal */}
+      {/* Preview Modal (Lightbox) */}
+      {previewAsset && (
+        <PreviewModal
+          asset={previewAsset}
+          onClose={() => setPreviewAsset(null)}
+          onEdit={() => {
+            setDetailAsset(previewAsset);
+            setPreviewAsset(null);
+          }}
+        />
+      )}
+
+      {/* Detail/Edit Modal */}
       {detailAsset && (
         <AssetDetailModal
           asset={detailAsset}
