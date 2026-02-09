@@ -25,7 +25,7 @@ export default function LiveTranscriptionCapture() {
 
   // Connect to SignalR hub
   useEffect(() => {
-    const hubUrl = `${API_BASE_URL}/hubs/transcription`;
+    const hubUrl = `${API_BASE_URL}/api/hubs/transcription`;
     
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl)

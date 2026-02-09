@@ -44,7 +44,7 @@ export default function LiveTranscriptionDisplay() {
     setTranscriptions(initial);
 
     // Connect to SignalR hub
-    const hubUrl = `${API_BASE_URL}/hubs/transcription`;
+    const hubUrl = `${API_BASE_URL}/api/hubs/transcription`;
     
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl)
