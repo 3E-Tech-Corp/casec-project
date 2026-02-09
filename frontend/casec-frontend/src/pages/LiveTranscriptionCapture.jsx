@@ -100,8 +100,8 @@ export default function LiveTranscriptionCapture() {
       analyserRef.current.fftSize = 256;
       monitorAudioLevel();
 
-      // Connect to Deepgram
-      const deepgramUrl = `wss://api.deepgram.com/v1/listen?model=nova-2&language=multi&detect_language=true&punctuate=true&interim_results=true`;
+      // Connect to Deepgram - use English as base with language detection
+      const deepgramUrl = `wss://api.deepgram.com/v1/listen?model=nova-2&language=en&detect_language=true&punctuate=true&interim_results=true&smart_format=true`;
       
       const socket = new WebSocket(deepgramUrl, ["token", DEEPGRAM_API_KEY]);
       deepgramSocketRef.current = socket;
