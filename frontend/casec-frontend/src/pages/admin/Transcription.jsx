@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Save, Monitor, Clock, Type, Rows3, Eye, EyeOff } from 'lucide-react';
-import { api } from '../../services/api';
+import { Save, Monitor, Clock, Type, Rows3 } from 'lucide-react';
+import { API_BASE_URL } from '../../services/api';
 
 const DEFAULT_SETTINGS = {
   duration: 8000,
@@ -36,9 +36,14 @@ export default function AdminTranscription() {
 
   const loadSettings = async () => {
     try {
-      const res = await api.get('/api/settings/transcription');
-      if (res.data) {
-        setSettings({ ...DEFAULT_SETTINGS, ...res.data });
+      const baseUrl = API_BASE_URL || '';
+      const url = baseUrl.includes('/api') 
+        ? `${baseUrl}/settings/transcription`
+        : `${baseUrl}/api/settings/transcription`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setSettings({ ...DEFAULT_SETTINGS, ...data });
       }
     } catch (err) {
       console.log('No saved settings, using defaults');
@@ -49,8 +54,24 @@ export default function AdminTranscription() {
     setSaving(true);
     setMessage(null);
     try {
-      await api.post('/api/settings/transcription', settings);
-      setMessage({ type: 'success', text: 'Settings saved!' });
+      const baseUrl = API_BASE_URL || '';
+      const url = baseUrl.includes('/api') 
+        ? `${baseUrl}/settings/transcription`
+        : `${baseUrl}/api/settings/transcription`;
+      const token = localStorage.getItem('token');
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(settings),
+      });
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Settings saved!' });
+      } else {
+        throw new Error('Save failed');
+      }
     } catch (err) {
       setMessage({ type: 'error', text: 'Failed to save settings' });
     }
