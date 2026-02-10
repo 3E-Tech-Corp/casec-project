@@ -215,9 +215,9 @@ function Seat({ seatId, visibleNumber, isHighlighted, isWinner, isExcluded, isVI
         ${isHighlighted ? 'scale-150 shadow-lg shadow-yellow-400/50 z-10' : ''}
         ${isWinner ? 'scale-175 shadow-xl shadow-green-400/70 animate-pulse z-20' : ''}
         hover:scale-125 hover:bg-indigo-500 hover:text-white hover:z-10`}
-      title={`Seat ${visibleNumber}${attendeeName ? `: ${attendeeName}` : ''}`}
+      title={isNotAvailable ? 'Not Available' : `Seat ${visibleNumber}${attendeeName ? `: ${attendeeName}` : ''}`}
     >
-      {visibleNumber}
+      {!isNotAvailable && visibleNumber}
     </div>
   );
 }
