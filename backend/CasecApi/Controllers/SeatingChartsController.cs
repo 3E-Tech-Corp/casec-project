@@ -498,7 +498,8 @@ public class SeatingChartsController : ControllerBase
     {
         try
         {
-            var seats = await _context.SeatingSeats.Where(s => s.ChartId == chartId && request.SeatIds.Contains(s.SeatId)).ToListAsync();
+            var seatIds = request.SeatIds ?? Array.Empty<int>();
+            var seats = await _context.SeatingSeats.Where(s => s.ChartId == chartId && seatIds.Contains(s.SeatId)).ToListAsync();
 
             foreach (var seat in seats)
             {

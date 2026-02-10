@@ -2320,7 +2320,7 @@ public class UpdateSeatingSeatRequest
 
 public class BulkUpdateSeatsRequest
 {
-    public List<int> SeatIds { get; set; } = new();
+    public int[] SeatIds { get; set; } = Array.Empty<int>();
     public string? Status { get; set; }
     public bool? IsVIP { get; set; }
 }
