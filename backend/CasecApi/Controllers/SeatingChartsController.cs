@@ -501,11 +501,13 @@ public class SeatingChartsController : ControllerBase
             if (request == null)
                 return BadRequest(new ApiResponse<int> { Success = false, Message = "Request body is null" });
             
-            var seatIdList = (request.SeatIds ?? Array.Empty<int>()).ToList();
+            var seatIdSet = new HashSet<int>(request.SeatIds ?? Array.Empty<int>());
             _logger.LogInformation("BulkUpdateSeats: chartId={ChartId}, seatIds count={Count}, status={Status}, isVIP={IsVIP}", 
-                chartId, seatIdList.Count, request.Status, request.IsVIP);
+                chartId, seatIdSet.Count, request.Status, request.IsVIP);
             
-            var seats = await _context.SeatingSeats.Where(s => s.ChartId == chartId && seatIdList.Contains(s.SeatId)).ToListAsync();
+            // Fetch all seats for chart, then filter in memory (avoids SQL parameterization issues)
+            var allSeats = await _context.SeatingSeats.Where(s => s.ChartId == chartId).ToListAsync();
+            var seats = allSeats.Where(s => seatIdSet.Contains(s.SeatId)).ToList();
 
             foreach (var seat in seats)
             {
