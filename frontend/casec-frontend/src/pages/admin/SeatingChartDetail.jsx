@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft, Plus, Edit, Trash2, Users, Grid3X3, Loader2, X,
@@ -990,14 +990,18 @@ Orch-Center,A,2,Jane Doe,555-5678,jane@email.com,true`}
                       </div>
                       {/* Rows */}
                       <div className="space-y-0.5">
-                        {allRows.map(rowLabel => (
-                          <div key={rowLabel} className="flex justify-center items-center gap-4">
-                            {renderSectionSeats(leftSection, rowLabel, leftWidth)}
-                            <span className="w-4 text-center text-[9px] text-gray-500">{rowLabel}</span>
-                            {renderSectionSeats(centerSection, rowLabel, centerWidth)}
-                            <span className="w-4 text-center text-[9px] text-gray-500">{rowLabel}</span>
-                            {renderSectionSeats(rightSection, rowLabel, rightWidth)}
-                          </div>
+                        {allRows.map((rowLabel, idx) => (
+                          <React.Fragment key={rowLabel}>
+                            {/* Add gap after row B (aisle) */}
+                            {rowLabel === 'C' && <div className="h-3"></div>}
+                            <div className="flex justify-center items-center gap-4">
+                              {renderSectionSeats(leftSection, rowLabel, leftWidth)}
+                              <span className="w-4 text-center text-[9px] text-gray-500">{rowLabel}</span>
+                              {renderSectionSeats(centerSection, rowLabel, centerWidth)}
+                              <span className="w-4 text-center text-[9px] text-gray-500">{rowLabel}</span>
+                              {renderSectionSeats(rightSection, rowLabel, rightWidth)}
+                            </div>
+                          </React.Fragment>
                         ))}
                       </div>
                     </div>
