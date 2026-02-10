@@ -472,8 +472,17 @@ export default function SeatRaffleDrawing() {
     );
   }
   
+  // Background opacity (default 0.5 if not set)
+  const bgOpacity = raffle?.backgroundOpacity ?? 0.5;
+  
   const bgStyle = raffle?.backgroundImageUrl 
-    ? { backgroundImage: `url(${raffle.backgroundImageUrl})`, backgroundSize: 'cover' }
+    ? { 
+        backgroundImage: `url(${raffle.backgroundImageUrl})`, 
+        backgroundSize: '100% auto',
+        backgroundPosition: 'top center',
+        backgroundRepeat: 'no-repeat',
+        backgroundColor: raffle?.backgroundColor || '#1a1a2e'
+      }
     : { background: raffle?.backgroundGradient || `linear-gradient(135deg, ${raffle?.backgroundColor || '#1a1a2e'} 0%, #16213e 100%)` };
 
   // Helper to render a section if it exists
@@ -498,7 +507,29 @@ export default function SeatRaffleDrawing() {
   const hasBalcony = groupedSections.balcony.left || groupedSections.balcony.center || groupedSections.balcony.right;
 
   return (
-    <div className="min-h-screen text-white p-4" style={bgStyle}>
+    <div className="min-h-screen text-white relative" style={{ backgroundColor: raffle?.backgroundColor || '#1a1a2e' }}>
+      {/* Background image with opacity */}
+      {raffle?.backgroundImageUrl && (
+        <div 
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url(${raffle.backgroundImageUrl})`,
+            backgroundSize: '100% auto',
+            backgroundPosition: 'top center',
+            backgroundRepeat: 'no-repeat',
+            opacity: bgOpacity
+          }}
+        />
+      )}
+      {/* Gradient overlay if no image */}
+      {!raffle?.backgroundImageUrl && (
+        <div 
+          className="absolute inset-0 z-0"
+          style={{ background: raffle?.backgroundGradient || `linear-gradient(135deg, ${raffle?.backgroundColor || '#1a1a2e'} 0%, #16213e 100%)` }}
+        />
+      )}
+      {/* Content */}
+      <div className="relative z-10 p-4">
       {/* Header */}
       <div className="max-w-6xl mx-auto">
         <div className="flex items-start justify-between mb-4">
@@ -676,6 +707,8 @@ export default function SeatRaffleDrawing() {
           </div>
         </div>
       )}
+      
+      </div>{/* End content wrapper */}
       
       <style>{`
         @keyframes bounce-in {

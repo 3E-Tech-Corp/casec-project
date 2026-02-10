@@ -23,6 +23,7 @@ export default function AdminSeatRaffles() {
   const [settingsForm, setSettingsForm] = useState({
     name: "", description: "",
     backgroundImageUrl: "", backgroundColor: "#1a1a2e", backgroundGradient: "",
+    backgroundOpacity: 0.5,
     primaryColor: "#a855f7", secondaryColor: "#ec4899", winnerColor: "#22c55e",
     textColor: "#ffffff", seatColor: "#3a3a5a", seatHighlightColor: "#fbbf24",
     requireOccupied: true, allowRepeatWinners: false,
@@ -95,7 +96,8 @@ export default function AdminSeatRaffles() {
         ...settingsForm,
         prizeValue: settingsForm.prizeValue ? parseFloat(settingsForm.prizeValue) : null,
         animationSpeed: parseInt(settingsForm.animationSpeed) || 100,
-        animationSteps: parseInt(settingsForm.animationSteps) || 35
+        animationSteps: parseInt(settingsForm.animationSteps) || 35,
+        backgroundOpacity: parseFloat(settingsForm.backgroundOpacity) || 1
       });
       if (response.success) {
         setShowSettingsModal(false);
@@ -143,6 +145,7 @@ export default function AdminSeatRaffles() {
           backgroundImageUrl: data.backgroundImageUrl || "",
           backgroundColor: data.backgroundColor || "#1a1a2e",
           backgroundGradient: data.backgroundGradient || "",
+          backgroundOpacity: data.backgroundOpacity ?? 1,
           primaryColor: data.primaryColor || "#a855f7",
           secondaryColor: data.secondaryColor || "#ec4899",
           winnerColor: data.winnerColor || "#22c55e",
@@ -510,6 +513,34 @@ export default function AdminSeatRaffles() {
                     className="input w-full"
                     placeholder="https://..."
                   />
+                </div>
+                <div className="mt-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Background Opacity: {Math.round(settingsForm.backgroundOpacity * 100)}%
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={settingsForm.backgroundOpacity}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, backgroundOpacity: parseFloat(e.target.value) })}
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={settingsForm.backgroundOpacity}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, backgroundOpacity: parseFloat(e.target.value) || 0 })}
+                      className="input w-20 text-center"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Controls the opacity of the background image/color overlay
+                  </p>
                 </div>
               </div>
 
