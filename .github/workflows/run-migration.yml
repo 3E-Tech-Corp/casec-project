@@ -1,0 +1,32 @@
+name: Run Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      migration_file:
+        description: 'Migration SQL file (e.g., seed-miramar-seating.sql)'
+        required: true
+        default: 'seed-miramar-seating.sql'
+
+jobs:
+  migrate:
+    name: Run SQL Migration
+    runs-on: [self-hosted, windows, iis]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run migration
+        shell: powershell
+        env:
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+        run: |
+          $file = "backend/CasecApi/Database/${{ github.event.inputs.migration_file }}"
+          if (-not (Test-Path $file)) {
+            Write-Error "Migration file not found: $file"
+            exit 1
+          }
+          Write-Host "Running migration: $file"
+          $sql = Get-Content $file -Raw
+          Invoke-Sqlcmd -ServerInstance "localhost" -Database "casec" -Username "ftsql" -Password $env:SQL_PASSWORD -Query $sql -Verbose
+          Write-Host "Migration completed successfully."
