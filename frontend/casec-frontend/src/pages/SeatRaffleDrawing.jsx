@@ -488,6 +488,9 @@ export default function SeatRaffleDrawing() {
   
   // Background opacity (default 0.5 if not set)
   const bgOpacity = raffle?.backgroundOpacity ?? 0.5;
+  
+  // Text color from theme (default white)
+  const textColor = raffle?.textColor || '#ffffff';
 
   // Check which sections exist to determine layout
   const hasOrchestra = groupedSections.orchestra.left || groupedSections.orchestra.center || groupedSections.orchestra.right;
@@ -565,16 +568,16 @@ export default function SeatRaffleDrawing() {
     
     return (
       <div className="bg-white/5 rounded-xl p-4">
-        <div className="text-center text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">
+        <div className="text-center text-sm font-semibold uppercase tracking-widest mb-3" style={{ color: textColor }}>
           {levelName}
         </div>
         {/* Column headers */}
         <div className="flex justify-center items-center gap-4 mb-2">
-          <div className="text-gray-500 text-[10px] uppercase text-center" style={{ width: leftWidth }}>Left</div>
+          <div className="text-[10px] uppercase text-center opacity-60" style={{ color: textColor, width: leftWidth }}>Left</div>
           <div className="w-6"></div>
-          <div className="text-gray-500 text-[10px] uppercase text-center" style={{ width: centerWidth }}>Center</div>
+          <div className="text-[10px] uppercase text-center opacity-60" style={{ color: textColor, width: centerWidth }}>Center</div>
           <div className="w-6"></div>
-          <div className="text-gray-500 text-[10px] uppercase text-center" style={{ width: rightWidth }}>Right</div>
+          <div className="text-[10px] uppercase text-center opacity-60" style={{ color: textColor, width: rightWidth }}>Right</div>
         </div>
         {/* Rows */}
         <div className="space-y-0.5">
@@ -584,9 +587,9 @@ export default function SeatRaffleDrawing() {
               {rowLabel === 'D' && <div className="h-4"></div>}
               <div className="flex justify-center items-center gap-4">
                 {renderSectionSeats(leftSection, rowLabel, leftWidth)}
-                <span className="w-6 text-center text-[10px] text-gray-500">{rowLabel}</span>
+                <span className="w-6 text-center text-[10px] opacity-70" style={{ color: textColor }}>{rowLabel}</span>
                 {renderSectionSeats(centerSection, rowLabel, centerWidth)}
-                <span className="w-6 text-center text-[10px] text-gray-500">{rowLabel}</span>
+                <span className="w-6 text-center text-[10px] opacity-70" style={{ color: textColor }}>{rowLabel}</span>
                 {renderSectionSeats(rightSection, rowLabel, rightWidth)}
               </div>
             </React.Fragment>
