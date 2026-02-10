@@ -21,7 +21,7 @@ export default function Home() {
     }, 1000);
 
     const redirectTimer = setTimeout(() => {
-      navigate('/program/2026-spring-gala');
+      navigate('/program/2026-spring-gala?lang=en');
     }, 3000);
 
     return () => {
@@ -441,28 +441,30 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary via-primary-light to-accent flex flex-col">
-      {/* Gala Invitation Banner */}
-      <div className="bg-gradient-to-r from-red-700 via-red-600 to-yellow-500 text-white py-6 px-6 text-center relative overflow-hidden">
-        {/* Decorative lanterns/sparkles */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-2 left-[10%] text-4xl">🏮</div>
-          <div className="absolute top-1 left-[30%] text-3xl">✨</div>
-          <div className="absolute top-3 right-[25%] text-4xl">🏮</div>
-          <div className="absolute top-1 right-[10%] text-3xl">✨</div>
-        </div>
-        <div className="relative z-10">
-          <h2 className="text-2xl md:text-3xl font-bold mb-2">
-            🐴 You're Invited to the Year of the Horse Celebration! 🎊
-          </h2>
-          <p className="text-lg md:text-xl mb-3">
-            Join us for CASEC's 2026 Spring Gala — an evening of culture, community, and celebration!
-          </p>
-          <p className="text-base opacity-90">
-            Taking you to the event program in {redirectCountdown}...{' '}
-            <Link to="/program/2026-spring-gala" className="underline font-semibold hover:text-yellow-300 ml-2">
-              Go Now →
-            </Link>
-          </p>
+      {/* Gala Invitation Banner - Centered */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="bg-gradient-to-r from-red-700 via-red-600 to-yellow-500 text-white py-8 px-8 md:px-12 text-center relative overflow-hidden rounded-2xl shadow-2xl max-w-4xl w-full">
+          {/* Decorative lanterns/sparkles */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-2 left-[10%] text-4xl">🏮</div>
+            <div className="absolute top-1 left-[30%] text-3xl">✨</div>
+            <div className="absolute top-3 right-[25%] text-4xl">🏮</div>
+            <div className="absolute top-1 right-[10%] text-3xl">✨</div>
+          </div>
+          <div className="relative z-10">
+            <h2 className="text-2xl md:text-4xl font-bold mb-3">
+              🐴 You're Invited to the Year of the Horse Celebration! 🎊
+            </h2>
+            <p className="text-lg md:text-2xl mb-4">
+              Join us for CASEC's 2026 Spring Gala — an evening of culture, community, and celebration!
+            </p>
+            <p className="text-base md:text-lg opacity-90">
+              Taking you to the event program in {redirectCountdown}...{' '}
+              <Link to="/program/2026-spring-gala?lang=en" className="underline font-semibold hover:text-yellow-300 ml-2">
+                Go Now →
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
 
