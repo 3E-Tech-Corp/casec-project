@@ -20,6 +20,7 @@ jobs:
         shell: powershell
         env:
           SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+          SQL_USERNAME: ${{ secrets.SQL_USERNAME }}
         run: |
           $file = "backend/CasecApi/Database/${{ github.event.inputs.migration_file }}"
           if (-not (Test-Path $file)) {
@@ -28,5 +29,6 @@ jobs:
           }
           Write-Host "Running migration: $file"
           $sql = Get-Content $file -Raw
-          Invoke-Sqlcmd -ServerInstance "localhost" -Database "casec" -Username "ftsql" -Password $env:SQL_PASSWORD -Query $sql -Verbose
+          $username = if ($env:SQL_USERNAME) { $env:SQL_USERNAME } else { "ftsql" }
+          Invoke-Sqlcmd -ServerInstance "localhost" -Database "casec" -Username $username -Password $env:SQL_PASSWORD -Query $sql -Verbose
           Write-Host "Migration completed successfully."
