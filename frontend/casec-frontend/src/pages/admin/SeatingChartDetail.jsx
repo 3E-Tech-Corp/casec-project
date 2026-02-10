@@ -69,6 +69,20 @@ export default function AdminSeatingChartDetail() {
     return grouped;
   }, [chart]);
 
+  // Seat counts by status
+  const seatCounts = useMemo(() => {
+    if (!chart?.seats) return { occupied: 0, empty: 0, vip: 0, unavailable: 0, notexist: 0, total: 0 };
+    const counts = { occupied: 0, empty: 0, vip: 0, unavailable: 0, notexist: 0, total: chart.seats.length };
+    chart.seats.forEach(seat => {
+      if (seat.status === "NotExist") counts.notexist++;
+      else if (seat.status === "NotAvailable") counts.unavailable++;
+      else if (seat.isVIP) counts.vip++;
+      else if (seat.status === "Occupied" || seat.attendeeName) counts.occupied++;
+      else counts.empty++;
+    });
+    return counts;
+  }, [chart]);
+
   // Get unique rows for each section
   const getRowsForSection = (sectionId) => {
     const seats = seatsBySection[sectionId] || [];
@@ -402,20 +416,20 @@ export default function AdminSeatingChartDetail() {
           </select>
           <div className="flex gap-4 ml-4 text-sm flex-wrap">
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded bg-green-500"></span> Occupied
+              <span className="w-3 h-3 rounded bg-green-500"></span> Occupied <span className="text-gray-500">({seatCounts.occupied})</span>
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded bg-gray-400"></span> Empty
+              <span className="w-3 h-3 rounded bg-gray-400"></span> Empty <span className="text-gray-500">({seatCounts.empty})</span>
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded bg-purple-500"></span> VIP
+              <span className="w-3 h-3 rounded bg-purple-500"></span> VIP <span className="text-gray-500">({seatCounts.vip})</span>
             </span>
-          <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded bg-red-900 opacity-60"></span> N/A
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded bg-black opacity-30"></span> Not Exist
-          </span>
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3 rounded bg-red-900 opacity-60"></span> N/A <span className="text-gray-500">({seatCounts.unavailable})</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3 rounded bg-black opacity-30"></span> Not Exist <span className="text-gray-500">({seatCounts.notexist})</span>
+            </span>
           </div>
         </div>
         <button
