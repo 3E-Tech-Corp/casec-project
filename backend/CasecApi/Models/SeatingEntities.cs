@@ -189,7 +189,7 @@ public class SeatRaffle
     [MaxLength(50)]
     public string? SeatEmptyColor { get; set; } = "#3a3a5a";
     
-    public decimal BackgroundOpacity { get; set; } = 0.5m;
+    public decimal? BackgroundOpacity { get; set; } = 0.5m;
     
     // Raffle settings
     public bool RequireOccupied { get; set; } = true;

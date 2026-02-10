@@ -2410,7 +2410,7 @@ public class SeatRaffleDrawingDto
     public string? BackgroundImageUrl { get; set; }
     public string? BackgroundColor { get; set; }
     public string? BackgroundGradient { get; set; }
-    public decimal BackgroundOpacity { get; set; } = 0.5m;
+    public decimal? BackgroundOpacity { get; set; } = 0.5m;
     public string? PrimaryColor { get; set; }
     public string? SecondaryColor { get; set; }
     public string? WinnerColor { get; set; }
