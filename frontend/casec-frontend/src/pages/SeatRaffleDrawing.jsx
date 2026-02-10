@@ -296,22 +296,28 @@ const MIRAMAR_LAYOUT = {
 
 // Seat component
 function Seat({ seatId, section, row, seatNum, isHighlighted, isWinner, isExcluded, attendeeName, onClick }) {
-  let bgColor = 'bg-gray-600 border-gray-500';
-  if (isExcluded) bgColor = 'bg-red-900/50 border-red-800';
-  else if (isWinner) bgColor = 'bg-green-500 border-green-400';
-  else if (isHighlighted) bgColor = 'bg-yellow-400 border-yellow-300';
-  else if (attendeeName) bgColor = 'bg-purple-600 border-purple-500';
+  let bgColor = 'bg-gray-600 border-gray-500 text-gray-300';
+  if (isExcluded) bgColor = 'bg-red-900/50 border-red-800 text-red-300';
+  else if (isWinner) bgColor = 'bg-green-500 border-green-400 text-white';
+  else if (isHighlighted) bgColor = 'bg-yellow-400 border-yellow-300 text-gray-900';
+  else if (attendeeName) bgColor = 'bg-purple-600 border-purple-500 text-white';
+  
+  // Display seat number (strip leading 10x for center sections)
+  const displayNum = seatNum >= 100 ? seatNum - 100 : seatNum;
   
   return (
     <div
       onClick={onClick}
-      className={`w-3 h-3 rounded-t-sm rounded-b cursor-pointer border transition-all duration-100
+      className={`w-6 h-6 rounded-t-sm rounded-b cursor-pointer border transition-all duration-100
+        flex items-center justify-center text-[8px] font-bold
         ${bgColor}
-        ${isHighlighted ? 'scale-150 shadow-lg shadow-yellow-400/50' : ''}
-        ${isWinner ? 'scale-175 shadow-xl shadow-green-400/70 animate-pulse' : ''}
-        hover:scale-125 hover:bg-indigo-500`}
+        ${isHighlighted ? 'scale-150 shadow-lg shadow-yellow-400/50 z-10' : ''}
+        ${isWinner ? 'scale-175 shadow-xl shadow-green-400/70 animate-pulse z-20' : ''}
+        hover:scale-125 hover:bg-indigo-500 hover:text-white hover:z-10`}
       title={`${section} ${row}-${seatNum}${attendeeName ? `: ${attendeeName}` : ''}`}
-    />
+    >
+      {displayNum}
+    </div>
   );
 }
 
@@ -329,9 +335,9 @@ function Section({ title, sectionKey, rows, seats, highlightedSeat, winnerSeat, 
           
           return (
             <div key={row.label} className="flex items-center gap-0.5">
-              <span className="w-5 text-xs text-gray-500 text-right mr-1">{row.label}</span>
+              <span className="w-6 text-xs text-gray-500 text-right mr-1">{row.label}</span>
               {/* Left padding */}
-              {padding > 0 && <div style={{ width: `${padding * 14}px` }} />}
+              {padding > 0 && <div style={{ width: `${padding * 28}px` }} />}
               {/* Seats */}
               {Array.from({ length: row.seats }, (_, i) => {
                 const seatNum = row.start + i;
@@ -354,7 +360,7 @@ function Section({ title, sectionKey, rows, seats, highlightedSeat, winnerSeat, 
                 );
               })}
               {/* Right padding */}
-              {padding > 0 && <div style={{ width: `${padding * 14}px` }} />}
+              {padding > 0 && <div style={{ width: `${padding * 28}px` }} />}
             </div>
           );
         })}
