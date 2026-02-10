@@ -65,7 +65,7 @@ public class SeatRafflesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching seat raffles");
-            return StatusCode(500, new ApiResponse<List<SeatRaffleDto>> { Success = false, Message = "Error fetching raffles" });
+            return StatusCode(500, new ApiResponse<List<SeatRaffleDto>> { Success = false, Message = $"Error: {ex.Message}" });
         }
     }
 
