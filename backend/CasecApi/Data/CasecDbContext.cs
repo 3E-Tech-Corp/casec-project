@@ -103,6 +103,7 @@ public class CasecDbContext : DbContext
     public DbSet<SeatRaffleExclusion> SeatRaffleExclusions { get; set; }
     public DbSet<SeatRaffleTarget> SeatRaffleTargets { get; set; }
     public DbSet<SeatRaffleWinner> SeatRaffleWinners { get; set; }
+    public DbSet<SeatRafflePrize> SeatRafflePrizes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

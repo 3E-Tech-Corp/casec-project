@@ -610,8 +610,14 @@ export const seatRafflesAPI = {
   clearTargets: (id) => api.delete(`/seatraffles/${id}/targets`),
 
   // Drawing
-  draw: (id, isTest = false, seatId = null) => api.post(`/seatraffles/${id}/draw?isTest=${isTest}${seatId ? `&seatId=${seatId}` : ''}`),
+  draw: (id, isTest = false, seatId = null, prizeId = null) => api.post(`/seatraffles/${id}/draw?isTest=${isTest}${seatId ? `&seatId=${seatId}` : ''}${prizeId ? `&prizeId=${prizeId}` : ''}`),
   reset: (id, testOnly = false) => api.post(`/seatraffles/${id}/reset?testOnly=${testOnly}`),
+
+  // Prizes
+  getPrizes: (id) => api.get(`/seatraffles/${id}/prizes`),
+  addPrize: (id, data) => api.post(`/seatraffles/${id}/prizes`, data),
+  updatePrize: (id, prizeId, data) => api.put(`/seatraffles/${id}/prizes/${prizeId}`, data),
+  deletePrize: (id, prizeId) => api.delete(`/seatraffles/${id}/prizes/${prizeId}`),
 };
 
 export default api;

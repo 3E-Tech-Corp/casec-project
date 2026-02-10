@@ -118,6 +118,7 @@ public class SeatRafflesController : ControllerBase
                 .Include(r => r.Exclusions)
                 .Include(r => r.Targets)
                 .Include(r => r.Winners.Where(w => !w.IsTestDraw))
+                .Include(r => r.Prizes.OrderBy(p => p.DisplayOrder))
                 .FirstOrDefaultAsync(r => r.SeatRaffleId == id);
 
             if (raffle == null)
@@ -164,12 +165,17 @@ public class SeatRafflesController : ControllerBase
                 BackgroundImageUrl = raffle.BackgroundImageUrl,
                 BackgroundColor = raffle.BackgroundColor,
                 BackgroundGradient = raffle.BackgroundGradient,
+                BackgroundOpacity = raffle.BackgroundOpacity,
                 PrimaryColor = raffle.PrimaryColor,
                 SecondaryColor = raffle.SecondaryColor,
                 WinnerColor = raffle.WinnerColor,
                 TextColor = raffle.TextColor,
                 SeatColor = raffle.SeatColor,
                 SeatHighlightColor = raffle.SeatHighlightColor,
+                SeatBorderColor = raffle.SeatBorderColor,
+                SeatOccupiedColor = raffle.SeatOccupiedColor,
+                SeatVIPColor = raffle.SeatVIPColor,
+                SeatEmptyColor = raffle.SeatEmptyColor,
 
                 // Settings
                 AnimationSpeed = raffle.AnimationSpeed,
@@ -177,11 +183,25 @@ public class SeatRafflesController : ControllerBase
                 ShowAttendeeName = raffle.ShowAttendeeName,
                 ShowAttendeePhone = raffle.ShowAttendeePhone,
 
-                // Prize
+                // Legacy Prize
                 PrizeName = raffle.PrizeName,
                 PrizeDescription = raffle.PrizeDescription,
                 PrizeImageUrl = raffle.PrizeImageUrl,
                 PrizeValue = raffle.PrizeValue,
+
+                // Multiple prizes
+                Prizes = raffle.Prizes.Select(p => new SeatRafflePrizeDto
+                {
+                    PrizeId = p.PrizeId,
+                    SeatRaffleId = p.SeatRaffleId,
+                    Name = p.Name,
+                    Description = p.Description,
+                    ImageUrl = p.ImageUrl,
+                    Value = p.Value,
+                    Quantity = p.Quantity,
+                    DisplayOrder = p.DisplayOrder,
+                    WinnersCount = raffle.Winners.Count(w => w.PrizeId == p.PrizeId && !w.IsTestDraw)
+                }).ToList(),
 
                 // Chart structure
                 Sections = raffle.Chart.Sections.Select(s => new SeatingSectionDto
@@ -227,6 +247,8 @@ public class SeatRafflesController : ControllerBase
                     SectionName = w.SectionName,
                     RowLabel = w.RowLabel,
                     SeatNumber = w.SeatNumber,
+                    PrizeId = w.PrizeId,
+                    PrizeName = raffle.Prizes.FirstOrDefault(p => p.PrizeId == w.PrizeId)?.Name,
                     DrawnAt = w.DrawnAt
                 }).ToList()
             };
@@ -307,12 +329,17 @@ public class SeatRafflesController : ControllerBase
             if (request.BackgroundImageUrl != null) raffle.BackgroundImageUrl = request.BackgroundImageUrl == "" ? null : request.BackgroundImageUrl;
             if (request.BackgroundColor != null) raffle.BackgroundColor = request.BackgroundColor;
             if (request.BackgroundGradient != null) raffle.BackgroundGradient = request.BackgroundGradient == "" ? null : request.BackgroundGradient;
+            if (request.BackgroundOpacity.HasValue) raffle.BackgroundOpacity = request.BackgroundOpacity.Value;
             if (request.PrimaryColor != null) raffle.PrimaryColor = request.PrimaryColor;
             if (request.SecondaryColor != null) raffle.SecondaryColor = request.SecondaryColor;
             if (request.WinnerColor != null) raffle.WinnerColor = request.WinnerColor;
             if (request.TextColor != null) raffle.TextColor = request.TextColor;
             if (request.SeatColor != null) raffle.SeatColor = request.SeatColor;
             if (request.SeatHighlightColor != null) raffle.SeatHighlightColor = request.SeatHighlightColor;
+            if (request.SeatBorderColor != null) raffle.SeatBorderColor = request.SeatBorderColor;
+            if (request.SeatOccupiedColor != null) raffle.SeatOccupiedColor = request.SeatOccupiedColor;
+            if (request.SeatVIPColor != null) raffle.SeatVIPColor = request.SeatVIPColor;
+            if (request.SeatEmptyColor != null) raffle.SeatEmptyColor = request.SeatEmptyColor;
 
             // Raffle settings
             if (request.RequireOccupied.HasValue) raffle.RequireOccupied = request.RequireOccupied.Value;
@@ -369,6 +396,168 @@ public class SeatRafflesController : ControllerBase
         {
             _logger.LogError(ex, "Error deleting seat raffle {RaffleId}", id);
             return StatusCode(500, new ApiResponse<bool> { Success = false, Message = "Error deleting raffle" });
+        }
+    }
+
+    // ==================== PRIZES ====================
+
+    // GET: /SeatRaffles/{id}/prizes - Get all prizes
+    [AllowAnonymous]
+    [HttpGet("{id}/prizes")]
+    public async Task<ActionResult<ApiResponse<List<SeatRafflePrizeDto>>>> GetPrizes(int id)
+    {
+        try
+        {
+            var prizes = await _context.SeatRafflePrizes
+                .Where(p => p.SeatRaffleId == id)
+                .OrderBy(p => p.DisplayOrder)
+                .Select(p => new SeatRafflePrizeDto
+                {
+                    PrizeId = p.PrizeId,
+                    SeatRaffleId = p.SeatRaffleId,
+                    Name = p.Name,
+                    Description = p.Description,
+                    ImageUrl = p.ImageUrl,
+                    Value = p.Value,
+                    Quantity = p.Quantity,
+                    DisplayOrder = p.DisplayOrder,
+                    WinnersCount = p.Winners.Count(w => !w.IsTestDraw)
+                })
+                .ToListAsync();
+
+            return Ok(new ApiResponse<List<SeatRafflePrizeDto>> { Success = true, Data = prizes });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting prizes for raffle {RaffleId}", id);
+            return StatusCode(500, new ApiResponse<List<SeatRafflePrizeDto>> { Success = false, Message = "Error getting prizes" });
+        }
+    }
+
+    // POST: /SeatRaffles/{id}/prizes - Add prize
+    [Authorize]
+    [HttpPost("{id}/prizes")]
+    public async Task<ActionResult<ApiResponse<SeatRafflePrizeDto>>> AddPrize(int id, [FromBody] CreateSeatRafflePrizeRequest request)
+    {
+        try
+        {
+            var raffle = await _context.SeatRaffles.FindAsync(id);
+            if (raffle == null)
+                return NotFound(new ApiResponse<SeatRafflePrizeDto> { Success = false, Message = "Raffle not found" });
+
+            var maxOrder = await _context.SeatRafflePrizes
+                .Where(p => p.SeatRaffleId == id)
+                .MaxAsync(p => (int?)p.DisplayOrder) ?? -1;
+
+            var prize = new SeatRafflePrize
+            {
+                SeatRaffleId = id,
+                Name = request.Name,
+                Description = request.Description,
+                ImageUrl = request.ImageUrl,
+                Value = request.Value,
+                Quantity = request.Quantity > 0 ? request.Quantity : 1,
+                DisplayOrder = request.DisplayOrder > 0 ? request.DisplayOrder : maxOrder + 1
+            };
+
+            _context.SeatRafflePrizes.Add(prize);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<SeatRafflePrizeDto>
+            {
+                Success = true,
+                Data = new SeatRafflePrizeDto
+                {
+                    PrizeId = prize.PrizeId,
+                    SeatRaffleId = prize.SeatRaffleId,
+                    Name = prize.Name,
+                    Description = prize.Description,
+                    ImageUrl = prize.ImageUrl,
+                    Value = prize.Value,
+                    Quantity = prize.Quantity,
+                    DisplayOrder = prize.DisplayOrder,
+                    WinnersCount = 0
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding prize to raffle {RaffleId}", id);
+            return StatusCode(500, new ApiResponse<SeatRafflePrizeDto> { Success = false, Message = "Error adding prize" });
+        }
+    }
+
+    // PUT: /SeatRaffles/{id}/prizes/{prizeId} - Update prize
+    [Authorize]
+    [HttpPut("{id}/prizes/{prizeId}")]
+    public async Task<ActionResult<ApiResponse<SeatRafflePrizeDto>>> UpdatePrize(int id, int prizeId, [FromBody] CreateSeatRafflePrizeRequest request)
+    {
+        try
+        {
+            var prize = await _context.SeatRafflePrizes
+                .FirstOrDefaultAsync(p => p.PrizeId == prizeId && p.SeatRaffleId == id);
+            
+            if (prize == null)
+                return NotFound(new ApiResponse<SeatRafflePrizeDto> { Success = false, Message = "Prize not found" });
+
+            prize.Name = request.Name;
+            prize.Description = request.Description;
+            prize.ImageUrl = request.ImageUrl;
+            prize.Value = request.Value;
+            prize.Quantity = request.Quantity > 0 ? request.Quantity : 1;
+            prize.DisplayOrder = request.DisplayOrder;
+
+            await _context.SaveChangesAsync();
+
+            var winnersCount = await _context.SeatRaffleWinners
+                .CountAsync(w => w.PrizeId == prizeId && !w.IsTestDraw);
+
+            return Ok(new ApiResponse<SeatRafflePrizeDto>
+            {
+                Success = true,
+                Data = new SeatRafflePrizeDto
+                {
+                    PrizeId = prize.PrizeId,
+                    SeatRaffleId = prize.SeatRaffleId,
+                    Name = prize.Name,
+                    Description = prize.Description,
+                    ImageUrl = prize.ImageUrl,
+                    Value = prize.Value,
+                    Quantity = prize.Quantity,
+                    DisplayOrder = prize.DisplayOrder,
+                    WinnersCount = winnersCount
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating prize {PrizeId}", prizeId);
+            return StatusCode(500, new ApiResponse<SeatRafflePrizeDto> { Success = false, Message = "Error updating prize" });
+        }
+    }
+
+    // DELETE: /SeatRaffles/{id}/prizes/{prizeId} - Delete prize
+    [Authorize]
+    [HttpDelete("{id}/prizes/{prizeId}")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeletePrize(int id, int prizeId)
+    {
+        try
+        {
+            var prize = await _context.SeatRafflePrizes
+                .FirstOrDefaultAsync(p => p.PrizeId == prizeId && p.SeatRaffleId == id);
+            
+            if (prize == null)
+                return NotFound(new ApiResponse<bool> { Success = false, Message = "Prize not found" });
+
+            _context.SeatRafflePrizes.Remove(prize);
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse<bool> { Success = true, Data = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting prize {PrizeId}", prizeId);
+            return StatusCode(500, new ApiResponse<bool> { Success = false, Message = "Error deleting prize" });
         }
     }
 
@@ -492,7 +681,7 @@ public class SeatRafflesController : ControllerBase
     // POST: /SeatRaffles/{id}/draw - Draw a winner
     [Authorize]
     [HttpPost("{id}/draw")]
-    public async Task<ActionResult<ApiResponse<SeatRaffleWinnerDto>>> DrawWinner(int id, [FromQuery] bool isTest = false, [FromQuery] int? seatId = null)
+    public async Task<ActionResult<ApiResponse<SeatRaffleWinnerDto>>> DrawWinner(int id, [FromQuery] bool isTest = false, [FromQuery] int? seatId = null, [FromQuery] int? prizeId = null)
     {
         try
         {
@@ -550,6 +739,18 @@ public class SeatRafflesController : ControllerBase
                 winnerSeat = eligibleSeats[random.Next(eligibleSeats.Count)];
             }
 
+            // Validate prize if provided
+            string? prizeName = null;
+            if (prizeId.HasValue)
+            {
+                var prize = await _context.SeatRafflePrizes
+                    .FirstOrDefaultAsync(p => p.PrizeId == prizeId.Value && p.SeatRaffleId == id);
+                if (prize != null)
+                {
+                    prizeName = prize.Name;
+                }
+            }
+
             // Record winner
             var drawNumber = raffle.Winners.Count(w => !w.IsTestDraw) + 1;
             var winner = new SeatRaffleWinner
@@ -562,6 +763,7 @@ public class SeatRafflesController : ControllerBase
                 SectionName = winnerSeat.Section?.Name,
                 RowLabel = winnerSeat.RowLabel,
                 SeatNumber = winnerSeat.SeatNumber,
+                PrizeId = prizeId,
                 IsTestDraw = isTest,
                 DrawnBy = GetCurrentUserId()
             };
@@ -589,6 +791,8 @@ public class SeatRafflesController : ControllerBase
                     SectionName = winner.SectionName,
                     RowLabel = winner.RowLabel,
                     SeatNumber = winner.SeatNumber,
+                    PrizeId = winner.PrizeId,
+                    PrizeName = prizeName,
                     IsTestDraw = winner.IsTestDraw,
                     DrawnAt = winner.DrawnAt
                 }

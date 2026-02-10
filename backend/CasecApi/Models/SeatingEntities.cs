@@ -177,6 +177,20 @@ public class SeatRaffle
     [MaxLength(50)]
     public string? SeatHighlightColor { get; set; } = "#fbbf24";
     
+    [MaxLength(50)]
+    public string? SeatBorderColor { get; set; } = "#4a4a6a";
+    
+    [MaxLength(50)]
+    public string? SeatOccupiedColor { get; set; } = "#22c55e";
+    
+    [MaxLength(50)]
+    public string? SeatVIPColor { get; set; } = "#a855f7";
+    
+    [MaxLength(50)]
+    public string? SeatEmptyColor { get; set; } = "#3a3a5a";
+    
+    public decimal BackgroundOpacity { get; set; } = 0.5m;
+    
     // Raffle settings
     public bool RequireOccupied { get; set; } = true;
     public bool AllowRepeatWinners { get; set; }
@@ -211,6 +225,7 @@ public class SeatRaffle
     public ICollection<SeatRaffleExclusion> Exclusions { get; set; } = new List<SeatRaffleExclusion>();
     public ICollection<SeatRaffleTarget> Targets { get; set; } = new List<SeatRaffleTarget>();
     public ICollection<SeatRaffleWinner> Winners { get; set; } = new List<SeatRaffleWinner>();
+    public ICollection<SeatRafflePrize> Prizes { get; set; } = new List<SeatRafflePrize>();
 }
 
 [Table("SeatRaffleExclusions")]
@@ -281,6 +296,8 @@ public class SeatRaffleWinner
     
     public bool IsTestDraw { get; set; }
     
+    public int? PrizeId { get; set; }
+    
     public DateTime DrawnAt { get; set; } = DateTime.UtcNow;
     public int? DrawnBy { get; set; }
     
@@ -293,4 +310,40 @@ public class SeatRaffleWinner
     
     [ForeignKey("DrawnBy")]
     public User? DrawnByUser { get; set; }
+    
+    [ForeignKey("PrizeId")]
+    public SeatRafflePrize? Prize { get; set; }
+}
+
+[Table("SeatRafflePrizes")]
+public class SeatRafflePrize
+{
+    [Key]
+    public int PrizeId { get; set; }
+    
+    public int SeatRaffleId { get; set; }
+    
+    [Required]
+    [MaxLength(200)]
+    public string Name { get; set; } = string.Empty;
+    
+    [MaxLength(500)]
+    public string? Description { get; set; }
+    
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
+    
+    public decimal? Value { get; set; }
+    
+    public int Quantity { get; set; } = 1;
+    
+    public int DisplayOrder { get; set; }
+    
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
+    // Navigation properties
+    [ForeignKey("SeatRaffleId")]
+    public SeatRaffle SeatRaffle { get; set; } = null!;
+    
+    public ICollection<SeatRaffleWinner> Winners { get; set; } = new List<SeatRaffleWinner>();
 }

@@ -2410,12 +2410,17 @@ public class SeatRaffleDrawingDto
     public string? BackgroundImageUrl { get; set; }
     public string? BackgroundColor { get; set; }
     public string? BackgroundGradient { get; set; }
+    public decimal BackgroundOpacity { get; set; } = 0.5m;
     public string? PrimaryColor { get; set; }
     public string? SecondaryColor { get; set; }
     public string? WinnerColor { get; set; }
     public string? TextColor { get; set; }
     public string? SeatColor { get; set; }
     public string? SeatHighlightColor { get; set; }
+    public string? SeatBorderColor { get; set; }
+    public string? SeatOccupiedColor { get; set; }
+    public string? SeatVIPColor { get; set; }
+    public string? SeatEmptyColor { get; set; }
 
     // Settings
     public int AnimationSpeed { get; set; }
@@ -2423,11 +2428,14 @@ public class SeatRaffleDrawingDto
     public bool ShowAttendeeName { get; set; }
     public bool ShowAttendeePhone { get; set; }
 
-    // Prize
+    // Legacy single prize (kept for backward compatibility)
     public string? PrizeName { get; set; }
     public string? PrizeDescription { get; set; }
     public string? PrizeImageUrl { get; set; }
     public decimal? PrizeValue { get; set; }
+
+    // Multiple prizes
+    public List<SeatRafflePrizeDto> Prizes { get; set; } = new();
 
     // Chart structure
     public List<SeatingSectionDto> Sections { get; set; } = new();
@@ -2468,8 +2476,33 @@ public class SeatRaffleWinnerDto
     public string? SectionName { get; set; }
     public string? RowLabel { get; set; }
     public int? SeatNumber { get; set; }
+    public int? PrizeId { get; set; }
+    public string? PrizeName { get; set; }
     public bool IsTestDraw { get; set; }
     public DateTime DrawnAt { get; set; }
+}
+
+public class SeatRafflePrizeDto
+{
+    public int PrizeId { get; set; }
+    public int SeatRaffleId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? ImageUrl { get; set; }
+    public decimal? Value { get; set; }
+    public int Quantity { get; set; } = 1;
+    public int DisplayOrder { get; set; }
+    public int WinnersCount { get; set; }
+}
+
+public class CreateSeatRafflePrizeRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? ImageUrl { get; set; }
+    public decimal? Value { get; set; }
+    public int Quantity { get; set; } = 1;
+    public int DisplayOrder { get; set; }
 }
 
 public class CreateSeatRaffleRequest
@@ -2494,12 +2527,17 @@ public class UpdateSeatRaffleRequest
     public string? BackgroundImageUrl { get; set; }
     public string? BackgroundColor { get; set; }
     public string? BackgroundGradient { get; set; }
+    public decimal? BackgroundOpacity { get; set; }
     public string? PrimaryColor { get; set; }
     public string? SecondaryColor { get; set; }
     public string? WinnerColor { get; set; }
     public string? TextColor { get; set; }
     public string? SeatColor { get; set; }
     public string? SeatHighlightColor { get; set; }
+    public string? SeatBorderColor { get; set; }
+    public string? SeatOccupiedColor { get; set; }
+    public string? SeatVIPColor { get; set; }
+    public string? SeatEmptyColor { get; set; }
 
     // Settings
     public bool? RequireOccupied { get; set; }
@@ -2509,7 +2547,7 @@ public class UpdateSeatRaffleRequest
     public bool? ShowAttendeeName { get; set; }
     public bool? ShowAttendeePhone { get; set; }
 
-    // Prize
+    // Prize (legacy single prize)
     public string? PrizeName { get; set; }
     public string? PrizeDescription { get; set; }
     public string? PrizeImageUrl { get; set; }
