@@ -212,7 +212,8 @@ public class SeatRafflesController : ControllerBase
                     DisplayOrder = s.DisplayOrder,
                     RowLabels = s.RowLabels,
                     SeatsPerRow = s.SeatsPerRow,
-                    StartSeatNumber = s.StartSeatNumber
+                    StartSeatNumber = s.StartSeatNumber,
+                    Direction = s.Direction
                 }).ToList(),
 
                 // All seats with eligibility info
@@ -224,6 +225,8 @@ public class SeatRafflesController : ControllerBase
                     SeatNumber = s.SeatNumber,
                     AttendeeName = raffle.ShowAttendeeName ? s.AttendeeName : null,
                     AttendeePhone = raffle.ShowAttendeePhone ? s.AttendeePhone : null,
+                    Status = s.Status,
+                    IsVIP = s.IsVIP,
                     IsEligible = eligibleSeats.Any(e => e.SeatId == s.SeatId),
                     IsExcluded = excludedSeatIds.Contains(s.SeatId),
                     IsTarget = targetSeatIds.Count > 0 && targetSeatIds.Contains(s.SeatId),

@@ -185,19 +185,33 @@ function useBackgroundMusic() {
 }
 
 // Seat component - now uses actual seatNumber from DB
-function Seat({ seatId, visibleNumber, isHighlighted, isWinner, isExcluded, attendeeName, onClick }) {
-  let bgColor = 'bg-gray-600 border-gray-500 text-gray-300';
-  if (isExcluded) bgColor = 'bg-red-900/50 border-red-800 text-red-300';
-  else if (isWinner) bgColor = 'bg-green-500 border-green-400 text-white';
-  else if (isHighlighted) bgColor = 'bg-yellow-400 border-yellow-300 text-gray-900';
-  else if (attendeeName) bgColor = 'bg-purple-600 border-purple-500 text-white';
+function Seat({ seatId, visibleNumber, isHighlighted, isWinner, isExcluded, isVIP, isNotAvailable, attendeeName, onClick }) {
+  // Color logic matching the preview:
+  // Available: blue-gray, NotAvailable: dark red, VIP: purple, Occupied: green
+  let bgColor = 'bg-[#3a3a5a] border-[#4a4a6a] text-gray-300'; // available
+  let opacity = '';
+  
+  if (isNotAvailable) {
+    bgColor = 'bg-[#7f1d1d] border-red-900 text-red-200';
+    opacity = 'opacity-60';
+  } else if (isExcluded) {
+    bgColor = 'bg-red-900/50 border-red-800 text-red-300';
+  } else if (isWinner) {
+    bgColor = 'bg-green-500 border-green-400 text-white';
+  } else if (isHighlighted) {
+    bgColor = 'bg-yellow-400 border-yellow-300 text-gray-900';
+  } else if (isVIP) {
+    bgColor = 'bg-purple-500 border-purple-400 text-white';
+  } else if (attendeeName) {
+    bgColor = 'bg-green-500 border-green-400 text-white'; // occupied
+  }
   
   return (
     <div
       onClick={onClick}
       className={`w-6 h-6 rounded-t-sm rounded-b cursor-pointer border transition-all duration-100
         flex items-center justify-center text-[8px] font-bold
-        ${bgColor}
+        ${bgColor} ${opacity}
         ${isHighlighted ? 'scale-150 shadow-lg shadow-yellow-400/50 z-10' : ''}
         ${isWinner ? 'scale-175 shadow-xl shadow-green-400/70 animate-pulse z-20' : ''}
         hover:scale-125 hover:bg-indigo-500 hover:text-white hover:z-10`}
@@ -210,26 +224,34 @@ function Seat({ seatId, visibleNumber, isHighlighted, isWinner, isExcluded, atte
 
 // Dynamic Section component - renders seats from DB data
 function DynamicSection({ title, section, seats, highlightedSeatId, winnerSeatId, excludedSeatIds, onSeatClick }) {
-  // Group seats by row
+  // Get section direction (LTR or RTL)
+  const direction = section?.direction || 'LTR';
+  
+  // Group seats by row, filtering out NotExist seats
   const rowsData = useMemo(() => {
     if (!seats || seats.length === 0) return [];
     
+    // Filter out NotExist seats (they shouldn't be shown)
+    const visibleSeats = seats.filter(s => s.status !== 'NotExist');
+    
     // Group by rowLabel
     const grouped = {};
-    seats.forEach(seat => {
+    visibleSeats.forEach(seat => {
       if (!grouped[seat.rowLabel]) {
         grouped[seat.rowLabel] = [];
       }
       grouped[seat.rowLabel].push(seat);
     });
     
-    // Sort rows alphabetically and seats by seatNumber within each row
+    // Sort rows alphabetically and seats by seatNumber (respecting direction)
     const sortedRows = Object.keys(grouped).sort();
     return sortedRows.map(rowLabel => ({
       label: rowLabel,
-      seats: grouped[rowLabel].sort((a, b) => a.seatNumber - b.seatNumber)
+      seats: grouped[rowLabel].sort((a, b) => 
+        direction === 'RTL' ? b.seatNumber - a.seatNumber : a.seatNumber - b.seatNumber
+      )
     }));
-  }, [seats]);
+  }, [seats, direction]);
   
   // Calculate max seats for alignment
   const maxSeats = useMemo(() => {
@@ -259,6 +281,8 @@ function DynamicSection({ title, section, seats, highlightedSeatId, winnerSeatId
                   isHighlighted={highlightedSeatId === seat.seatId}
                   isWinner={winnerSeatId === seat.seatId}
                   isExcluded={excludedSeatIds?.includes(seat.seatId)}
+                  isVIP={seat.isVIP}
+                  isNotAvailable={seat.status === 'NotAvailable'}
                   attendeeName={seat.attendeeName}
                   onClick={() => onSeatClick?.(seat)}
                 />

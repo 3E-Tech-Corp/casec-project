@@ -2459,6 +2459,8 @@ public class SeatRaffleDrawingSeatDto
     public int SeatNumber { get; set; }
     public string? AttendeeName { get; set; }
     public string? AttendeePhone { get; set; }
+    public string Status { get; set; } = "Available";
+    public bool IsVIP { get; set; }
     public bool IsEligible { get; set; }
     public bool IsExcluded { get; set; }
     public bool IsTarget { get; set; }
