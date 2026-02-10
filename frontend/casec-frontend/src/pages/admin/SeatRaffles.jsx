@@ -40,8 +40,8 @@ export default function AdminSeatRaffles() {
     try {
       setLoading(true);
       const response = await seatRafflesAPI.getAll();
-      if (response.data.success) {
-        setRaffles(response.data.data);
+      if (response.success) {
+        setRaffles(response.data || []);
       }
     } catch (err) {
       setError("Failed to load raffles");
@@ -53,8 +53,8 @@ export default function AdminSeatRaffles() {
   const loadCharts = async () => {
     try {
       const response = await seatingChartsAPI.getAll();
-      if (response.data.success) {
-        setCharts(response.data.data);
+      if (response.success) {
+        setCharts(response.data || []);
       }
     } catch (err) {
       console.error("Failed to load charts", err);
@@ -72,12 +72,12 @@ export default function AdminSeatRaffles() {
         prizeName: createForm.prizeName || null,
         prizeValue: createForm.prizeValue ? parseFloat(createForm.prizeValue) : null
       });
-      if (response.data.success) {
+      if (response.success) {
         setShowCreateModal(false);
         setCreateForm({ chartId: "", name: "", description: "", prizeName: "", prizeValue: "" });
         loadRaffles();
       } else {
-        setError(response.data.message);
+        setError(response.message);
       }
     } catch (err) {
       setError(err.message || "Failed to create raffle");
@@ -97,12 +97,12 @@ export default function AdminSeatRaffles() {
         animationSpeed: parseInt(settingsForm.animationSpeed) || 100,
         animationSteps: parseInt(settingsForm.animationSteps) || 35
       });
-      if (response.data.success) {
+      if (response.success) {
         setShowSettingsModal(false);
         setSelectedRaffle(null);
         loadRaffles();
       } else {
-        setError(response.data.message);
+        setError(response.message);
       }
     } catch (err) {
       setError(err.message || "Failed to update settings");
@@ -134,8 +134,8 @@ export default function AdminSeatRaffles() {
   const openSettings = async (raffle) => {
     try {
       const response = await seatRafflesAPI.getById(raffle.seatRaffleId);
-      if (response.data.success) {
-        const data = response.data.data;
+      if (response.success) {
+        const data = response.data;
         setSelectedRaffle(data);
         setSettingsForm({
           name: data.name || "",

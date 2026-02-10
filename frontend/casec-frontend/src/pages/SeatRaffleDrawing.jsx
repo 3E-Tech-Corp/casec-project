@@ -411,16 +411,16 @@ export default function SeatRaffleDrawing() {
     try {
       setLoading(true);
       const response = await seatRafflesAPI.getDrawingData(raffleId);
-      if (response.data.success) {
-        setRaffle(response.data.data);
+      if (response.success) {
+        setRaffle(response.data);
         // Convert seats array to map
         const seatMap = {};
-        response.data.data.seats?.forEach(s => {
+        response.data.seats?.forEach(s => {
           seatMap[s.seatId] = s;
         });
         setSeats(seatMap);
       } else {
-        setError(response.data.message);
+        setError(response.message);
       }
     } catch (err) {
       setError("Failed to load raffle");
