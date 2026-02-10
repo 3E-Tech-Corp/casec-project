@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Loader2, ArrowLeft, Volume2, VolumeX, RotateCcw, Trophy, Settings } from "lucide-react";
 import { seatRafflesAPI } from "../services/api";
@@ -483,29 +483,115 @@ export default function SeatRaffleDrawing() {
     );
   }
   
-  // Background opacity (default 1 if not set)
-  const bgOpacity = raffle?.backgroundOpacity ?? 1;
-
-  // Helper to render a section if it exists
-  const renderSection = (level, position, title) => {
-    const section = groupedSections[level][position];
-    if (!section) return null;
-    
-    return (
-      <DynamicSection
-        title={title}
-        section={section}
-        seats={seatsBySection[section.sectionId] || []}
-        highlightedSeatId={highlightedSeatId}
-        winnerSeatId={winnerSeatId}
-        excludedSeatIds={excludedSeatIds}
-      />
-    );
-  };
+  // Background opacity (default 0.5 if not set)
+  const bgOpacity = raffle?.backgroundOpacity ?? 0.5;
 
   // Check which sections exist to determine layout
   const hasOrchestra = groupedSections.orchestra.left || groupedSections.orchestra.center || groupedSections.orchestra.right;
   const hasBalcony = groupedSections.balcony.left || groupedSections.balcony.center || groupedSections.balcony.right;
+
+  // Helper to get seats for a section/row, filtered and sorted
+  const getSeatsForRow = (section, rowLabel) => {
+    if (!section) return [];
+    return (seatsBySection[section.sectionId] || [])
+      .filter(s => s.rowLabel === rowLabel && s.status !== 'NotExist')
+      .sort((a, b) => section.direction === 'RTL' ? b.seatNumber - a.seatNumber : a.seatNumber - b.seatNumber);
+  };
+
+  // Helper to calculate max seats in a section
+  const getMaxSeatsInSection = (section) => {
+    if (!section) return 0;
+    const seats = seatsBySection[section.sectionId] || [];
+    const rowCounts = {};
+    seats.filter(s => s.status !== 'NotExist').forEach(s => {
+      rowCounts[s.rowLabel] = (rowCounts[s.rowLabel] || 0) + 1;
+    });
+    return Math.max(0, ...Object.values(rowCounts));
+  };
+
+  // Render a unified level (Orchestra or Balcony) with aligned rows
+  const renderLevel = (levelKey, levelName) => {
+    const leftSection = groupedSections[levelKey].left;
+    const centerSection = groupedSections[levelKey].center;
+    const rightSection = groupedSections[levelKey].right;
+    
+    if (!leftSection && !centerSection && !rightSection) return null;
+    
+    // Get ALL unique rows across all sections in this level
+    const allSections = [leftSection, centerSection, rightSection].filter(Boolean);
+    const allRows = [...new Set(
+      allSections.flatMap(s => 
+        (seatsBySection[s.sectionId] || [])
+          .filter(seat => seat.status !== 'NotExist')
+          .map(seat => seat.rowLabel)
+      )
+    )].sort();
+    
+    // Calculate fixed widths for alignment
+    const leftMaxSeats = getMaxSeatsInSection(leftSection);
+    const centerMaxSeats = getMaxSeatsInSection(centerSection);
+    const rightMaxSeats = getMaxSeatsInSection(rightSection);
+    
+    const leftWidth = Math.max(80, leftMaxSeats * 28);
+    const centerWidth = Math.max(100, centerMaxSeats * 28);
+    const rightWidth = Math.max(80, rightMaxSeats * 28);
+    
+    // Render seats for a section/row
+    const renderSectionSeats = (section, rowLabel, fixedWidth) => {
+      if (!section) return <div style={{ width: fixedWidth }}></div>;
+      const seats = getSeatsForRow(section, rowLabel);
+      
+      return (
+        <div className="flex items-center gap-0.5 justify-center" style={{ width: fixedWidth }}>
+          {seats.map(seat => (
+            <Seat
+              key={seat.seatId}
+              seatId={seat.seatId}
+              visibleNumber={seat.seatNumber}
+              isHighlighted={highlightedSeatId === seat.seatId}
+              isWinner={winnerSeatId === seat.seatId}
+              isExcluded={excludedSeatIds?.includes(seat.seatId)}
+              isVIP={seat.isVIP}
+              isNotAvailable={seat.status === 'NotAvailable'}
+              attendeeName={seat.attendeeName}
+            />
+          ))}
+        </div>
+      );
+    };
+    
+    return (
+      <div className="bg-white/5 rounded-xl p-4">
+        <div className="text-center text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">
+          {levelName}
+        </div>
+        {/* Column headers */}
+        <div className="flex justify-center items-center gap-4 mb-2">
+          <div className="text-gray-500 text-[10px] uppercase text-center" style={{ width: leftWidth }}>Left</div>
+          <div className="w-6"></div>
+          <div className="text-gray-500 text-[10px] uppercase text-center" style={{ width: centerWidth }}>Center</div>
+          <div className="w-6"></div>
+          <div className="text-gray-500 text-[10px] uppercase text-center" style={{ width: rightWidth }}>Right</div>
+        </div>
+        {/* Rows */}
+        <div className="space-y-0.5">
+          {allRows.map(rowLabel => (
+            <React.Fragment key={rowLabel}>
+              {/* Add aisle gap before row D (between B and D, since C may not exist in side sections) */}
+              {rowLabel === 'D' && <div className="h-4"></div>}
+              <div className="flex justify-center items-center gap-4">
+                {renderSectionSeats(leftSection, rowLabel, leftWidth)}
+                <span className="w-6 text-center text-[10px] text-gray-500">{rowLabel}</span>
+                {renderSectionSeats(centerSection, rowLabel, centerWidth)}
+                <span className="w-6 text-center text-[10px] text-gray-500">{rowLabel}</span>
+                {renderSectionSeats(rightSection, rowLabel, rightWidth)}
+              </div>
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen text-white relative" style={{ backgroundColor: raffle?.backgroundColor || '#1a1a2e' }}>
@@ -599,33 +685,11 @@ export default function SeatRaffleDrawing() {
         
         {/* Theater Layout - Dynamic based on available sections */}
         <div className="space-y-6">
-          {/* Orchestra */}
-          {hasOrchestra && (
-            <div className="bg-white/5 rounded-xl p-4">
-              <div className="text-center text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">
-                Orchestra
-              </div>
-              <div className="flex justify-center gap-6">
-                {renderSection('orchestra', 'left', 'Left')}
-                {renderSection('orchestra', 'center', 'Center')}
-                {renderSection('orchestra', 'right', 'Right')}
-              </div>
-            </div>
-          )}
+          {/* Orchestra - unified row layout */}
+          {hasOrchestra && renderLevel('orchestra', 'Orchestra')}
           
-          {/* Balcony */}
-          {hasBalcony && (
-            <div className="bg-white/5 rounded-xl p-4">
-              <div className="text-center text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">
-                Balcony
-              </div>
-              <div className="flex justify-center gap-6">
-                {renderSection('balcony', 'left', 'Left')}
-                {renderSection('balcony', 'center', 'Center')}
-                {renderSection('balcony', 'right', 'Right')}
-              </div>
-            </div>
-          )}
+          {/* Balcony - unified row layout */}
+          {hasBalcony && renderLevel('balcony', 'Balcony')}
           
           {/* Fallback: show all sections generically if they don't match orchestra/balcony pattern */}
           {!hasOrchestra && !hasBalcony && sections.length > 0 && (

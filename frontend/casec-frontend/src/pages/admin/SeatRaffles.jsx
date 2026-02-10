@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Plus, Edit, Trash2, Play, Eye, Loader2, X, Trophy, Users,
-  Palette, Settings, Target, Ban, RotateCcw, ExternalLink
+  Palette, Settings, Target, Ban, RotateCcw, ExternalLink, 
+  Gift, ChevronUp, ChevronDown, Upload, Image as ImageIcon
 } from "lucide-react";
-import { seatRafflesAPI, seatingChartsAPI } from "../../services/api";
+import { seatRafflesAPI, seatingChartsAPI, slideShowsAPI, getAssetUrl } from "../../services/api";
 
 export default function AdminSeatRaffles() {
   const [raffles, setRaffles] = useState([]);
@@ -19,6 +20,14 @@ export default function AdminSeatRaffles() {
   const [createForm, setCreateForm] = useState({
     chartId: "", name: "", description: "", prizeName: "", prizeValue: ""
   });
+
+  // Prize management state
+  const [prizes, setPrizes] = useState([]);
+  const [prizeForm, setPrizeForm] = useState({
+    name: "", description: "", imageUrl: "", value: "", quantity: 1, displayOrder: 0
+  });
+  const [editingPrize, setEditingPrize] = useState(null);
+  const [prizeUploading, setPrizeUploading] = useState(false);
 
   const [settingsForm, setSettingsForm] = useState({
     name: "", description: "",
@@ -162,10 +171,140 @@ export default function AdminSeatRaffles() {
           prizeDescription: data.prizeDescription || "",
           prizeValue: data.prizeValue || ""
         });
+        // Load prizes
+        setPrizes(data.prizes || []);
+        resetPrizeForm();
         setShowSettingsModal(true);
       }
     } catch (err) {
       setError(err.message || "Failed to load raffle");
+    }
+  };
+
+  // Prize management functions
+  const resetPrizeForm = () => {
+    setPrizeForm({ name: "", description: "", imageUrl: "", value: "", quantity: 1, displayOrder: 0 });
+    setEditingPrize(null);
+  };
+
+  const handlePrizeImageUpload = async (file) => {
+    if (!file) return;
+    setPrizeUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await slideShowsAPI.uploadImage(formData);
+      if (response.success && response.data) {
+        const imageUrl = response.data.url || response.data.filePath;
+        setPrizeForm(prev => ({ ...prev, imageUrl }));
+      } else {
+        setError(response.message || 'Failed to upload image');
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to upload image');
+    } finally {
+      setPrizeUploading(false);
+    }
+  };
+
+  const handleAddPrize = async () => {
+    if (!selectedRaffle || !prizeForm.name.trim()) return;
+    try {
+      setSubmitting(true);
+      const response = await seatRafflesAPI.addPrize(selectedRaffle.seatRaffleId, {
+        name: prizeForm.name,
+        description: prizeForm.description || null,
+        imageUrl: prizeForm.imageUrl || null,
+        value: prizeForm.value ? parseFloat(prizeForm.value) : null,
+        quantity: parseInt(prizeForm.quantity) || 1,
+        displayOrder: prizes.length
+      });
+      if (response.success) {
+        setPrizes([...prizes, response.data]);
+        resetPrizeForm();
+      } else {
+        setError(response.message);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to add prize');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUpdatePrize = async () => {
+    if (!selectedRaffle || !editingPrize || !prizeForm.name.trim()) return;
+    try {
+      setSubmitting(true);
+      const response = await seatRafflesAPI.updatePrize(selectedRaffle.seatRaffleId, editingPrize.prizeId, {
+        name: prizeForm.name,
+        description: prizeForm.description || null,
+        imageUrl: prizeForm.imageUrl || null,
+        value: prizeForm.value ? parseFloat(prizeForm.value) : null,
+        quantity: parseInt(prizeForm.quantity) || 1,
+        displayOrder: prizeForm.displayOrder
+      });
+      if (response.success) {
+        setPrizes(prizes.map(p => p.prizeId === editingPrize.prizeId ? response.data : p));
+        resetPrizeForm();
+      } else {
+        setError(response.message);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to update prize');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeletePrize = async (prizeId) => {
+    if (!selectedRaffle || !confirm('Delete this prize?')) return;
+    try {
+      const response = await seatRafflesAPI.deletePrize(selectedRaffle.seatRaffleId, prizeId);
+      if (response.success) {
+        setPrizes(prizes.filter(p => p.prizeId !== prizeId));
+      } else {
+        setError(response.message);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to delete prize');
+    }
+  };
+
+  const handleEditPrize = (prize) => {
+    setEditingPrize(prize);
+    setPrizeForm({
+      name: prize.name || "",
+      description: prize.description || "",
+      imageUrl: prize.imageUrl || "",
+      value: prize.value || "",
+      quantity: prize.quantity || 1,
+      displayOrder: prize.displayOrder || 0
+    });
+  };
+
+  const movePrize = async (prizeId, direction) => {
+    const index = prizes.findIndex(p => p.prizeId === prizeId);
+    if (index < 0) return;
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= prizes.length) return;
+
+    // Swap in local state
+    const newPrizes = [...prizes];
+    [newPrizes[index], newPrizes[newIndex]] = [newPrizes[newIndex], newPrizes[index]];
+    
+    // Update displayOrder values
+    newPrizes.forEach((p, i) => { p.displayOrder = i; });
+    setPrizes(newPrizes);
+
+    // Persist changes
+    try {
+      await Promise.all([
+        seatRafflesAPI.updatePrize(selectedRaffle.seatRaffleId, newPrizes[index].prizeId, { displayOrder: index }),
+        seatRafflesAPI.updatePrize(selectedRaffle.seatRaffleId, newPrizes[newIndex].prizeId, { displayOrder: newIndex })
+      ]);
+    } catch (err) {
+      console.error('Failed to reorder prizes:', err);
     }
   };
 
