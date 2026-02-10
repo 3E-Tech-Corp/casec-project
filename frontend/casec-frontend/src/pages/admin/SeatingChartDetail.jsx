@@ -816,115 +816,174 @@ Orch-Center,A,2,Jane Doe,555-5678,jane@email.com,true`}
         </div>
       )}
 
-      {/* Preview Modal */}
-      {showPreviewModal && chart && (
-        <div className="fixed inset-0 bg-gray-900 z-50 overflow-auto">
-          <div className="min-h-screen p-4">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="text-white">
-                <h1 className="text-2xl font-bold">{chart.name}</h1>
-                <p className="text-gray-400">{chart.description}</p>
+      {/* Preview Modal - Theater Layout */}
+      {showPreviewModal && chart && (() => {
+        // Group sections by level (Orchestra vs Balcony) and position (Left, Center, Right)
+        const getSectionLevel = (name) => {
+          const lower = name.toLowerCase();
+          if (lower.includes('balc')) return 'Balcony';
+          return 'Orchestra';
+        };
+        const getSectionPosition = (name) => {
+          const lower = name.toLowerCase();
+          if (lower.includes('left')) return 0;
+          if (lower.includes('center') || lower.includes('centre')) return 1;
+          if (lower.includes('right')) return 2;
+          return 1; // default center
+        };
+        
+        const levels = {};
+        chart.sections.forEach(section => {
+          const level = getSectionLevel(section.name);
+          if (!levels[level]) levels[level] = [];
+          levels[level].push(section);
+        });
+        
+        // Sort sections within each level by position
+        Object.keys(levels).forEach(level => {
+          levels[level].sort((a, b) => getSectionPosition(a.name) - getSectionPosition(b.name));
+        });
+        
+        const levelOrder = ['Orchestra', 'Balcony'];
+        
+        return (
+          <div className="fixed inset-0 z-50 overflow-auto" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)' }}>
+            <div className="min-h-screen p-5">
+              {/* Header */}
+              <div className="flex justify-between items-start mb-5">
+                <div className="text-white">
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+                    🎉 {chart.name}
+                  </h1>
+                  <p className="text-gray-500 text-sm">{chart.description}</p>
+                </div>
+                <button
+                  onClick={() => setShowPreviewModal(false)}
+                  className="text-white hover:text-gray-300 p-2"
+                >
+                  <X className="w-8 h-8" />
+                </button>
               </div>
-              <button
-                onClick={() => setShowPreviewModal(false)}
-                className="text-white hover:text-gray-300 p-2"
-              >
-                <X className="w-8 h-8" />
-              </button>
-            </div>
 
-            {/* Stage indicator */}
-            <div className="text-center mb-8">
-              <div className="inline-block bg-gray-700 text-white px-12 py-3 rounded-t-xl text-lg font-medium">
-                STAGE
+              {/* Stage */}
+              <div className="flex justify-center mb-6">
+                <div 
+                  className="text-white text-center py-3 px-10 font-bold tracking-widest"
+                  style={{ 
+                    background: 'linear-gradient(180deg, #4a4a4a 0%, #2a2a2a 100%)',
+                    borderRadius: '0 0 50% 50%',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                    width: '50%',
+                    maxWidth: '400px'
+                  }}
+                >
+                  STAGE
+                </div>
               </div>
-            </div>
 
-            {/* Sections */}
-            <div className="space-y-8 max-w-6xl mx-auto">
-              {chart.sections.map((section) => {
-                const sectionSeats = chart.seats?.filter(s => s.sectionId === section.sectionId) || [];
-                const rows = [...new Set(sectionSeats.map(s => s.rowLabel))].sort();
-                
-                return (
-                  <div key={section.sectionId} className="bg-gray-800 rounded-xl p-4">
-                    <h3 className="text-white font-bold text-center mb-4">{section.name}</h3>
-                    <div className="space-y-1">
-                      {rows.map((rowLabel) => {
-                        const rowSeats = sectionSeats
-                          .filter(s => s.rowLabel === rowLabel)
-                          .sort((a, b) => section.direction === "RTL" 
-                            ? b.seatNumber - a.seatNumber 
-                            : a.seatNumber - b.seatNumber);
-                        
-                        return (
-                          <div key={rowLabel} className="flex items-center justify-center gap-1">
-                            <span className="w-6 text-right text-xs font-medium text-gray-400 mr-2">{rowLabel}</span>
-                            {rowSeats.map((seat) => {
-                              const isOccupied = seat.status === "Occupied" || seat.attendeeName;
-                              const isVIP = seat.isVIP;
-                              const isNotAvailable = seat.status === "NotAvailable";
-                              
-                              let bgColor = "bg-gray-600"; // Available
-                              if (isNotAvailable) bgColor = "bg-gray-900 opacity-30";
-                              else if (isVIP) bgColor = "bg-purple-500";
-                              else if (isOccupied) bgColor = "bg-green-500";
-                              
-                              return (
-                                <div
-                                  key={seat.seatId}
-                                  className={`w-6 h-6 rounded text-[10px] font-medium text-white flex items-center justify-center ${bgColor}`}
-                                  title={`${rowLabel}-${seat.seatNumber}${seat.attendeeName ? `: ${seat.attendeeName}` : ''}`}
-                                >
-                                  {seat.seatNumber}
-                                </div>
-                              );
-                            })}
-                            <span className="w-6 text-left text-xs font-medium text-gray-400 ml-2">{rowLabel}</span>
-                          </div>
-                        );
-                      })}
+              {/* Theater Levels */}
+              <div className="space-y-6 max-w-6xl mx-auto">
+                {levelOrder.map(level => {
+                  const sections = levels[level];
+                  if (!sections || sections.length === 0) return null;
+                  
+                  return (
+                    <div key={level} className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                      <div className="text-center text-purple-500 text-xs font-semibold uppercase tracking-widest mb-3">
+                        {level}
+                      </div>
+                      <div className="flex justify-center gap-6">
+                        {sections.map(section => {
+                          const sectionSeats = chart.seats?.filter(s => s.sectionId === section.sectionId) || [];
+                          const rows = [...new Set(sectionSeats.map(s => s.rowLabel))].sort();
+                          const posLabel = section.name.toLowerCase().includes('left') ? 'Left' 
+                            : section.name.toLowerCase().includes('right') ? 'Right' : 'Center';
+                          
+                          return (
+                            <div key={section.sectionId} className="flex flex-col items-center">
+                              <div className="text-gray-500 text-[10px] uppercase mb-1">{posLabel}</div>
+                              <div className="space-y-0.5">
+                                {rows.map(rowLabel => {
+                                  const rowSeats = sectionSeats
+                                    .filter(s => s.rowLabel === rowLabel)
+                                    .sort((a, b) => section.direction === "RTL" 
+                                      ? b.seatNumber - a.seatNumber 
+                                      : a.seatNumber - b.seatNumber);
+                                  
+                                  return (
+                                    <div key={rowLabel} className="flex items-center gap-0.5">
+                                      <span className="w-4 text-right text-[9px] text-gray-600 mr-1">{rowLabel}</span>
+                                      {rowSeats.map(seat => {
+                                        const isOccupied = seat.status === "Occupied" || seat.attendeeName;
+                                        const isVIP = seat.isVIP;
+                                        const isNA = seat.status === "NotAvailable";
+                                        
+                                        let bg = '#3a3a5a'; // available
+                                        if (isNA) bg = '#1a1a2e';
+                                        else if (isVIP) bg = '#a855f7';
+                                        else if (isOccupied) bg = '#22c55e';
+                                        
+                                        return (
+                                          <div
+                                            key={seat.seatId}
+                                            className="cursor-default transition-transform hover:scale-125"
+                                            style={{
+                                              width: '12px',
+                                              height: '12px',
+                                              background: bg,
+                                              borderRadius: '2px 2px 4px 4px',
+                                              border: '1px solid #4a4a6a',
+                                              opacity: isNA ? 0.3 : 1
+                                            }}
+                                            title={`${section.shortName} ${rowLabel}-${seat.seatNumber}${seat.attendeeName ? `: ${seat.attendeeName}` : ''}`}
+                                          />
+                                        );
+                                      })}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Legend */}
-            <div className="flex justify-center gap-6 mt-8 text-sm text-white">
-              <span className="flex items-center gap-2">
-                <span className="w-4 h-4 rounded bg-gray-600"></span> Available
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="w-4 h-4 rounded bg-green-500"></span> Occupied
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="w-4 h-4 rounded bg-purple-500"></span> VIP
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="w-4 h-4 rounded bg-gray-900 opacity-30"></span> N/A
-              </span>
-            </div>
-
-            {/* Stats */}
-            <div className="flex justify-center gap-8 mt-6 text-white">
-              <div className="text-center">
-                <div className="text-2xl font-bold">{chart.totalSeats}</div>
-                <div className="text-gray-400 text-sm">Total Seats</div>
+                  );
+                })}
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-400">{chart.occupiedSeats}</div>
-                <div className="text-gray-400 text-sm">Occupied</div>
+
+              {/* Legend */}
+              <div className="flex justify-center gap-6 mt-6 text-xs text-gray-400">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-sm" style={{ background: '#3a3a5a' }}></span> Available
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-sm" style={{ background: '#22c55e' }}></span> Occupied
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-sm" style={{ background: '#a855f7' }}></span> VIP
+                </span>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-400">{chart.totalSeats - chart.occupiedSeats}</div>
-                <div className="text-gray-400 text-sm">Available</div>
+
+              {/* Stats */}
+              <div className="flex justify-center gap-8 mt-4 text-white">
+                <div className="text-center">
+                  <div className="text-xl font-bold">{chart.totalSeats}</div>
+                  <div className="text-gray-500 text-xs">Total</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-green-400">{chart.occupiedSeats}</div>
+                  <div className="text-gray-500 text-xs">Occupied</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-gray-400">{chart.totalSeats - chart.occupiedSeats}</div>
+                  <div className="text-gray-500 text-xs">Available</div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
