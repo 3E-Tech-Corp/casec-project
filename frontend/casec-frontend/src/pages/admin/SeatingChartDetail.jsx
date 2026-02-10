@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft, Plus, Edit, Trash2, Users, Grid3X3, Loader2, X,
-  Upload, Download, Check, Save, RefreshCw, User, Filter, Eye, Maximize2
+  Upload, Download, Check, Save, RefreshCw, User, Filter, Eye, Maximize2,
+  ChevronDown, ChevronRight
 } from "lucide-react";
 import { seatingChartsAPI } from "../../services/api";
 
@@ -21,6 +22,7 @@ export default function AdminSeatingChartDetail() {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [editingSection, setEditingSection] = useState(null);
   const [filter, setFilter] = useState("all"); // all, occupied, empty, vip
+  const [collapsedSections, setCollapsedSections] = useState({});
 
   const [sectionForm, setSectionForm] = useState({
     name: "", shortName: "", displayOrder: 0, seatsPerRow: 10, rowLabels: "", startSeatNumber: 1, seatIncrement: 1, direction: "LTR"
@@ -485,13 +487,23 @@ export default function AdminSeatingChartDetail() {
         {chart.sections.map((section) => (
           <div key={section.sectionId} className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="p-4 bg-gray-50 border-b flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-lg">{section.name}</h3>
-                <p className="text-sm text-gray-500">
-                  {section.seatCount || (seatsBySection[section.sectionId]?.length || 0)} seats • 
-                  {section.seatsPerRow} per row • 
-                  Start #{section.startSeatNumber}
-                </p>
+              <div 
+                className="flex items-center gap-2 cursor-pointer select-none"
+                onClick={() => setCollapsedSections(prev => ({ ...prev, [section.sectionId]: !prev[section.sectionId] }))}
+              >
+                {collapsedSections[section.sectionId] ? (
+                  <ChevronRight className="w-5 h-5 text-gray-500" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-500" />
+                )}
+                <div>
+                  <h3 className="font-bold text-lg">{section.name}</h3>
+                  <p className="text-sm text-gray-500">
+                    {section.seatCount || (seatsBySection[section.sectionId]?.length || 0)} seats • 
+                    {section.seatsPerRow} per row • 
+                    Start #{section.startSeatNumber}
+                  </p>
+                </div>
               </div>
               <div className="flex gap-2">
                 {multiSelectMode && (
@@ -526,38 +538,40 @@ export default function AdminSeatingChartDetail() {
               </div>
             </div>
 
-            <div className="p-4">
-              {getRowsForSection(section.sectionId).length === 0 ? (
-                <p className="text-gray-500 text-center py-4">
-                  No seats yet. Set row labels (e.g., "A,B,C,D,E") and click Generate.
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {getRowsForSection(section.sectionId).map((rowLabel) => (
-                    <div key={rowLabel} className="flex items-center gap-2">
-                      <span className="w-8 text-right text-sm font-medium text-gray-500">{rowLabel}</span>
-                      <div className="flex gap-1 flex-wrap">
-                        {getSeatsForRow(section.sectionId, rowLabel)
-                          .filter(filterSeat)
-                          .map((seat) => (
-                            <button
-                              key={seat.seatId}
-                              onClick={() => handleSeatClick(seat)}
-                              className={`w-8 h-8 rounded text-xs font-medium text-white border-2 
-                                ${getSeatColor(seat)} hover:opacity-80 transition-opacity
-                                flex items-center justify-center
-                                ${multiSelectMode && selectedSeats.includes(seat.seatId) ? 'ring-2 ring-blue-500 ring-offset-1' : ''}`}
-                              title={`${section.shortName} ${rowLabel}-${seat.seatNumber}${seat.attendeeName ? `: ${seat.attendeeName}` : ''}`}
-                            >
-                              {seat.seatNumber}
-                            </button>
-                          ))}
+            {!collapsedSections[section.sectionId] && (
+              <div className="p-4">
+                {getRowsForSection(section.sectionId).length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">
+                    No seats yet. Set row labels (e.g., "A,B,C,D,E") and click Generate.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {getRowsForSection(section.sectionId).map((rowLabel) => (
+                      <div key={rowLabel} className="flex items-center gap-2">
+                        <span className="w-8 text-right text-sm font-medium text-gray-500">{rowLabel}</span>
+                        <div className="flex gap-1 flex-wrap">
+                          {getSeatsForRow(section.sectionId, rowLabel)
+                            .filter(filterSeat)
+                            .map((seat) => (
+                              <button
+                                key={seat.seatId}
+                                onClick={() => handleSeatClick(seat)}
+                                className={`w-8 h-8 rounded text-xs font-medium text-white border-2 
+                                  ${getSeatColor(seat)} hover:opacity-80 transition-opacity
+                                  flex items-center justify-center
+                                  ${multiSelectMode && selectedSeats.includes(seat.seatId) ? 'ring-2 ring-blue-500 ring-offset-1' : ''}`}
+                                title={`${section.shortName} ${rowLabel}-${seat.seatNumber}${seat.attendeeName ? `: ${seat.attendeeName}` : ''}`}
+                              >
+                                {seat.seatNumber}
+                              </button>
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
