@@ -376,6 +376,7 @@ public class SlideShowsController : ControllerBase
                 AllowSkip = request.AllowSkip,
                 Loop = request.Loop,
                 AutoPlay = request.AutoPlay,
+                EnableAudio = request.EnableAudio,
                 CreatedBy = GetCurrentUserId()
             };
 
@@ -441,6 +442,7 @@ public class SlideShowsController : ControllerBase
             slideShow.AllowSkip = request.AllowSkip;
             slideShow.Loop = request.Loop;
             slideShow.AutoPlay = request.AutoPlay;
+            slideShow.EnableAudio = request.EnableAudio;
             slideShow.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
@@ -2028,6 +2030,7 @@ public class SlideShowsController : ControllerBase
             AllowSkip = slideShow.AllowSkip,
             Loop = slideShow.Loop,
             AutoPlay = slideShow.AutoPlay,
+            EnableAudio = slideShow.EnableAudio,
             CreatedBy = slideShow.CreatedBy,
             CreatedByName = slideShow.CreatedByUser != null
                 ? $"{slideShow.CreatedByUser.FirstName} {slideShow.CreatedByUser.LastName}"

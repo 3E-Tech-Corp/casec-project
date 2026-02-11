@@ -1232,6 +1232,9 @@ public class SlideShow
 
     public bool AutoPlay { get; set; } = true;
 
+    // Enable audio for hero/background videos
+    public bool EnableAudio { get; set; } = false;
+
     public int? CreatedBy { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

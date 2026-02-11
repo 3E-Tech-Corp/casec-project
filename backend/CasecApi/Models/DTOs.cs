@@ -998,6 +998,7 @@ public class SlideShowDto
     public bool AllowSkip { get; set; }
     public bool Loop { get; set; }
     public bool AutoPlay { get; set; }
+    public bool EnableAudio { get; set; }
     public int? CreatedBy { get; set; }
     public string? CreatedByName { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -1055,6 +1056,7 @@ public class CreateSlideShowRequest
     public bool AllowSkip { get; set; } = true;
     public bool Loop { get; set; } = false;
     public bool AutoPlay { get; set; } = true;
+    public bool EnableAudio { get; set; } = false;
 }
 
 public class UpdateSlideShowRequest
@@ -1069,6 +1071,7 @@ public class UpdateSlideShowRequest
     public bool AllowSkip { get; set; }
     public bool Loop { get; set; }
     public bool AutoPlay { get; set; }
+    public bool EnableAudio { get; set; }
 }
 
 // Slide DTOs

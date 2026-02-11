@@ -125,7 +125,8 @@ export default function AdminSlideShows() {
     showProgress: true,
     allowSkip: true,
     loop: false,
-    autoPlay: true
+    autoPlay: true,
+    enableAudio: false
   });
 
   useEffect(() => {
@@ -201,7 +202,8 @@ export default function AdminSlideShows() {
       showProgress: true,
       allowSkip: true,
       loop: false,
-      autoPlay: true
+      autoPlay: true,
+      enableAudio: false
     });
     setShowForm(true);
   };
@@ -217,7 +219,8 @@ export default function AdminSlideShows() {
       showProgress: show.showProgress,
       allowSkip: show.allowSkip,
       loop: show.loop,
-      autoPlay: show.autoPlay
+      autoPlay: show.autoPlay,
+      enableAudio: show.enableAudio || false
     });
     setShowForm(true);
   };
@@ -286,6 +289,7 @@ export default function AdminSlideShows() {
         allowSkip: selectedShow.allowSkip,
         loop: selectedShow.loop,
         autoPlay: selectedShow.autoPlay,
+        enableAudio: selectedShow.enableAudio || false,
       });
 
       if (!createRes.success) {
@@ -785,6 +789,15 @@ export default function AdminSlideShows() {
                       className="mr-2"
                     />
                     <span className="text-sm">Auto Play</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.enableAudio}
+                      onChange={(e) => setFormData({ ...formData, enableAudio: e.target.checked })}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">Enable Audio (hero videos)</span>
                   </label>
                 </div>
               </div>
