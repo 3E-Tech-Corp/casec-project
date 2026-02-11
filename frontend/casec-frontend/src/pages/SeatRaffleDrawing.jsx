@@ -836,7 +836,7 @@ export default function SeatRaffleDrawing() {
             <div className="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent mb-2">
               {winnerInfo.section}
             </div>
-            <div className="text-2xl text-gray-300 mb-2">
+            <div className="text-4xl font-bold text-white mb-2">
               Row {winnerInfo.row}, Seat {winnerInfo.seatNum}
             </div>
             {winnerInfo.attendeeName && winnerInfo.attendeeName !== 'Unknown' && (
