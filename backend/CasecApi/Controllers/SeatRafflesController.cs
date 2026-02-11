@@ -87,6 +87,7 @@ public class SeatRafflesController : ControllerBase
                     .ThenInclude(t => t.Seat)
                 .Include(r => r.Winners.OrderBy(w => w.DrawNumber))
                     .ThenInclude(w => w.Seat)
+                .Include(r => r.Prizes.OrderBy(p => p.DisplayOrder))
                 .FirstOrDefaultAsync(r => r.SeatRaffleId == id);
 
             if (raffle == null)
@@ -898,6 +899,18 @@ public class SeatRafflesController : ControllerBase
                 SeatNumber = w.SeatNumber,
                 DrawnAt = w.DrawnAt
             }).ToList(),
+            Prizes = r.Prizes?.Select(p => new SeatRafflePrizeDto
+            {
+                PrizeId = p.PrizeId,
+                SeatRaffleId = p.SeatRaffleId,
+                Name = p.Name,
+                Description = p.Description,
+                ImageUrl = p.ImageUrl,
+                Value = p.Value,
+                Quantity = p.Quantity,
+                DisplayOrder = p.DisplayOrder,
+                WinnersCount = r.Winners?.Count(w => w.PrizeId == p.PrizeId && !w.IsTestDraw) ?? 0
+            }).ToList() ?? new List<SeatRafflePrizeDto>(),
 
             CreatedAt = r.CreatedAt,
             UpdatedAt = r.UpdatedAt

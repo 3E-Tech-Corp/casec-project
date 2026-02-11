@@ -752,46 +752,6 @@ export default function AdminSeatRaffles() {
                 </div>
               </div>
 
-              {/* Prize */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                  <Trophy className="w-4 h-4" /> Prize Info
-                </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Prize Name</label>
-                    <input
-                      type="text"
-                      value={settingsForm.prizeName}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, prizeName: e.target.value })}
-                      className="input w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Prize Value ($)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={settingsForm.prizeValue}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, prizeValue: e.target.value })}
-                      className="input w-full"
-                    />
-                  </div>
-                </div>
-                <div className="mt-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Prize Description</label>
-                  <textarea
-                    value={settingsForm.prizeDescription}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, prizeDescription: e.target.value })}
-                    className="input w-full"
-                    rows={2}
-                  />
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  ⚠️ Legacy single prize field. Use "Multiple Prizes" below for better prize management.
-                </p>
-              </div>
-
               {/* Multiple Prizes Management */}
               <div>
                 <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
