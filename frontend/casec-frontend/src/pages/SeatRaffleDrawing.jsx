@@ -909,37 +909,21 @@ export default function SeatRaffleDrawing() {
               {raffle.winners.map((w, i) => (
                 <div 
                   key={w.winnerId || i}
-                  className="bg-white/5 rounded-lg p-3 flex items-center gap-3"
+                  className="bg-white/5 rounded-lg p-4"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center text-gray-900 font-bold text-sm">
-                    {w.drawNumber}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-white font-medium">
-                      {w.sectionName} Row {w.rowLabel}, Seat {w.seatNumber}
+                  {w.prizeName && (
+                    <div className="text-xl font-bold text-yellow-400 flex items-center gap-2 mb-1">
+                      <Gift className="w-5 h-5" /> {w.prizeName}
                     </div>
-                    {w.attendeeName && (
-                      <div className="text-green-400 text-sm truncate">{w.attendeeName}</div>
-                    )}
-                    {w.prizeName && (
-                      <div className="text-yellow-400 text-xs flex items-center gap-1">
-                        <Gift className="w-3 h-3" /> {w.prizeName}
-                      </div>
-                    )}
+                  )}
+                  <div className="text-white font-medium">
+                    {w.sectionName} Row {w.rowLabel}, Seat {w.seatNumber}
                   </div>
-                  <div className="text-gray-500 text-xs">
-                    {w.drawnAt && new Date(w.drawnAt).toLocaleTimeString()}
-                  </div>
+                  {w.attendeeName && (
+                    <div className="text-green-400 text-sm truncate">{w.attendeeName}</div>
+                  )}
                 </div>
               ))}
-            </div>
-            <div className="mt-4 text-center">
-              <button
-                onClick={() => setShowWinnersModal(false)}
-                className="px-6 py-2 bg-gradient-to-r from-gray-600 to-gray-700 rounded-full font-bold text-white"
-              >
-                Close
-              </button>
             </div>
           </div>
         </div>
