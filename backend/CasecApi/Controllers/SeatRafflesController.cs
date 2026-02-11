@@ -751,6 +751,15 @@ public class SeatRafflesController : ControllerBase
                 if (prize != null)
                 {
                     prizeName = prize.Name;
+                    
+                    // Remove any existing winner for this prize (each prize can only have one winner)
+                    var existingWinners = await _context.SeatRaffleWinners
+                        .Where(w => w.SeatRaffleId == id && w.PrizeId == prizeId.Value && !w.IsTestDraw)
+                        .ToListAsync();
+                    if (existingWinners.Any())
+                    {
+                        _context.SeatRaffleWinners.RemoveRange(existingWinners);
+                    }
                 }
             }
 
