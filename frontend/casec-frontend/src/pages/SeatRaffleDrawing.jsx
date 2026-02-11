@@ -632,20 +632,34 @@ export default function SeatRaffleDrawing() {
           STAGE
         </div>
         
-        {/* Floating Prize Image - top left when prize selected */}
-        {selectedPrize?.imageUrl && (
-          <div className="fixed top-4 left-4 z-30 pointer-events-none">
-            <div className="bg-black/40 backdrop-blur-sm rounded-xl p-2 shadow-2xl border border-yellow-500/30">
-              <img 
-                src={getAssetUrl(selectedPrize.imageUrl)} 
-                alt={selectedPrize.name}
-                className="w-32 h-32 object-cover rounded-lg shadow-lg"
-              />
-              <div className="text-center mt-1">
-                <div className="text-sm font-bold text-yellow-400 truncate max-w-32">{selectedPrize.name}</div>
+        {/* Center Prize Showcase - shows when prize selected, hides during drawing */}
+        {selectedPrize && !isDrawing && (
+          <div className="fixed inset-0 z-30 flex items-center justify-center pointer-events-none">
+            <div className="animate-prize-showcase bg-black/60 backdrop-blur-md rounded-3xl p-8 shadow-2xl border-2 border-yellow-500/50
+              shadow-yellow-500/30">
+              {selectedPrize.imageUrl ? (
+                <img 
+                  src={getAssetUrl(selectedPrize.imageUrl)} 
+                  alt={selectedPrize.name}
+                  className="w-64 h-64 object-cover rounded-2xl shadow-2xl mb-4 animate-pulse-glow"
+                />
+              ) : (
+                <div className="w-64 h-64 bg-gradient-to-br from-yellow-600/30 to-amber-600/30 rounded-2xl 
+                  flex items-center justify-center mb-4 animate-pulse-glow">
+                  <Gift className="w-24 h-24 text-yellow-400" />
+                </div>
+              )}
+              <div className="text-center">
+                <div className="text-3xl font-bold text-yellow-400 mb-2">{selectedPrize.name}</div>
                 {selectedPrize.value && (
-                  <div className="text-xs text-green-400">${selectedPrize.value}</div>
+                  <div className="text-2xl text-green-400 font-bold">${selectedPrize.value}</div>
                 )}
+                {selectedPrize.description && (
+                  <div className="text-gray-300 mt-2 max-w-xs">{selectedPrize.description}</div>
+                )}
+              </div>
+              <div className="text-center mt-4 text-sm text-gray-400 animate-bounce">
+                Press "Start Raffle" to draw!
               </div>
             </div>
           </div>
@@ -955,6 +969,20 @@ export default function SeatRaffleDrawing() {
           100% { transform: scale(1); opacity: 1; }
         }
         .animate-bounce-in { animation: bounce-in 0.4s ease; }
+        
+        @keyframes prize-showcase {
+          0% { transform: scale(0.3) rotate(-10deg); opacity: 0; }
+          50% { transform: scale(1.1) rotate(2deg); }
+          70% { transform: scale(0.95) rotate(-1deg); }
+          100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .animate-prize-showcase { animation: prize-showcase 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        
+        @keyframes pulse-glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(234, 179, 8, 0.4), 0 0 40px rgba(234, 179, 8, 0.2); }
+          50% { box-shadow: 0 0 30px rgba(234, 179, 8, 0.6), 0 0 60px rgba(234, 179, 8, 0.3); }
+        }
+        .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
       `}</style>
     </div>
   );
