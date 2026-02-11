@@ -363,6 +363,7 @@ public class EventProgramsController : ControllerBase
                 Venue = request.Venue,
                 VenueAddress = request.VenueAddress,
                 SlideShowIds = request.SlideShowIds != null ? JsonSerializer.Serialize(request.SlideShowIds) : null,
+                AutoStartSlideshow = request.AutoStartSlideshow,
                 ColorThemes = request.ColorThemes != null ? JsonSerializer.Serialize(request.ColorThemes) : null,
                 ShowBackgroundImage = request.ShowBackgroundImage,
                 Slug = slug,
@@ -439,6 +440,7 @@ public class EventProgramsController : ControllerBase
             if (request.Venue != null) program.Venue = request.Venue;
             if (request.VenueAddress != null) program.VenueAddress = request.VenueAddress;
             if (request.SlideShowIds != null) program.SlideShowIds = JsonSerializer.Serialize(request.SlideShowIds);
+            if (request.AutoStartSlideshow.HasValue) program.AutoStartSlideshow = request.AutoStartSlideshow.Value;
             if (request.ColorThemes != null) program.ColorThemes = JsonSerializer.Serialize(request.ColorThemes);
             if (request.ShowBackgroundImage.HasValue) program.ShowBackgroundImage = request.ShowBackgroundImage.Value;
             if (request.Status != null) program.Status = request.Status;
@@ -1238,6 +1240,7 @@ public class EventProgramsController : ControllerBase
             Venue = program.Venue,
             VenueAddress = program.VenueAddress,
             SlideShowIds = slideShowIds,
+            AutoStartSlideshow = program.AutoStartSlideshow,
             ColorThemes = colorThemes,
             ShowBackgroundImage = program.ShowBackgroundImage,
             Status = program.Status,

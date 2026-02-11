@@ -143,8 +143,8 @@ export default function EventProgram() {
       const response = await eventProgramsAPI.getById(slug);
       if (response.success) {
         setProgram(response.data);
-        // If no slideshows, skip directly to content
-        if (!response.data.slideShowIds?.length) {
+        // If no slideshows OR auto-start is disabled, skip directly to content
+        if (!response.data.slideShowIds?.length || !response.data.autoStartSlideshow) {
           setShowSlideshow(false);
         }
       } else {

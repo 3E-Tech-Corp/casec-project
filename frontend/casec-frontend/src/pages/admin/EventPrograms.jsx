@@ -141,6 +141,7 @@ export default function AdminEventPrograms() {
     venue: "",
     venueAddress: "",
     slideShowIds: [],
+    autoStartSlideshow: false,
     colorThemes: [],
     showBackgroundImage: false,
     slug: "",
@@ -236,6 +237,7 @@ export default function AdminEventPrograms() {
           venue: p.venue || "",
           venueAddress: p.venueAddress || "",
           slideShowIds: p.slideShowIds || [],
+          autoStartSlideshow: p.autoStartSlideshow || false,
           colorThemes: p.colorThemes || [],
           showBackgroundImage: p.showBackgroundImage || false,
           slug: p.slug || "",
@@ -644,6 +646,20 @@ export default function AdminEventPrograms() {
                     <p className="text-gray-400 text-sm">No slideshows available</p>
                   )}
                 </div>
+                {/* Auto-start slideshow option */}
+                {formData.slideShowIds?.length > 0 && (
+                  <label className="flex items-center gap-2 mt-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.autoStartSlideshow || false}
+                      onChange={(e) =>
+                        setFormData({ ...formData, autoStartSlideshow: e.target.checked })
+                      }
+                      className="rounded border-gray-300"
+                    />
+                    <span className="text-sm text-gray-600">Auto-start slideshow when viewing program</span>
+                  </label>
+                )}
               </div>
 
               {/* Color Themes */}

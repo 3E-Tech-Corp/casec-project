@@ -1748,6 +1748,7 @@ public class EventProgramDto
     public string? Venue { get; set; }
     public string? VenueAddress { get; set; }
     public List<int>? SlideShowIds { get; set; }
+    public bool AutoStartSlideshow { get; set; }
     public List<ColorThemeDto>? ColorThemes { get; set; }
     public bool ShowBackgroundImage { get; set; }
     public string Status { get; set; } = "Draft";
@@ -1793,6 +1794,7 @@ public class CreateEventProgramRequest
     public string? Venue { get; set; }
     public string? VenueAddress { get; set; }
     public List<int>? SlideShowIds { get; set; }
+    public bool AutoStartSlideshow { get; set; } = false;
     public List<ColorThemeDto>? ColorThemes { get; set; }
     public bool ShowBackgroundImage { get; set; } = false;
     public string? Slug { get; set; }
@@ -1817,6 +1819,7 @@ public class UpdateEventProgramRequest
     public string? Venue { get; set; }
     public string? VenueAddress { get; set; }
     public List<int>? SlideShowIds { get; set; }
+    public bool? AutoStartSlideshow { get; set; }
     public List<ColorThemeDto>? ColorThemes { get; set; }
     public bool? ShowBackgroundImage { get; set; }
     public string? Status { get; set; }
