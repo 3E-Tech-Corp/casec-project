@@ -2325,6 +2325,15 @@ public class BulkUpdateSeatsRequest
     public bool? IsVIP { get; set; }
 }
 
+public class VipInputRequest
+{
+    public int SeatId { get; set; }
+    public bool IsVIP { get; set; }
+    public string? AttendeeName { get; set; }
+    public string? AttendeePhone { get; set; }
+    public int? TableNumber { get; set; }
+}
+
 public class ImportSeatsRequest
 {
     public List<ImportSeatRow> Seats { get; set; } = new();

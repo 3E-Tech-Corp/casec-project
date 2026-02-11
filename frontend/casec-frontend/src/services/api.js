@@ -577,6 +577,8 @@ export const seatingChartsAPI = {
   // Charts
   getAll: () => api.get("/seatingcharts"),
   getById: (id) => api.get(`/seatingcharts/${id}`),
+  getPublic: (id) => api.get(`/seatingcharts/${id}/public`),
+  vipInput: (chartId, data) => api.post(`/seatingcharts/${chartId}/vip-input`, data),
   create: (data) => api.post("/seatingcharts", data),
   update: (id, data) => api.put(`/seatingcharts/${id}`, data),
   delete: (id) => api.delete(`/seatingcharts/${id}`),

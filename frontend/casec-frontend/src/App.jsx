@@ -56,6 +56,7 @@ import PollVoter from './pages/PollVoter';
 import ProgramRating from './pages/ProgramRating';
 import ProgramPoster from './pages/ProgramPoster';
 import DeploymentHistory from './pages/DeploymentHistory';
+import VipInput from './pages/VipInput';
 
 function ProtectedRoute({ children }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -114,6 +115,7 @@ function App() {
         <Route path="/vote/:pollId" element={<PollVoter />} />
         <Route path="/rate/:eventSlug" element={<ProgramRating />} />
         <Route path="/deployments" element={<DeploymentHistory />} />
+        <Route path="/vip-input/:chartId" element={<VipInput />} />
 
         {/* Protected Routes */}
         <Route path="/" element={

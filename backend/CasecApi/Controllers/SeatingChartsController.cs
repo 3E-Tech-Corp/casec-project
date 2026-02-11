@@ -620,4 +620,126 @@ public class SeatingChartsController : ControllerBase
             return StatusCode(500, new ApiResponse<ImportSeatsResult> { Success = false, Message = "Error importing seats" });
         }
     }
+
+    // ==================== PUBLIC VIP INPUT (No Auth) ====================
+
+    // GET: /SeatingCharts/{id}/public - Get chart data for VIP input (no auth required)
+    [AllowAnonymous]
+    [HttpGet("{id}/public")]
+    public async Task<ActionResult<ApiResponse<SeatingChartDetailDto>>> GetChartPublic(int id)
+    {
+        try
+        {
+            var chart = await _context.SeatingCharts
+                .Include(c => c.Sections.OrderBy(s => s.DisplayOrder))
+                .Include(c => c.Seats)
+                .Include(c => c.Event)
+                .FirstOrDefaultAsync(c => c.ChartId == id);
+
+            if (chart == null)
+                return NotFound(new ApiResponse<SeatingChartDetailDto> { Success = false, Message = "Chart not found" });
+
+            var dto = new SeatingChartDetailDto
+            {
+                ChartId = chart.ChartId,
+                Name = chart.Name,
+                Description = chart.Description,
+                EventId = chart.EventId,
+                EventName = chart.Event?.Title,
+                Status = chart.Status,
+                TotalSeats = chart.TotalSeats,
+                OccupiedSeats = chart.OccupiedSeats,
+                CreatedAt = chart.CreatedAt,
+                UpdatedAt = chart.UpdatedAt,
+                Sections = chart.Sections.Select(s => new SeatingSectionDto
+                {
+                    SectionId = s.SectionId,
+                    Name = s.Name,
+                    ShortName = s.ShortName,
+                    Rows = s.Rows,
+                    SeatsPerRow = s.SeatsPerRow,
+                    StartRow = s.StartRow,
+                    Direction = s.Direction,
+                    DisplayOrder = s.DisplayOrder
+                }).ToList(),
+                Seats = chart.Seats.Select(seat => new SeatingSeatDto
+                {
+                    SeatId = seat.SeatId,
+                    SectionId = seat.SectionId,
+                    RowLabel = seat.RowLabel,
+                    SeatNumber = seat.SeatNumber,
+                    Status = seat.Status,
+                    AttendeeName = seat.AttendeeName,
+                    AttendeePhone = seat.AttendeePhone,
+                    TableNumber = seat.TableNumber,
+                    IsVIP = seat.IsVIP,
+                    IsAccessible = seat.IsAccessible
+                }).ToList()
+            };
+
+            return Ok(new ApiResponse<SeatingChartDetailDto> { Success = true, Data = dto });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching chart for public VIP input");
+            return StatusCode(500, new ApiResponse<SeatingChartDetailDto> { Success = false, Message = "Error fetching chart" });
+        }
+    }
+
+    // POST: /SeatingCharts/{chartId}/vip-input - Update seat VIP status and attendee info (no auth required)
+    [AllowAnonymous]
+    [HttpPost("{chartId}/vip-input")]
+    public async Task<ActionResult<ApiResponse<SeatingSeatDto>>> VipInput(int chartId, [FromBody] VipInputRequest request)
+    {
+        try
+        {
+            var seat = await _context.SeatingSeats.FirstOrDefaultAsync(s => s.SeatId == request.SeatId && s.ChartId == chartId);
+            if (seat == null)
+                return NotFound(new ApiResponse<SeatingSeatDto> { Success = false, Message = "Seat not found" });
+
+            // Update VIP status
+            seat.IsVIP = request.IsVIP;
+            
+            // Update attendee info if provided
+            if (request.AttendeeName != null) seat.AttendeeName = request.AttendeeName == "" ? null : request.AttendeeName;
+            if (request.AttendeePhone != null) seat.AttendeePhone = request.AttendeePhone == "" ? null : request.AttendeePhone;
+            if (request.TableNumber.HasValue) seat.TableNumber = request.TableNumber.Value == 0 ? null : request.TableNumber;
+            
+            seat.UpdatedAt = DateTime.UtcNow;
+
+            // Auto-set status to Occupied if attendee assigned and currently Available
+            if (!string.IsNullOrEmpty(seat.AttendeeName) && seat.Status == "Available")
+            {
+                seat.Status = "Occupied";
+            }
+
+            await _context.SaveChangesAsync();
+            await UpdateChartCounts(chartId);
+
+            _logger.LogInformation("VIP input: chartId={ChartId}, seatId={SeatId}, isVIP={IsVIP}, name={Name}", 
+                chartId, request.SeatId, request.IsVIP, request.AttendeeName);
+
+            return Ok(new ApiResponse<SeatingSeatDto>
+            {
+                Success = true,
+                Data = new SeatingSeatDto
+                {
+                    SeatId = seat.SeatId,
+                    SectionId = seat.SectionId,
+                    RowLabel = seat.RowLabel,
+                    SeatNumber = seat.SeatNumber,
+                    Status = seat.Status,
+                    AttendeeName = seat.AttendeeName,
+                    AttendeePhone = seat.AttendeePhone,
+                    TableNumber = seat.TableNumber,
+                    IsVIP = seat.IsVIP
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing VIP input for seat {SeatId}", request.SeatId);
+            return StatusCode(500, new ApiResponse<SeatingSeatDto> { Success = false, Message = "Error processing VIP input" });
+        }
+    }
 }
