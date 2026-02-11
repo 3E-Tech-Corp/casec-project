@@ -57,9 +57,9 @@ export default function EventProgram() {
   // Color theme state
   const [selectedThemeIndex, setSelectedThemeIndex] = useState(0);
 
-  // Get language from query string, default to "zh"
-  const langParam = searchParams.get("lang") || "zh";
-  const lang = LANGUAGES[langParam] ? langParam : "zh";
+  // Get language from query string, default to "en"
+  const langParam = searchParams.get("lang") || "en";
+  const lang = LANGUAGES[langParam] ? langParam : "en";
   const t = LANGUAGES[lang];
 
   // Toggle language between Chinese and English
@@ -429,7 +429,7 @@ export default function EventProgram() {
 }
 
 // Program Item Row Component
-function ProgramItemRow({ item, itemNumber, lang = "zh", onShowCards, getText, primaryColor = "#facc15", linkColor = "#60a5fa" }) {
+function ProgramItemRow({ item, itemNumber, lang = "en", onShowCards, getText, primaryColor = "#facc15", linkColor = "#60a5fa" }) {
   const t = LANGUAGES[lang] || LANGUAGES.zh;
 
   // Item title and fields using bilingual support
