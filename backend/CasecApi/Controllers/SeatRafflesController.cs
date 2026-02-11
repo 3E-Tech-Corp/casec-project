@@ -681,8 +681,8 @@ public class SeatRafflesController : ControllerBase
 
     // ==================== DRAWING ====================
 
-    // POST: /SeatRaffles/{id}/draw - Draw a winner
-    [Authorize]
+    // POST: /SeatRaffles/{id}/draw - Draw a winner (public for OBS/live display)
+    [AllowAnonymous]
     [HttpPost("{id}/draw")]
     public async Task<ActionResult<ApiResponse<SeatRaffleWinnerDto>>> DrawWinner(int id, [FromQuery] bool isTest = false, [FromQuery] int? seatId = null, [FromQuery] int? prizeId = null)
     {
@@ -808,8 +808,8 @@ public class SeatRafflesController : ControllerBase
         }
     }
 
-    // POST: /SeatRaffles/{id}/reset - Reset raffle (clear winners)
-    [Authorize]
+    // POST: /SeatRaffles/{id}/reset - Reset raffle (clear winners) (public for OBS/live display)
+    [AllowAnonymous]
     [HttpPost("{id}/reset")]
     public async Task<ActionResult<ApiResponse<bool>>> ResetRaffle(int id, [FromQuery] bool testOnly = false)
     {
