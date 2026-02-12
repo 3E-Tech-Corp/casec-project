@@ -48,26 +48,25 @@ const playWinner = () => {
   });
 };
 
-// Confetti effect - z-index 50 so it's behind winner modal (z-100) but visible over seat chart
+// Confetti effect - z-index 90 so it falls OVER the winner box (z-80)
 const createConfetti = () => {
   const colors = ['#a855f7', '#ec4899', '#22c55e', '#fbbf24', '#3b82f6', '#ef4444'];
-  for (let i = 0; i < 50; i++) { // Reduced from 80 to 50 for less intrusive effect
+  for (let i = 0; i < 60; i++) {
     const confetti = document.createElement('div');
     confetti.style.cssText = `
       position: fixed;
       pointer-events: none;
-      z-index: 50;
+      z-index: 90;
       left: ${Math.random() * 100}vw;
       top: -10px;
-      width: ${Math.random() * 10 + 4}px;
-      height: ${Math.random() * 10 + 4}px;
+      width: ${Math.random() * 10 + 5}px;
+      height: ${Math.random() * 10 + 5}px;
       background: ${colors[Math.floor(Math.random() * colors.length)]};
       border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
-      opacity: 0.8;
-      animation: confetti-fall ${Math.random() * 2 + 2}s linear forwards;
+      animation: confetti-fall ${Math.random() * 2.5 + 2}s linear forwards;
     `;
     document.body.appendChild(confetti);
-    setTimeout(() => confetti.remove(), 4000);
+    setTimeout(() => confetti.remove(), 4500);
   }
 };
 
@@ -876,16 +875,14 @@ export default function SeatRaffleDrawing() {
         </div>{/* End theater layout */}
       </div>{/* End content */}
       
-      {/* Winner Modal - semi-transparent so seat chart is visible */}
+      {/* Winner Modal - NO backdrop, just floating box so seat chart fully visible */}
       {showModal && winnerInfo && (
         <div 
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100]"
-          onClick={() => setShowModal(false)}
+          className="fixed inset-0 flex items-center justify-center z-[80] pointer-events-none"
         >
           <div 
-            className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-purple-500 rounded-3xl 
-              p-12 text-center shadow-2xl shadow-purple-500/30 animate-bounce-in"
-            onClick={e => e.stopPropagation()}
+            className="bg-gradient-to-br from-gray-800/95 to-gray-900/95 border-2 border-purple-500 rounded-3xl 
+              p-12 text-center shadow-2xl shadow-purple-500/50 animate-bounce-in pointer-events-auto"
           >
             <div className="text-6xl mb-4 animate-bounce">🎊</div>
             <div className="text-xl text-purple-400 uppercase tracking-widest mb-2">Congratulations!</div>
