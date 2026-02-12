@@ -387,6 +387,24 @@ export default function SeatRaffleDrawing() {
   const startDraw = async () => {
     if (isDrawing || eligibleSeats.length === 0) return;
     
+    // Check if selected prize is full - warn that it will replace an existing winner
+    if (selectedPrize && selectedPrize.quantity > 0) {
+      const currentWinners = selectedPrize.winnersCount || 0;
+      if (currentWinners >= selectedPrize.quantity) {
+        const lockedCount = raffle?.winners?.filter(w => w.prizeId === selectedPrize.prizeId && w.isLocked).length || 0;
+        const unlockedCount = currentWinners - lockedCount;
+        
+        if (unlockedCount === 0) {
+          alert(`All ${currentWinners} winners for "${selectedPrize.name}" are locked. Unlock one first to draw again.`);
+          return;
+        }
+        
+        if (!confirm(`"${selectedPrize.name}" already has ${currentWinners}/${selectedPrize.quantity} winners.\n\nDrawing again will REPLACE the oldest unlocked winner.\n\nContinue?`)) {
+          return;
+        }
+      }
+    }
+    
     setIsDrawing(true);
     setWinnerSeatId(null);
     setWinnerInfo(null);
