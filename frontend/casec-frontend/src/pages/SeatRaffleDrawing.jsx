@@ -743,29 +743,40 @@ export default function SeatRaffleDrawing() {
                       </div>
                       <span>No specific prize</span>
                     </button>
-                    {raffle.prizes.sort((a, b) => a.displayOrder - b.displayOrder).map(prize => (
-                      <button
-                        key={prize.prizeId}
-                        onClick={() => { setSelectedPrize(prize); setShowPrizeSelector(false); }}
-                        className={`w-full px-3 py-2 text-left text-xs hover:bg-gray-700 flex items-center gap-2
-                          ${selectedPrize?.prizeId === prize.prizeId ? 'bg-purple-600/30 text-purple-300' : 'text-gray-300'}`}
-                      >
-                        {prize.imageUrl ? (
-                          <img src={getAssetUrl(prize.imageUrl)} alt="" className="w-6 h-6 rounded object-cover" />
-                        ) : (
-                          <div className="w-6 h-6 bg-gray-600 rounded flex items-center justify-center">
-                            <Gift className="w-3 h-3" />
+                    {raffle.prizes.sort((a, b) => a.displayOrder - b.displayOrder).map(prize => {
+                      const isFull = prize.quantity && prize.winnersCount >= prize.quantity;
+                      const remaining = prize.quantity ? prize.quantity - (prize.winnersCount || 0) : null;
+                      return (
+                        <button
+                          key={prize.prizeId}
+                          onClick={() => { if (!isFull) { setSelectedPrize(prize); setShowPrizeSelector(false); }}}
+                          className={`w-full px-3 py-2 text-left text-xs hover:bg-gray-700 flex items-center gap-2
+                            ${selectedPrize?.prizeId === prize.prizeId ? 'bg-purple-600/30 text-purple-300' : 'text-gray-300'}
+                            ${isFull ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          {prize.imageUrl ? (
+                            <img src={getAssetUrl(prize.imageUrl)} alt="" className="w-6 h-6 rounded object-cover" />
+                          ) : (
+                            <div className="w-6 h-6 bg-gray-600 rounded flex items-center justify-center">
+                              <Gift className="w-3 h-3" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="truncate font-medium">{prize.name}</div>
+                            {prize.value && <div className="text-green-400 text-[10px]">${prize.value}</div>}
                           </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="truncate font-medium">{prize.name}</div>
-                          {prize.value && <div className="text-green-400 text-[10px]">${prize.value}</div>}
-                        </div>
-                        {prize.winnersCount > 0 && (
-                          <span className="text-[10px] text-gray-500">({prize.winnersCount} won)</span>
-                        )}
-                      </button>
-                    ))}
+                          <div className="text-right">
+                            {prize.quantity > 1 ? (
+                              <span className={`text-[10px] ${isFull ? 'text-red-400' : 'text-gray-400'}`}>
+                                {prize.winnersCount || 0}/{prize.quantity}
+                              </span>
+                            ) : prize.winnersCount > 0 ? (
+                              <span className="text-[10px] text-red-400">Won</span>
+                            ) : null}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -916,7 +927,7 @@ export default function SeatRaffleDrawing() {
         </div>
       )}
       
-      {/* All Winners Modal */}
+      {/* All Winners Modal - Grouped by Prize */}
       {showWinnersModal && raffle?.winners?.length > 0 && (
         <div 
           className="fixed inset-0 bg-black/85 flex items-center justify-center z-50"
@@ -924,7 +935,7 @@ export default function SeatRaffleDrawing() {
         >
           <div 
             className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-purple-500 rounded-2xl 
-              p-6 shadow-2xl shadow-purple-500/30 max-w-lg w-full mx-4 max-h-[80vh] overflow-hidden flex flex-col"
+              p-6 shadow-2xl shadow-purple-500/30 max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden flex flex-col"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
@@ -938,25 +949,85 @@ export default function SeatRaffleDrawing() {
                 ×
               </button>
             </div>
-            <div className="overflow-y-auto flex-1 space-y-2">
-              {raffle.winners.map((w, i) => (
-                <div 
-                  key={w.winnerId || i}
-                  className="bg-white/5 rounded-lg p-4"
-                >
-                  {w.prizeName && (
-                    <div className="text-xl font-bold text-yellow-400 flex items-center gap-2 mb-1">
-                      <Gift className="w-5 h-5" /> {w.prizeName}
+            <div className="overflow-y-auto flex-1 space-y-4">
+              {/* Group winners by prize */}
+              {(() => {
+                // Group winners by prizeId (null for no prize)
+                const grouped = {};
+                raffle.winners.forEach(w => {
+                  const key = w.prizeId || 'no-prize';
+                  if (!grouped[key]) {
+                    grouped[key] = {
+                      prize: raffle.prizes?.find(p => p.prizeId === w.prizeId) || null,
+                      prizeName: w.prizeName,
+                      winners: []
+                    };
+                  }
+                  grouped[key].winners.push(w);
+                });
+                
+                // Sort: prizes with images first, then by displayOrder, no-prize last
+                const sortedKeys = Object.keys(grouped).sort((a, b) => {
+                  if (a === 'no-prize') return 1;
+                  if (b === 'no-prize') return -1;
+                  const pa = grouped[a].prize;
+                  const pb = grouped[b].prize;
+                  if (pa?.imageUrl && !pb?.imageUrl) return -1;
+                  if (!pa?.imageUrl && pb?.imageUrl) return 1;
+                  return (pa?.displayOrder || 0) - (pb?.displayOrder || 0);
+                });
+                
+                return sortedKeys.map(key => {
+                  const { prize, prizeName, winners } = grouped[key];
+                  return (
+                    <div key={key} className="bg-white/5 rounded-xl p-4">
+                      <div className="flex gap-4">
+                        {/* Prize Image */}
+                        <div className="flex-shrink-0">
+                          {prize?.imageUrl ? (
+                            <img 
+                              src={getAssetUrl(prize.imageUrl)} 
+                              alt={prize.name}
+                              className="w-24 h-24 object-cover rounded-xl shadow-lg"
+                            />
+                          ) : (
+                            <div className="w-24 h-24 bg-gradient-to-br from-yellow-600/30 to-amber-600/30 rounded-xl flex items-center justify-center">
+                              <Gift className="w-10 h-10 text-yellow-400" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Prize Info & Winners */}
+                        <div className="flex-1 min-w-0">
+                          <div className="mb-2">
+                            <div className="text-lg font-bold text-yellow-400">
+                              {prize?.name || prizeName || 'General Raffle'}
+                            </div>
+                            {prize?.value && (
+                              <div className="text-sm text-green-400">${prize.value}</div>
+                            )}
+                          </div>
+                          
+                          {/* Winners List */}
+                          <div className="space-y-1">
+                            {winners.map((w, i) => (
+                              <div key={w.winnerId || i} className="flex items-center gap-2 text-sm">
+                                <span className="text-purple-400 font-medium">#{w.drawNumber || i + 1}</span>
+                                <span className="text-white">
+                                  {w.sectionName} {w.rowLabel}-{w.seatNumber}
+                                </span>
+                                {w.attendeeName && (
+                                  <span className="text-green-400 truncate">• {w.attendeeName}</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  <div className="text-white font-medium">
-                    {w.sectionName} Row {w.rowLabel}, Seat {w.seatNumber}
-                  </div>
-                  {w.attendeeName && (
-                    <div className="text-green-400 text-sm truncate">{w.attendeeName}</div>
-                  )}
-                </div>
-              ))}
+                  );
+                });
+              })()}
             </div>
           </div>
         </div>
