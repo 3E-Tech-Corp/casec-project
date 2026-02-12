@@ -315,9 +315,14 @@ export default function EventProgram() {
               setCurrentSlideshowIndex(0);
               setShowSlideshow(true);
             }}
-            className="flex items-center gap-2 bg-black/50 text-white px-4 py-2 rounded-full text-sm hover:bg-black/70 transition-colors"
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              setCurrentSlideshowIndex(0);
+              setShowSlideshow(true);
+            }}
+            className="flex items-center gap-2 bg-black/50 text-white px-4 py-3 md:py-2 rounded-full text-sm hover:bg-black/70 active:bg-black/80 transition-colors touch-manipulation min-h-[44px]"
           >
-            <Play className="w-4 h-4" />
+            <Play className="w-5 h-5 md:w-4 md:h-4" />
             {t.replayButton}
           </button>
         )}
