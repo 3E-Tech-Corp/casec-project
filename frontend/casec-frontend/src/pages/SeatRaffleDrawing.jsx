@@ -632,8 +632,8 @@ export default function SeatRaffleDrawing() {
           STAGE
         </div>
         
-        {/* Center Prize Showcase - shows when prize selected, hides during drawing */}
-        {selectedPrize && !isDrawing && (
+        {/* Center Prize Showcase - shows when prize selected, hides during drawing and when winner modal shown */}
+        {selectedPrize && !isDrawing && !showModal && (
           <div className="fixed inset-0 z-30 flex items-center justify-center pointer-events-none">
             <div className="animate-prize-showcase bg-black/60 backdrop-blur-md rounded-3xl p-8 shadow-2xl border-2 border-yellow-500/50
               shadow-yellow-500/30">
