@@ -1029,9 +1029,9 @@ export default function SeatRaffleDrawing() {
                           </div>
                           
                           {/* Winners List */}
-                          <div className="space-y-1">
+                          <div className="space-y-2">
                             {winners.map((w, i) => (
-                              <div key={w.winnerId || i} className="flex items-center gap-2 text-sm group">
+                              <div key={w.winnerId || i} className="flex items-center gap-3 group">
                                 <button
                                   onClick={async (e) => {
                                     e.stopPropagation();
@@ -1049,14 +1049,15 @@ export default function SeatRaffleDrawing() {
                                   }`}
                                   title={w.isLocked ? 'Unlock winner' : 'Lock winner'}
                                 >
-                                  {w.isLocked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                                  {w.isLocked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
                                 </button>
-                                <span className="text-purple-400 font-medium">#{w.drawNumber || i + 1}</span>
-                                <span className="text-white">
+                                <span className="text-purple-400 font-bold text-lg">#{w.drawNumber || i + 1}</span>
+                                <span className={`text-2xl font-black tracking-wide ${i % 2 === 0 ? 'text-green-400' : 'text-red-400'}`}
+                                  style={{ textShadow: i % 2 === 0 ? '0 0 10px rgba(74, 222, 128, 0.5)' : '0 0 10px rgba(248, 113, 113, 0.5)' }}>
                                   {w.sectionName} {w.rowLabel}-{w.seatNumber}
                                 </span>
                                 {w.attendeeName && (
-                                  <span className="text-green-400 truncate">• {w.attendeeName}</span>
+                                  <span className="text-yellow-300 text-lg truncate">• {w.attendeeName}</span>
                                 )}
                               </div>
                             ))}
