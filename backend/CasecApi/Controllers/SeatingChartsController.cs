@@ -743,4 +743,62 @@ public class SeatingChartsController : ControllerBase
             return StatusCode(500, new ApiResponse<SeatingSeatDto> { Success = false, Message = "Error processing VIP input" });
         }
     }
+
+    // ==================== PUBLIC VIP LOOKUP ====================
+
+    // GET: /SeatingCharts/vip-lookup?q=search - Public VIP seat lookup by name or seat
+    [AllowAnonymous]
+    [HttpGet("vip-lookup")]
+    public async Task<ActionResult<ApiResponse<List<VipSeatLookupDto>>>> VipLookup([FromQuery] string? q, [FromQuery] int? chartId)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+                return Ok(new ApiResponse<List<VipSeatLookupDto>> { Success = true, Data = new List<VipSeatLookupDto>(), Message = "Enter at least 2 characters to search" });
+
+            var searchTerm = q.Trim().ToLower();
+            
+            // Build query for VIP seats only
+            var query = _context.SeatingSeats
+                .Include(s => s.Section)
+                .Include(s => s.Chart)
+                .Where(s => s.IsVIP);
+
+            // Filter by chart if specified
+            if (chartId.HasValue)
+                query = query.Where(s => s.ChartId == chartId.Value);
+
+            // Search by name OR seat location
+            var seats = await query
+                .Where(s => 
+                    (s.AttendeeName != null && s.AttendeeName.ToLower().Contains(searchTerm)) ||
+                    (s.Section.Name.ToLower() + " " + s.RowLabel.ToLower() + "-" + s.SeatNumber.ToString()).Contains(searchTerm) ||
+                    (s.RowLabel.ToLower() + "-" + s.SeatNumber.ToString()).Contains(searchTerm) ||
+                    (s.RowLabel.ToLower() + s.SeatNumber.ToString()).Contains(searchTerm)
+                )
+                .OrderBy(s => s.Section.Name)
+                .ThenBy(s => s.RowLabel)
+                .ThenBy(s => s.SeatNumber)
+                .Take(50)
+                .ToListAsync();
+
+            var results = seats.Select(s => new VipSeatLookupDto
+            {
+                SeatId = s.SeatId,
+                Section = s.Section?.Name ?? "Unknown",
+                Row = s.RowLabel,
+                SeatNumber = s.SeatNumber,
+                AttendeeName = s.AttendeeName,
+                AttendeePhone = s.AttendeePhone,
+                EventName = s.Chart?.Name ?? "Event"
+            }).ToList();
+
+            return Ok(new ApiResponse<List<VipSeatLookupDto>> { Success = true, Data = results });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in VIP lookup for query: {Query}", q);
+            return StatusCode(500, new ApiResponse<List<VipSeatLookupDto>> { Success = false, Message = "Error searching VIP seats" });
+        }
+    }
 }

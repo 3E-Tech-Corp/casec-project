@@ -2581,3 +2581,15 @@ public class AddSeatExclusionsRequest
     public List<int> SeatIds { get; set; } = new();
     public string? Reason { get; set; }
 }
+
+// VIP Lookup
+public class VipSeatLookupDto
+{
+    public int SeatId { get; set; }
+    public string Section { get; set; } = "";
+    public string Row { get; set; } = "";
+    public int SeatNumber { get; set; }
+    public string? AttendeeName { get; set; }
+    public string? AttendeePhone { get; set; }
+    public string EventName { get; set; } = "";
+}

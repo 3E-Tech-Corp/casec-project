@@ -57,6 +57,7 @@ import ProgramRating from './pages/ProgramRating';
 import ProgramPoster from './pages/ProgramPoster';
 import DeploymentHistory from './pages/DeploymentHistory';
 import VipInput from './pages/VipInput';
+import VipLookup from './pages/VipLookup';
 
 function ProtectedRoute({ children }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -116,6 +117,7 @@ function App() {
         <Route path="/rate/:eventSlug" element={<ProgramRating />} />
         <Route path="/deployments" element={<DeploymentHistory />} />
         <Route path="/vip-input/:chartId" element={<VipInput />} />
+        <Route path="/vip-lookup" element={<VipLookup />} />
 
         {/* Protected Routes */}
         <Route path="/" element={
