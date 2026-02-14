@@ -2592,4 +2592,11 @@ public class VipSeatLookupDto
     public string? AttendeeName { get; set; }
     public string? AttendeePhone { get; set; }
     public string EventName { get; set; } = "";
+    public bool TicketPickedUp { get; set; }
+    public DateTime? PickedUpAt { get; set; }
+}
+
+public class MarkTicketPickedUpRequest
+{
+    public bool PickedUp { get; set; }
 }

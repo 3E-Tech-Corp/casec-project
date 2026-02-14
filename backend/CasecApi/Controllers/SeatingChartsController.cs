@@ -790,7 +790,9 @@ public class SeatingChartsController : ControllerBase
                 SeatNumber = s.SeatNumber,
                 AttendeeName = s.AttendeeName,
                 AttendeePhone = s.AttendeePhone,
-                EventName = s.Chart?.Name ?? "Event"
+                EventName = s.Chart?.Name ?? "Event",
+                TicketPickedUp = s.TicketPickedUp,
+                PickedUpAt = s.PickedUpAt
             }).ToList();
 
             return Ok(new ApiResponse<List<VipSeatLookupDto>> { Success = true, Data = results });
@@ -799,6 +801,55 @@ public class SeatingChartsController : ControllerBase
         {
             _logger.LogError(ex, "Error in VIP lookup for query: {Query}", q);
             return StatusCode(500, new ApiResponse<List<VipSeatLookupDto>> { Success = false, Message = "Error searching VIP seats" });
+        }
+    }
+
+    // POST: /SeatingCharts/vip-pickup/{seatId} - Mark VIP ticket as picked up
+    [AllowAnonymous]
+    [HttpPost("vip-pickup/{seatId}")]
+    public async Task<ActionResult<ApiResponse<VipSeatLookupDto>>> MarkTicketPickedUp(int seatId, [FromBody] MarkTicketPickedUpRequest request)
+    {
+        try
+        {
+            var seat = await _context.SeatingSeats
+                .Include(s => s.Section)
+                .Include(s => s.Chart)
+                .FirstOrDefaultAsync(s => s.SeatId == seatId && s.IsVIP);
+
+            if (seat == null)
+                return NotFound(new ApiResponse<VipSeatLookupDto> { Success = false, Message = "VIP seat not found" });
+
+            seat.TicketPickedUp = request.PickedUp;
+            seat.PickedUpAt = request.PickedUp ? DateTime.UtcNow : null;
+            seat.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("VIP ticket pickup status changed: seatId={SeatId}, pickedUp={PickedUp}, name={Name}", 
+                seatId, request.PickedUp, seat.AttendeeName);
+
+            return Ok(new ApiResponse<VipSeatLookupDto>
+            {
+                Success = true,
+                Data = new VipSeatLookupDto
+                {
+                    SeatId = seat.SeatId,
+                    Section = seat.Section?.Name ?? "Unknown",
+                    Row = seat.RowLabel,
+                    SeatNumber = seat.SeatNumber,
+                    AttendeeName = seat.AttendeeName,
+                    AttendeePhone = seat.AttendeePhone,
+                    EventName = seat.Chart?.Name ?? "Event",
+                    TicketPickedUp = seat.TicketPickedUp,
+                    PickedUpAt = seat.PickedUpAt
+                },
+                Message = request.PickedUp ? "Ticket marked as picked up" : "Ticket marked as not picked up"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error marking ticket pickup for seat {SeatId}", seatId);
+            return StatusCode(500, new ApiResponse<VipSeatLookupDto> { Success = false, Message = "Error updating ticket status" });
         }
     }
 }

@@ -119,6 +119,8 @@ public class SeatingSeat
     
     public bool IsVIP { get; set; }
     public bool IsAccessible { get; set; }
+    public bool TicketPickedUp { get; set; }
+    public DateTime? PickedUpAt { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

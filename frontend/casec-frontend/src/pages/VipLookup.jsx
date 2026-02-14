@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Search, User, MapPin, Phone, Ticket, Loader2, Star } from "lucide-react";
+import { Search, User, MapPin, Phone, Ticket, Loader2, Star, Check, X } from "lucide-react";
 import api from "../services/api";
 
 export default function VipLookup() {
@@ -8,6 +8,7 @@ export default function VipLookup() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState(null);
+  const [updating, setUpdating] = useState(null); // seatId being updated
 
   // Debounced search
   const search = useCallback(async (query) => {
@@ -44,6 +45,31 @@ export default function VipLookup() {
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery, search]);
+
+  // Toggle ticket pickup status
+  const togglePickup = async (seatId, currentStatus) => {
+    setUpdating(seatId);
+    try {
+      const response = await api.post(`/seatingcharts/vip-pickup/${seatId}`, {
+        pickedUp: !currentStatus
+      });
+      if (response.success) {
+        // Update the local state
+        setResults(prev => prev.map(seat => 
+          seat.seatId === seatId 
+            ? { ...seat, ticketPickedUp: response.data.ticketPickedUp, pickedUpAt: response.data.pickedUpAt }
+            : seat
+        ));
+      } else {
+        alert(response.message || "Failed to update");
+      }
+    } catch (err) {
+      console.error("Toggle pickup error:", err);
+      alert("Failed to update ticket status");
+    } finally {
+      setUpdating(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-900 via-red-800 to-yellow-700">
@@ -108,15 +134,23 @@ export default function VipLookup() {
             {results.map((seat) => (
               <div
                 key={seat.seatId}
-                className="bg-white/95 backdrop-blur-sm rounded-2xl p-5 shadow-xl border-2 border-yellow-400/50
-                  transform hover:scale-[1.02] transition-all duration-200"
+                className={`bg-white/95 backdrop-blur-sm rounded-2xl p-5 shadow-xl border-2 
+                  transform hover:scale-[1.02] transition-all duration-200
+                  ${seat.ticketPickedUp 
+                    ? 'border-green-500 bg-green-50/95' 
+                    : 'border-yellow-400/50'}`}
               >
                 <div className="flex items-start gap-4">
                   {/* VIP Badge */}
                   <div className="flex-shrink-0">
-                    <div className="w-14 h-14 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-xl 
-                      flex items-center justify-center shadow-lg">
-                      <Star className="w-8 h-8 text-white fill-white" />
+                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-lg
+                      ${seat.ticketPickedUp 
+                        ? 'bg-gradient-to-br from-green-400 to-green-600' 
+                        : 'bg-gradient-to-br from-yellow-400 to-amber-500'}`}>
+                      {seat.ticketPickedUp 
+                        ? <Check className="w-8 h-8 text-white" />
+                        : <Star className="w-8 h-8 text-white fill-white" />
+                      }
                     </div>
                   </div>
 
@@ -144,16 +178,44 @@ export default function VipLookup() {
 
                     {/* Phone if available */}
                     {seat.attendeePhone && (
-                      <div className="flex items-center gap-2 text-gray-500">
+                      <div className="flex items-center gap-2 text-gray-500 mb-2">
                         <Phone className="w-4 h-4 flex-shrink-0" />
                         <span className="text-sm">{seat.attendeePhone}</span>
                       </div>
                     )}
+
+                    {/* Pickup status */}
+                    {seat.ticketPickedUp && seat.pickedUpAt && (
+                      <div className="text-xs text-green-600 mt-1">
+                        ✓ Picked up at {new Date(seat.pickedUpAt).toLocaleString()}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Ticket Icon */}
+                  {/* Action Button */}
                   <div className="flex-shrink-0">
-                    <Ticket className="w-8 h-8 text-yellow-500" />
+                    <button
+                      onClick={() => togglePickup(seat.seatId, seat.ticketPickedUp)}
+                      disabled={updating === seat.seatId}
+                      className={`px-4 py-3 rounded-xl font-bold text-sm shadow-lg transition-all
+                        ${updating === seat.seatId ? 'opacity-50 cursor-wait' : 'hover:scale-105'}
+                        ${seat.ticketPickedUp 
+                          ? 'bg-gray-200 text-gray-600 hover:bg-red-100 hover:text-red-600' 
+                          : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-400 hover:to-green-500'
+                        }`}
+                    >
+                      {updating === seat.seatId ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : seat.ticketPickedUp ? (
+                        <span className="flex items-center gap-1">
+                          <X className="w-4 h-4" /> Undo
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          <Check className="w-4 h-4" /> Given
+                        </span>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
