@@ -185,7 +185,7 @@ function useBackgroundMusic() {
 }
 
 // Seat component - now uses actual seatNumber from DB
-function Seat({ seatId, visibleNumber, isHighlighted, isWinner, isExcluded, isVIP, isNotAvailable, attendeeName, onClick }) {
+function Seat({ seatId, visibleNumber, isHighlighted, isWinner, isExcluded, isVIP, showVIPHighlight = true, isNotAvailable, attendeeName, onClick }) {
   // Color logic matching the preview:
   // Available: blue-gray, NotAvailable: dark red, VIP: purple, Occupied: green
   let bgColor = 'bg-[#3a3a5a] border-[#4a4a6a] text-gray-300'; // available
@@ -200,7 +200,7 @@ function Seat({ seatId, visibleNumber, isHighlighted, isWinner, isExcluded, isVI
     bgColor = 'bg-green-500 border-green-400 text-white';
   } else if (isHighlighted) {
     bgColor = 'bg-yellow-400 border-yellow-300 text-gray-900';
-  } else if (isVIP) {
+  } else if (isVIP && showVIPHighlight) {
     bgColor = 'bg-purple-500 border-purple-400 text-white';
   } else if (attendeeName) {
     bgColor = 'bg-green-500 border-green-400 text-white'; // occupied
@@ -314,6 +314,7 @@ export default function SeatRaffleDrawing() {
   const [winnerInfo, setWinnerInfo] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showWinnersModal, setShowWinnersModal] = useState(false);
+  const [highlightVIP, setHighlightVIP] = useState(true);
   
   const { isPlaying, toggleMusic } = useBackgroundMusic();
   
@@ -580,6 +581,7 @@ export default function SeatRaffleDrawing() {
               isWinner={winnerSeatId === seat.seatId}
               isExcluded={excludedSeatIds?.includes(seat.seatId)}
               isVIP={seat.isVIP}
+              showVIPHighlight={highlightVIP}
               isNotAvailable={seat.status === 'NotAvailable'}
               attendeeName={seat.attendeeName}
             />
@@ -835,6 +837,17 @@ export default function SeatRaffleDrawing() {
               </div>
             </div>
             
+            {/* VIP Highlight Toggle */}
+            <label className="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={highlightVIP}
+                onChange={(e) => setHighlightVIP(e.target.checked)}
+                className="w-4 h-4 rounded bg-gray-700 border-gray-600 text-purple-500 focus:ring-purple-500"
+              />
+              <span>Highlight VIP seats</span>
+            </label>
+            
             {/* Admin link */}
             <Link to="/admin/seat-raffles" className="text-purple-400 hover:underline text-xs block">
               ← Admin
@@ -872,7 +885,7 @@ export default function SeatRaffleDrawing() {
           <div className="flex justify-center gap-4 mt-2 text-[10px] text-gray-500">
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-[#3a3a5a]"></span>Available</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-green-500"></span>Occupied</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-purple-500"></span>VIP</span>
+            {highlightVIP && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-purple-500"></span>VIP</span>}
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-yellow-400"></span>Scanning</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-green-500 ring-2 ring-green-400"></span>Winner</span>
           </div>
