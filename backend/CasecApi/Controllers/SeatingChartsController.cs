@@ -763,7 +763,7 @@ public class SeatingChartsController : ControllerBase
             if (chartId.HasValue)
                 query = query.Where(s => s.ChartId == chartId.Value);
 
-            List<SeatingSeats> seats;
+            List<SeatingSeat> seats;
             
             // If q is "*" or empty, return all VIP seats (for initial load)
             if (string.IsNullOrWhiteSpace(q) || q == "*")
