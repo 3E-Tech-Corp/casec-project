@@ -314,7 +314,7 @@ export default function SeatRaffleDrawing() {
   const [winnerInfo, setWinnerInfo] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showWinnersModal, setShowWinnersModal] = useState(false);
-  const [highlightVIP, setHighlightVIP] = useState(true);
+  const [highlightVIP, setHighlightVIP] = useState(false);
   
   const { isPlaying, toggleMusic } = useBackgroundMusic();
   
