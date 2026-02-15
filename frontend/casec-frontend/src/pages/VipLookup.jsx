@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Search, User, MapPin, Phone, Ticket, Loader2, Star, Check, X } from "lucide-react";
+import { Search, User, MapPin, Phone, Ticket, Loader2, Star, Check, X, Download } from "lucide-react";
 import api from "../services/api";
+import * as XLSX from "xlsx";
 
 export default function VipLookup() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,6 +78,37 @@ export default function VipLookup() {
     }
   };
 
+  // Download to Excel
+  const downloadExcel = () => {
+    const data = results.map(seat => ({
+      "Name": seat.attendeeName || "",
+      "Section": seat.section || "",
+      "Row": seat.row || "",
+      "Seat": seat.seatNumber || "",
+      "Phone": seat.attendeePhone || "",
+      "Picked Up": seat.ticketPickedUp ? "Yes" : "No",
+      "Picked Up At": seat.pickedUpAt ? new Date(seat.pickedUpAt).toLocaleString() : ""
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "VIP Seats");
+    
+    // Auto-size columns
+    const colWidths = [
+      { wch: 25 }, // Name
+      { wch: 20 }, // Section
+      { wch: 6 },  // Row
+      { wch: 6 },  // Seat
+      { wch: 15 }, // Phone
+      { wch: 10 }, // Picked Up
+      { wch: 20 }, // Picked Up At
+    ];
+    ws['!cols'] = colWidths;
+
+    XLSX.writeFile(wb, `VIP_Seats_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-900 via-red-800 to-yellow-700">
       {/* Decorative elements */}
@@ -103,7 +135,7 @@ export default function VipLookup() {
         </div>
 
         {/* Search Box */}
-        <div className="relative mb-8">
+        <div className="relative mb-4">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-yellow-600" />
           </div>
@@ -122,6 +154,20 @@ export default function VipLookup() {
               <Loader2 className="h-5 w-5 text-yellow-600 animate-spin" />
             </div>
           )}
+        </div>
+
+        {/* Download Button */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={downloadExcel}
+            disabled={loading || results.length === 0}
+            className="flex items-center gap-2 px-4 py-2 bg-white/90 hover:bg-white text-green-700 
+              rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all
+              disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className="w-5 h-5" />
+            Download Excel
+          </button>
         </div>
 
         {/* Error */}
