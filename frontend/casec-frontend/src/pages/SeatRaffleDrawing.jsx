@@ -202,8 +202,8 @@ function Seat({ seatId, visibleNumber, isHighlighted, isWinner, isExcluded, isVI
     bgColor = 'bg-yellow-400 border-yellow-300 text-gray-900';
   } else if (isVIP && showVIPHighlight) {
     bgColor = 'bg-purple-500 border-purple-400 text-white';
-  } else if (attendeeName) {
-    bgColor = 'bg-green-500 border-green-400 text-white'; // occupied
+  } else if (attendeeName && !(isVIP && !showVIPHighlight)) {
+    bgColor = 'bg-green-500 border-green-400 text-white'; // occupied (skip VIP seats when VIP highlight is off)
   }
   
   return (
